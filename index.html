@@ -10,7 +10,8 @@
 				line-height:1.6;
 				font-size:18px;
 				color:#444;
-				padding:0 10px
+				padding:0 10px;
+				text-align: justify;
 			}
 			h1 {
 				color: #333;
@@ -25,17 +26,50 @@
 			blockquote {
 				font-style: italic;
 			}
+			img {
+				display: block;
+				margin: 30px auto;
+			}
 		</style>
 		</head>
 		<body>
 			<header>
 				<h1> Philipe Godoy, <em>aka JPG</em></h1>
 			</header>
+			<hr />
 			<h2>Posts Academicos.</h2>
 			<h3>MC358 - Fundamentos matem&aacute;ticos da programa&ccedil;&atilde;o</h3>
+			<img src='mc358/turing.jpg' alt='Alan Turing' />
 			<p>Aulas ministradas pelo <em>Prof. Pedro J. de Rezende</em> no segundo semestre de 2018.</p>
 			<p>
-				<strong> Exerc&iacute;cios resolvidos</strong>, lembrando que o fato deles estarem resolvidos, n&atilde;o
+				<strong>Bons problemas</strong>, uma das partes mais interessante sobre a materia e a parte de alguns 
+				problemas famosos que acabam aparencendo como referencia, segue uma lista dos mais bacanas:
+				<ul>
+					<li>
+						<strong>Halting Problem</strong>, programas em geral podem ter loops infinitos, pode existir 
+						algum algoritmo que consegue identificar se dado determinado input um programa qualque
+						ira entrar em loop? (spoiler: nope). <br />
+						<a href='https://www.youtube.com/watch?v=macM_MtS_w4'>Computerphile</a><br />
+						<a href='https://en.wikipedia.org/wiki/Halting_problem'>Halting problem</a>
+
+					</li>
+					<li>
+						<strong>Conjetura de Goldbach</strong>, todo número par maior que dois pode ser representado 
+						pela soma de dois numeros primos. 
+					</li>
+					<li>
+						<strong>Twin Prime</strong>, é todo numero primo cujo a soma ou subtração com dois resulta em 
+						outro número primo. 
+					</li>
+					<li>
+						<strong>Conjectura de Collatz</strong>, dada a fun&ccedil;&atilde;o abaixo, &eacute;  
+						possivel identificar se ela converge para todos os numeros naturais n&atilde;o nulos?<br />
+						<img src='/mc358/collatz.svg' />
+					</li>
+				</ul>
+			</p>
+			<p>
+				<strong>Exerc&iacute;cios resolvidos</strong>, lembrando que o fato deles estarem resolvidos, n&atilde;o
 				&eacute; sinonimo deles estarem corretos, mas tudo leva a crer que eles est&atilde;o. Caso voce encontre
 				algum erro ou tenha alguma sugest&atilde;o, entre em contato comigo que eu atualizarei os documentos.
 				<em>(do livro K. H. Rosen, Discrete Mathematics and its Applications 7&ordf; Edi&ccedil;&atilde;o).</em>
@@ -86,6 +120,7 @@
 	
 			</ul>
 			<br /><br />
+			<hr />
 			<blockquote>
 				"Of all tyrannies, a tyranny exercised for the good of its victims may be the most oppressive. It may be better to live under robber barons than under omnipotent moral busybodies. The robber baron's cruelty may sometimes sleep, his cupidity may at some point be satiated; but those who torment us for our own good will torment us without end, for they do so with the approval of their consciences."
 				C. S. Lewis 
