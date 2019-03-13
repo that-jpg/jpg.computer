@@ -54,26 +54,268 @@
 				<li> 
 					<strong>Not</strong>, infelizmente as portas mais 'primitivas' não tem muita explicação por trás, temos a transformação direta `Nand(a,a) == !a`.
 							<pre> 
-								CHIP Not {
-								    IN in;
-								    OUT out;
+CHIP Not {
+    IN in;
+    OUT out;
 
-								    PARTS:
-								    Nand(a=in, b=in, out=out);
-								}
+    PARTS:
+    Nand(a=in, b=in, out=out);
+}
 							</pre>
 				</li>
 				<li>
 					<strong>And</strong>, tendo o `Not` implementado podemos fazer a conversão direta ´Not(Nand(a, b)) == And(a, b)´ 
 					<pre>
-						CHIP And {
-								IN a, b;
-								OUT out;
+CHIP And {
+    IN a, b;
+    OUT out;
 
-								PARTS:
-								Nand(a=a,b=b,out=aux);
-								Not(in=aux, out=out);
-						}
+    PARTS:
+    Nand(a=a,b=b,out=aux);
+    Not(in=aux, out=out);
+}
+					</pre>
+				</li>
+				<li>
+					<strong>Or</strong>, o `Or` é o primeiro que eu tive dificuldades na lista, um pouquinho trick para entender mas depois ele acaba ficando trivial, ele e um Nand dos Nots. `Nand(Not(a), Not(b)) == Or(a, b)`
+					<pre>
+CHIP Or {
+    IN a, b;
+    OUT out;
+
+    PARTS:
+    Not(in=a, out=na);
+    Not(in=b, out=nb);
+    Nand(a=na, b=nb, out=out);
+}
+					</pre>
+				</li>
+				<li>
+					<strong>Xor</strong>, eu fiz escrevendo a tabela verdade, nela chegamos que `Or(And(a, Not(b)), And(b, not(a)))`; 
+					<pre>
+CHIP Xor {
+    IN a, b;
+    OUT out;
+
+    PARTS:
+    Not(in=a, out=Na);
+    Not(in=b, out=Nb);
+    And(a=a, b=Nb, out=aNb);
+    And(a=Na, b=b, out=bNa);
+    Or(a=aNb, b=bNa, out=out);
+}
+					</pre>
+				</li>
+				<li>
+					<strong>Mux</strong>, a parte mais dificil do Mux é o que de fato faz, se você assim como eu não possui experiencia anterior com circuitos eu recomendo (assim como eu fiz) que perca um tempo tentando entender o que ele é de fato, e assim montar uma tabela verdade e usar algebra booleana. Eu consegui chegar que o Mux é `Or(And(Not(sel), a), And(sel, b))`  
+					<pre>
+CHIP Mux {
+    IN a, b, sel;
+    OUT out;
+
+    PARTS:
+    Not(in=sel, out=Nsel);
+    And(a=a, b=Nsel, out=Nsela);
+    And(a=sel, b=b, out=selb);
+    Or(a=Nsela, b=selb, out=out);
+}
+					</pre>
+				</li>
+				<li>
+					<strong>DMux</strong>, a 'função' inversa do Mux, também perdi algum tempo tentando entender o que ele de fato era, mas igualmente ao Mux pode ser resolvido usando algebra booleana (e algumas lagrimas)  
+					<pre>
+CHIP DMux {
+    IN in, sel;
+    OUT a, b;
+
+    PARTS:
+    Not(in=sel, out=Nsel);
+    And(a=in, b=Nsel, out=a);
+    And(a=in, b=sel, out=b);
+}
+					</pre>
+				</li>
+				<li>
+					<strong>Not16</strong>, trivial uma vez entendida a sintaxe.  
+					<pre>
+CHIP Not16 {
+    IN in[16];
+    OUT out[16];
+
+    PARTS:
+    Not(in=in[0], out=out[0]);
+    Not(in=in[1], out=out[1]);
+    Not(in=in[2], out=out[2]);
+    Not(in=in[3], out=out[3]);
+    Not(in=in[4], out=out[4]);
+    Not(in=in[5], out=out[5]);
+    Not(in=in[6], out=out[6]);
+    Not(in=in[7], out=out[7]);
+    Not(in=in[8], out=out[8]);
+    Not(in=in[9], out=out[9]);
+    Not(in=in[10], out=out[10]);
+    Not(in=in[11], out=out[11]);
+    Not(in=in[12], out=out[12]);
+    Not(in=in[13], out=out[13]);
+    Not(in=in[14], out=out[14]);
+    Not(in=in[15], out=out[15]);
+}
+					</pre>
+				</li>
+				<li>
+					<strong>And16</strong>, analogo ao anterior, sintaxe e a maior dificuldade.
+					<pre>
+CHIP And16 {
+    IN a[16], b[16];
+    OUT out[16];
+
+    PARTS:
+    And(a=a[0], b=b[0], out=out[0]);
+    And(a=a[1], b=b[1], out=out[1]);
+    And(a=a[2], b=b[2], out=out[2]);
+    And(a=a[3], b=b[3], out=out[3]);
+    And(a=a[4], b=b[4], out=out[4]);
+    And(a=a[5], b=b[5], out=out[5]);
+    And(a=a[6], b=b[6], out=out[6]);
+    And(a=a[7], b=b[7], out=out[7]);
+    And(a=a[8], b=b[8], out=out[8]);
+    And(a=a[9], b=b[9], out=out[9]);
+    And(a=a[10], b=b[10], out=out[10]);
+    And(a=a[11], b=b[11], out=out[11]);
+    And(a=a[12], b=b[12], out=out[12]);
+    And(a=a[13], b=b[13], out=out[13]);
+    And(a=a[14], b=b[14], out=out[14]);
+    And(a=a[15], b=b[15], out=out[15]);
+}
+					</pre>
+				</li>
+				<li>
+					<strong>Or16</strong> ... 
+					<pre>
+CHIP Or16 {
+    IN a[16], b[16];
+    OUT out[16];
+
+    PARTS:
+    Or(a=a[0], b=b[0], out=out[0]);
+    Or(a=a[1], b=b[1], out=out[1]);
+    Or(a=a[2], b=b[2], out=out[2]);
+    Or(a=a[3], b=b[3], out=out[3]);
+    Or(a=a[4], b=b[4], out=out[4]);
+    Or(a=a[5], b=b[5], out=out[5]);
+    Or(a=a[6], b=b[6], out=out[6]);
+    Or(a=a[7], b=b[7], out=out[7]);
+    Or(a=a[8], b=b[8], out=out[8]);
+    Or(a=a[9], b=b[9], out=out[9]);
+    Or(a=a[10], b=b[10], out=out[10]);
+    Or(a=a[11], b=b[11], out=out[11]);
+    Or(a=a[12], b=b[12], out=out[12]);
+    Or(a=a[13], b=b[13], out=out[13]);
+    Or(a=a[14], b=b[14], out=out[14]);
+    Or(a=a[15], b=b[15], out=out[15]);
+}
+					</pre>
+				</li>
+				<li>
+					<strong>Mux16</strong> levando em conta que nosso Mux está implementado, esse tambem é direto. 
+					<pre>
+CHIP Mux16 {
+    IN a[16], b[16], sel;
+    OUT out[16];
+
+    PARTS:
+    Mux(a=a[0], b=b[0], sel=sel, out=out[0]);
+    Mux(a=a[1], b=b[1], sel=sel, out=out[1]);
+    Mux(a=a[2], b=b[2], sel=sel, out=out[2]);
+    Mux(a=a[3], b=b[3], sel=sel, out=out[3]);
+    Mux(a=a[4], b=b[4], sel=sel, out=out[4]);
+    Mux(a=a[5], b=b[5], sel=sel, out=out[5]);
+    Mux(a=a[6], b=b[6], sel=sel, out=out[6]);
+    Mux(a=a[7], b=b[7], sel=sel, out=out[7]);
+    Mux(a=a[8], b=b[8], sel=sel, out=out[8]);
+    Mux(a=a[9], b=b[9], sel=sel, out=out[9]);
+    Mux(a=a[10], b=b[10], sel=sel, out=out[10]);
+    Mux(a=a[11], b=b[11], sel=sel, out=out[11]);
+    Mux(a=a[12], b=b[12], sel=sel, out=out[12]);
+    Mux(a=a[13], b=b[13], sel=sel, out=out[13]);
+    Mux(a=a[14], b=b[14], sel=sel, out=out[14]);
+    Mux(a=a[15], b=b[15], sel=sel, out=out[15]);
+}
+					</pre>
+				</li>
+				<li>
+					<strong>Or8Way</strong> se algum das oito entradas for verdadeira nos devemos retornar verdadeiro, dessa forma precisamos encadeiar esses ´Or´s. 
+					<pre>
+CHIP Or8Way {
+    IN in[8];
+    OUT out;
+
+    PARTS:
+    Or(a=in[0], b=in[1], out=w1);
+    Or(a=w1, b=in[2], out=w2);
+    Or(a=w2, b=in[3], out=w3);
+    Or(a=w3, b=in[4], out=w4);
+    Or(a=w4, b=in[5], out=w5);
+    Or(a=w5, b=in[6], out=w6);
+    Or(a=w6, b=in[7], out=out);
+}
+ 
+					</pre>
+				</li>
+				<li>
+					<strong>Mux4Way16</strong> esse é um dos mais interessantes, é o primeiro que te força de verdade sair da logica booleana 'trivial' e compor funções usando funções não primitivas, uma dica boa é <i> tente imaginar como uma arvore </i>
+					<pre>
+CHIP Mux4Way16 {
+    IN a[16], b[16], c[16], d[16], sel[2];
+    OUT out[16];
+
+    PARTS:
+    Mux16(a=a, b=b, sel=sel[0], out=muxab);
+    Mux16(a=c, b=d, sel=sel[0], out=muxcd);
+    Mux16(a=muxab, b=muxcd, sel=sel[1], out=out);
+} 
+					</pre>
+				</li>
+				<li>
+					<strong>Mux8Way16</strong> bem similar ao problema anterior. 
+					<pre>
+CHIP Mux4Way16 {
+    IN a[16], b[16], c[16], d[16], sel[2];
+    OUT out[16];
+
+    PARTS:
+    Mux16(a=a, b=b, sel=sel[0], out=muxab);
+    Mux16(a=c, b=d, sel=sel[0], out=muxcd);
+    Mux16(a=muxab, b=muxcd, sel=sel[1], out=out);
+} 
+					</pre>
+				</li>
+				<li>
+					<strong>DMux4Way</strong> esse para mim foi o exercicio mais complicado da lista, depois de ver como se faz é possivel notar grandes semelhanças com o Mux8way16, mas como o DMux é o 'inverso' do Mux é complicado inverter seu caminho de pensamento e ver que o sel[1] precisa ser avaliado primeiro. 
+					<pre>
+CHIP DMux4Way {
+    IN in, sel[2];
+    OUT a, b, c, d;
+
+    PARTS:
+    DMux(in=in, sel=sel[1], a=w1, b=w2);
+    DMux(in=w1, sel=sel[0], a=a, b=b);
+    DMux(in=w2, sel=sel[0], a=c, b=d);
+}
+					</pre>
+				</li>
+				<li>
+					<strong>DMux8Way</strong> se você conseguiu desenvolver todos até aqui, esse ultimo não será um grande desafio, porém que fique claro, ele não é simples o que aconteceu na verdade é que você ficou bom nessas paradas mesmo. 
+					<pre>
+CHIP DMux8Way {
+    IN in, sel[3];
+    OUT a, b, c, d, e, f, g, h;
+
+    PARTS:
+    DMux(in=in, sel=sel[2], a=w1, b=w2);
+    DMux4Way(in=w1, sel[0]=sel[0], sel[1]=sel[1], a=a, b=b, c=c, d=d);
+    DMux4Way(in=w2, sel[0]=sel[0], sel[1]=sel[1], a=e, b=f, c=g, d=h);
+}
 					</pre>
 				</li>
 			</ul>
