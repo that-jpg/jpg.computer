@@ -52,18 +52,29 @@
 			<p> <strong>Lab #0</strong> </p>
 			<ul>
 				<li> 
-					<strong>Not</strong>, Infeli
+					<strong>Not</strong>, infelizmente as portas mais 'primitivas' não tem muita explicação por trás, temos a transformação direta `Nand(a,a) == !a`.
 							<pre> 
-CHIP Not {
-    IN in;
-    OUT out;
+								CHIP Not {
+								    IN in;
+								    OUT out;
 
-    PARTS:
-    // Put your code here:
-    Nand(a=in, b=in, out=out);
-}
-
+								    PARTS:
+								    Nand(a=in, b=in, out=out);
+								}
 							</pre>
+				</li>
+				<li>
+					<strong>And</strong>, tendo o `Not` implementado podemos fazer a conversão direta ´Not(Nand(a, b)) == And(a, b)´ 
+					<pre>
+						CHIP And {
+								IN a, b;
+								OUT out;
+
+								PARTS:
+								Nand(a=a,b=b,out=aux);
+								Not(in=aux, out=out);
+						}
+					</pre>
 				</li>
 			</ul>
 			<hr />
