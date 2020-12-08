@@ -61,7 +61,13 @@
 			.flex {
 				display: flex;
 			}
+
+			.table-data {
+				justify-content: space-between;
+			}
 		</style>				
+		<script src="./chart.min.js"></script>
+		
 		</head>
 		<body>
 			<header>
@@ -96,58 +102,66 @@
 				<b>Hardest Route:</b> Aresta Nego Drama - 7a (5.11d) <br />
 				<b>Hardest Flash:</b> Saci de Muleta - 6c (5.11a) 
 			</p>			
-			<table>
-				<tr>
-					<th> Grade </th>
-					<th> Count </th>
-					<th> Unique Count </th>
-				</tr>
-				<tr>
-					<td> 7a (5.11d) </td>
-					<td> 1 </td>
-					<td> 1 </td>
-				</tr>
-				<tr>
-					<td> 6c+ (5.11c) </td>
-					<td> 1 </td>
-					<td> 1 </td>
-				</tr>				
-				<tr>
-					<td> 6c (5.11a) </td>
-					<td> 5 </td>
-					<td> 5 </td>
-				</tr>
-				<tr>
-					<td> 6a+ (5.10c) </td>
-					<td> 9 </td>
-					<td> 9 </td>
-				</tr>
-				<tr>
-					<td> 6a (5.10a) </td>
-					<td> 4 </td>
-					<td> 4 </td>
-				</tr>
-				<tr>
-					<td> 5c (5.10a) </td>
-					<td> 3 </td>
-					<td> 1 </td>
-				</tr>
-				<tr>
-					<td> 5b (5.9) </td>
-					<td> 8 </td>
-					<td> 4 </td>
-				</tr>
-				<tr>
-					<td> 5a (5.8) </td>
-					<td> 2 </td>
-					<td> 2 </td>
-				</tr>
-				<tr>
-					<td> 4 (5.5) </td>
-					<td> 2 </td>
-					<td> 2 </td>
-				</tr>
-			</table>
+			<div class="table-data flex"> 
+				<div id="sport-chart_container">
+					<canvas id="sport-chart" height="300px"></canvas> 
+				</div>
+				<table id="SportSendTable">
+					<tr>
+						<th> Grade </th>
+						<th> Count </th>
+						<th> Unique Count </th>
+					</tr>
+					<tr>
+						<td class="grade"> 7a (5.11d) </td>
+						<td> 1 </td>
+						<td class="unique-send-count"> 1 </td>
+					</tr>
+					<tr>
+						<td class="grade"> 6c+ (5.11c) </td>
+						<td> 1 </td>
+						<td class="unique-send-count"> 1 </td>
+					</tr>				
+					<tr>
+						<td class="grade"> 6c (5.11a) </td>
+						<td> 5 </td>
+						<td class="unique-send-count"> 5 </td>
+					</tr>
+					<tr>
+						<td class="grade"> 6a+ (5.10c) </td>
+						<td> 9 </td>
+						<td class="unique-send-count"> 9 </td>
+					</tr>
+					<tr>
+						<td class="grade"> 6a (5.10a) </td>
+						<td> 4 </td>
+						<td class="unique-send-count"> 4 </td>
+					</tr>
+					<tr>
+						<td class="grade"> 5c (5.10a) </td>
+						<td> 3 </td>
+						<td class="unique-send-count"> 1 </td>
+					</tr>
+					<tr>
+						<td class="grade"> 5b (5.9) </td>
+						<td> 8 </td>
+						<td class="unique-send-count"> 4 </td>
+					</tr>
+					<tr>
+						<td class="grade"> 5a (5.8) </td>
+						<td> 2 </td>
+						<td class="unique-send-count"> 2 </td>
+					</tr>
+					<tr>
+						<td class="grade"> 4 (5.5) </td>
+						<td> 2 </td>
+						<td class="unique-send-count"> 2 </td>
+					</tr>
+				</table>
+				
+			</div>
+						
+			<br />
 			<h4> 7a (5.11d) </h4>
 			<ul>
 				<li> Aresta Nego Drama - Pedreira do Garcia, Campinas - September 25, 2020 </li>
@@ -306,6 +320,33 @@
 			</ul>
 			<hr />
 		</body>
-
+		<script>
+			document.onload = (() => {
+				const ctx = document.getElementById('sport-chart').getContext('2d');				
+				const myChart = new Chart(ctx, {
+					type: 'horizontalBar',										
+					data: {
+						labels: Array.from(document.querySelectorAll('#SportSendTable .grade')).map(el => el.innerHTML),
+						datasets: [{
+							label: '# of Unique Sends',
+							data: Array.from(document.querySelectorAll('#SportSendTable .unique-send-count')).map(el => el.innerHTML),							
+							borderWidth: 1
+						}]
+					},
+					options: {
+						scales: {
+							xAxes: [{
+								ticks: {
+									beginAtZero: true
+								},
+								offset: false,
+								
+							}]
+						}
+					}
+				});
+			})()
+			
+		</script>
 </html>
 
