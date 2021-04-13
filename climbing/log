@@ -1,0 +1,19 @@
+[{
+    date: '2021-04-13',
+    route: 'First Child',
+    send: true,
+    place: 'Pedreira do Garcia',
+    comment: 'Greate conditions, greate sends'
+}, {
+    date: '2021-04-13',
+    route: 'Secos e Molhados',
+    send: false,
+    place: 'Pedreira do Garcia',
+    comment: 'Passed the first part of the crux, the sequence is almost dialed, i need to see where I can put my feet on the first two moves but this should be doable soon, but I think Ill have to find a good rest point before starting the sequence',
+}, {
+    date: '2021-04-13',
+    route: 'Secos e Molhados',
+    send: false,
+    place: 'Pedreira do Garcia',
+    comment: 'Manuel told me to try a new beta with a drop knee, not sure if that will help, i think that im strong enough for it to be done without this specific move, this drop knee is just really hard on my flexability',
+}]
