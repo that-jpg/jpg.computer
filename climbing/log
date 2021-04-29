@@ -16,4 +16,28 @@
     send: false,
     place: 'Pedreira do Garcia',
     comment: 'Manuel told me to try a new beta with a drop knee, not sure if that will help, i think that im strong enough for it to be done without this specific move, this drop knee is just really hard on my flexability',
+}, {
+    date: '2021-04-14',
+    route: 'Gerard',
+    send: true,
+    place: 'Pedreira do Garcia',
+    comment: 'Always nice and easy',
+}, {
+    date: '2021-04-14',
+    route: 'Secos e Molhados',
+    send: false,
+    place: 'Pedreira do Garcia',
+    comment: "Did the crux after resting just below it, just need a day where I'm well rested, I also probably need to do the lower part in a more efficiently manner.",
+}, {
+    date: '2021-04-20',
+    route: 'Gerald',
+    send: true,
+    place: 'Pedreira do Garcia',
+    comment: "Nice",
+}, {
+    date: '2021-04-20',
+    route: 'Secos e Molhados',
+    send: false,
+    place: 'Pedreira do Garcia',
+    comment: "Passed the crux and the next move, looking good for the send",
 }]
