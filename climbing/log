@@ -40,4 +40,28 @@
     send: false,
     place: 'Pedreira do Garcia',
     comment: "Passed the crux and the next move, looking good for the send",
+}, {
+    date: '2021-05-15',
+    route: 'Ganhando Tempo',
+    send: true,
+    place: 'Pedreira do Garcia',
+    comment: "",
+}, {
+    date: '2021-05-15',
+    route: 'Indaiatubanos',
+    send: false,
+    place: 'Pedreira do Garcia',
+    comment: "fall on crux",
+}, {
+    date: '2021-05-15',
+    route: 'Indaiatubanos',
+    send: true,
+    place: 'Pedreira do Garcia',
+    comment: "fall on crux",
+}, {
+    date: '2021-05-15',
+    route: 'Regiminho',
+    send: false,
+    place: 'Pedreira do Garcia',
+    comment: "Too late in the day, should have tried it at the begining",
 }]
