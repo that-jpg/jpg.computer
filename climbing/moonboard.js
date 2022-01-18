@@ -44,6 +44,50 @@
         instagram_link: "https://www.instagram.com/p/CY1eJRsJanH/",
         google_drive_link: "https://drive.google.com/file/d/1oUXIBaQ9V0kjNeAc80-1IHkNCKvTDG41/view?usp=sharing",
         youtube_link: "https://www.youtube.com/watch?v=WaBWJBoj_Ao"
+    }, {
+        name: "Nimbus",
+        set: "2016",
+        benchmark: true,
+        place: "Powerbloc",
+        v_grade: "V4",
+        font_grade: "6B+",
+        date: "19/06/2021",
+        instagram_link: "https://www.instagram.com/p/CY3qSj-JYix/",
+        google_drive_link: "https://drive.google.com/file/d/1fsEd6jHGk2tPj6tzz-idCrA5rUtzWFgV/view?usp=sharing",
+        youtube_link: "https://www.youtube.com/watch?v=cFg75kXTtjs"
+    }, {
+        name: "Plegde to hedge",
+        set: "2016",
+        benchmark: true,
+        place: "Powerbloc",
+        v_grade: "V4",
+        font_grade: "6B+",
+        date: "24/06/2021",
+        instagram_link: "https://www.instagram.com/p/CY3s7WfJyyq/",
+        google_drive_link: "https://drive.google.com/file/d/19aizCYw3DLYDMWJ15kh63YzzMFdZ6cvO/view?usp=sharing",
+        youtube_link: "https://www.youtube.com/watch?v=XH1Nh1JYx3w"
+    }, {
+        name: "Just another day",
+        set: "2016",
+        benchmark: true,
+        place: "Powerbloc",
+        v_grade: "V4",
+        font_grade: "6B+",
+        date: "03/07/2021",
+        instagram_link: "https://www.instagram.com/p/CY3u13apxQO/",
+        google_drive_link: "https://drive.google.com/file/d/1kB60wV8rT3NR7EVtxFxjEbRFdx_kME9A/view?usp=sharing",
+        youtube_link: "https://www.youtube.com/watch?v=t4blV5J1XNQ"
+    }, {
+        name: "Wuthering Heights",
+        set: "2016",
+        benchmark: true,
+        place: "Powerbloc",
+        v_grade: "V4",
+        font_grade: "6B+",
+        date: "03/07/2021",
+        instagram_link: "https://www.instagram.com/p/CY3vYDypylR/",
+        google_drive_link: "https://drive.google.com/file/d/1ZWWkKzUfMd-DGufze0fCABfEYP94sLxl/view?usp=sharing",
+        youtube_link: "https://www.youtube.com/watch?v=lNmp04kTSG0"
     }];
 
     const columns = [{
