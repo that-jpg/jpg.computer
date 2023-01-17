@@ -1655,7 +1655,8 @@ const problems = [
     },
     {
         "name": "ACG12",
-        "grade": "6B+"
+        "grade": "6B+",
+        "youtube": "https://www.youtube.com/shorts/QUoXjTaEl0s"
     },
     {
         "name": "AL A GAIT OR?",
@@ -1735,7 +1736,8 @@ const problems = [
     },
     {
         "name": "E-Z CHEESE",
-        "grade": "6B+"
+        "grade": "6B+",
+        "youtube": "https://www.youtube.com/shorts/wFKDSxJk0fA"
     },
     {
         "name": "F**K TRUMP!",
@@ -1768,7 +1770,8 @@ const problems = [
     },
     {
         "name": "HATHA YOGA",
-        "grade": "6B+"
+        "grade": "6B+",
+        "youtube": "https://www.youtube.com/shorts/syOHYGK3k-o"
     },
     {
         "name": "HON'S WAY TO HELL",
@@ -1923,7 +1926,8 @@ const problems = [
     },
     {
         "name": "VIVA",
-        "grade": "6B+"
+        "grade": "6B+",
+        "youtube": "https://www.youtube.com/watch?v=KxRjUO6LK5U"
     },
     {
         "name": "WARM ME UP",
@@ -1932,7 +1936,8 @@ const problems = [
     },
     {
         "name": "WARM UP 1031",
-        "grade": "6B+"
+        "grade": "6B+",
+        "youtube": "https://www.youtube.com/shorts/PxAGHdr-0ow"
     },
     {
         "name": "WARM UP NO. 10",
