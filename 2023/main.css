@@ -1,0 +1,22 @@
+* {
+    font-family: 'Open Sans', sans-serif;
+}
+
+.wrapper {
+    max-width: 100%;
+    width: 1024px;
+    margin: 0 auto;
+}
+
+h1 {
+    text-align: center;
+}
+
+.back-link {
+    padding: 16px 0;
+    display: block;
+}
+
+img {
+    width: 100%;
+}
