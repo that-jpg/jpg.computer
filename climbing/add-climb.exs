@@ -52,4 +52,4 @@ defmodule Serializer do
 end
 
 # Usage example
-Serializer.add_item_to_file("data.bin")
+Serializer.add_item_to_file("database.bin")
