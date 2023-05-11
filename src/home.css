@@ -1,0 +1,51 @@
+body {
+    background-color: black;
+    padding-bottom: 20px;
+    font-family: Trebuchet MS;
+}
+
+main {
+  width: fit-content;
+  margin: 0 auto;
+}
+
+header {
+  color: white;
+}
+
+h1, h2, h3 {
+  color: white;
+  padding: 10px 20px 0 10px
+}
+
+p {
+  color: white;
+  padding: 0 15px 0 20px;
+}
+
+a {
+  color: #7fffd4;
+}
+
+a:visited {
+  color: #20b2aa;
+}
+
+header em {
+    color: #666;
+}
+
+footer p {
+  text-align: right;
+  padding-top: 5px;
+}
+
+.page-size {
+  font-size: 10px;
+}
+
+@media (max-width: 440px) {
+  header em {
+    display: block;
+  }
+}
