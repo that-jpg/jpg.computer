@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
 from os import listdir
-from os.path import isfile, join, isdir
+from sys import getsizeof
+from os.path import isfile, join, isdir, getsize
 import re
 
 PATH = "./src"
@@ -21,6 +22,10 @@ def get_root_template():
 def parse_template(template, content):
     return re.sub(r'{% content %}', content, template)
 
+def add_file_size_to_template(template, output_filepath):
+    filesize = str(getsize(output_filepath))
+    return re.sub(r'{% size %}', filesize, template)
+
 def save_file(current_dir, filename, template_to_save):
     # open the file in write mode
     output_filepath = f'{OUTPUT_PATH}/{current_dir[5:]}{filename[:-3]}html'
@@ -28,6 +33,17 @@ def save_file(current_dir, filename, template_to_save):
     with open(output_filepath, 'w') as file:
         # write the string into the file
         file.write(template_to_save)
+
+    template_to_save = add_file_size_to_template(template_to_save, output_filepath);
+
+    with open(output_filepath, 'w') as file:
+        # write the string into the file
+        file.write(template_to_save)
+
+#    parsed_template = re.sub(r'{% size %}', str(getsizeof(parse_template)), parsed_template)
+
+
+
 
 def generate(current_dir):
     print("Generating folder: ", current_dir)
