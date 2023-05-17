@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 from os import listdir
+import subprocess
 from sys import getsizeof
 from os.path import isfile, join, isdir, getsize
 import re
@@ -42,15 +43,14 @@ def save_file(current_dir, filename, template_to_save):
 
 #    parsed_template = re.sub(r'{% size %}', str(getsizeof(parse_template)), parsed_template)
 
-
-
-
 def generate(current_dir):
     print("Generating folder: ", current_dir)
     files = [f for f in listdir(current_dir) if isfile(join(current_dir, f)) and f not in IGNORED_FILES]
-    has_custom_build = "default.template.jwm" in files and current_dir is not PATH
+    has_custom_build = "custom.py" in files and current_dir is not PATH
     if (has_custom_build):
-        print("     TODO: this need to be implemented, currently we are not handling custom templates :/")
+        # execute python script to generate the template
+        subprocess.call(['python3', f'{current_dir}/custom.py'])
+
         template = None
     else:
         template = get_root_template()
