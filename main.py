@@ -2,6 +2,7 @@
 
 from os import listdir
 import subprocess
+import shutil
 from sys import getsizeof
 from os.path import isfile, join, isdir, getsize
 import re
@@ -62,6 +63,10 @@ def generate(current_dir):
                     content = file.read()
                     template_to_save = parse_template(template, content)
                     save_file(current_dir, f, template_to_save);
+            else:
+                # if its not a custom file just copy it to the output folder
+                output_filepath = f'{OUTPUT_PATH}/{current_dir[5:]}'
+                shutil.copy2(f'{current_dir}/{f}', output_filepath) #
 
         print(files)
 
