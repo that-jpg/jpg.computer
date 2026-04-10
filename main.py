@@ -4,7 +4,8 @@ from os import listdir, makedirs
 import subprocess
 import shutil
 import sys
-from os.path import isfile, join, isdir
+import json
+from os.path import isfile, join, isdir, splitext, getmtime, relpath
 import re
 
 PATH = "./src"
@@ -40,14 +41,78 @@ def parse_jwm(raw_content):
             break
     return template_name, title, '\n'.join(lines[i:])
 
-def parse_template(template, content, title=None):
+def parse_template(template, content, title=None, root='./'):
     result = re.sub(r'{% content %}', content, template)
     result = re.sub(r'{% title %}', title or 'Philipe Godoy - Just a dev | Home', result)
+    result = re.sub(r'{% root %}', root, result)
     return result
 
-def save_file(current_dir, filename, template_to_save):
-    rel = current_dir[len(PATH):]
-    output_dir = f'{OUTPUT_PATH}{rel}'
+IMAGE_EXTS = {'.jpg', '.jpeg', '.png', '.gif', '.webp', '.avif'}
+THUMB_MAX_PX = 400
+
+def generate_thumbnails(collection_dir, thumbs_dir, images):
+    """Generate thumbnails into thumbs_dir, skipping files that are up to date."""
+    from PIL import Image
+    makedirs(thumbs_dir, exist_ok=True)
+    for img in images:
+        src  = join(collection_dir, img)
+        dest = join(thumbs_dir, img)
+        if isfile(dest) and getmtime(dest) >= getmtime(src):
+            continue
+        print(f"  thumbnail: {img}")
+        with Image.open(src) as im:
+            im.thumbnail((THUMB_MAX_PX, THUMB_MAX_PX))
+            im.save(dest)
+
+def process_gallery(content, current_dir):
+    """Replace {% gallery <folder> %} with a generated JS const pieces = [...] array.
+
+    Folder layout expected under current_dir/<folder>/:
+      *.jpg / *.png / ...   — full-size images (sorted alphabetically)
+      descriptions.json     — optional { "filename.jpg": "caption" } map
+
+    Thumbnails are generated automatically into the build output directory.
+    """
+    def replace(m):
+        folder = m.group(1).strip()
+        collection_dir = join(current_dir, folder)
+        if not isdir(collection_dir):
+            return 'const pieces = [];'
+
+        desc_path = join(collection_dir, 'descriptions.json')
+        descriptions = {}
+        if isfile(desc_path):
+            with open(desc_path, 'r') as f:
+                descriptions = json.load(f)
+
+        images = sorted(
+            f for f in listdir(collection_dir)
+            if isfile(join(collection_dir, f))
+            and splitext(f)[1].lower() in IMAGE_EXTS
+        )
+
+        thumbs_dir = join(OUTPUT_PATH, relpath(current_dir, PATH), folder, 'thumbs')
+        generate_thumbnails(collection_dir, thumbs_dir, images)
+
+        url_base = '/' + relpath(current_dir, PATH).replace('\\', '/') + '/'
+
+        entries = []
+        for img in images:
+            name = splitext(img)[0]
+            desc = descriptions.get(img, descriptions.get(name,
+                name.replace('-', ' ').replace('_', ' ')))
+            full  = f'{url_base}{folder}/{img}'
+            thumb = f'{url_base}{folder}/thumbs/{img}'
+            entries.append(
+                f'  {{ thumb: {json.dumps(thumb)}, full: {json.dumps(full)}, desc: {json.dumps(desc)} }}'
+            )
+
+        joined = ',\n'.join(entries)
+        return f'const pieces = [\n{joined}\n];'
+
+    return re.sub(r'\{%\s*gallery\s+(\S+)\s*%\}', replace, content)
+
+def save_file(output_dir, filename, template_to_save):
     makedirs(output_dir, exist_ok=True)
     output_filepath = f'{output_dir}/{filename[:-3]}html'
     filesize = str(len(template_to_save.encode()))
@@ -67,12 +132,14 @@ def generate(current_dir):
                 with open(f'{current_dir}/{f}', 'r') as file:
                     raw_content = file.read()
                 template_name, title, content = parse_jwm(raw_content)
+                content = process_gallery(content, current_dir)
                 template = get_template(template_name)
-                template_to_save = parse_template(template, content, title)
-                save_file(current_dir, f, template_to_save)
+                output_dir = join(OUTPUT_PATH, relpath(current_dir, PATH))
+                root = relpath(OUTPUT_PATH, output_dir).replace('\\', '/') + '/'
+                template_to_save = parse_template(template, content, title, root)
+                save_file(output_dir, f, template_to_save)
             else:
-                rel = current_dir[len(PATH):]
-                output_dir = f'{OUTPUT_PATH}{rel}'
+                output_dir = join(OUTPUT_PATH, relpath(current_dir, PATH))
                 makedirs(output_dir, exist_ok=True)
                 shutil.copy2(f'{current_dir}/{f}', output_dir)
         print(files)

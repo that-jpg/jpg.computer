@@ -3,7 +3,7 @@
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<title>Philipe Godoy - Ceramics</title>
-		<link rel="stylesheet" href="home.css">
+		<link rel="stylesheet" href="../home.css">
 	</head>
 	<body>
 		<main>
@@ -11,22 +11,251 @@
 				<h1> Philipe Godoy, <em>aka JPG</em></h1>
 			</header>
 			<hr />
-			<h1> Ceramics </h1>
+			<style>
+  /* ── gallery ── */
+  #ceramics-gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 8px;
+    padding: 10px 20px;
+  }
+
+  .gallery-item {
+    cursor: pointer;
+    overflow: hidden;
+    border-radius: 4px;
+    aspect-ratio: 1;
+    background: #111;
+  }
+
+  .gallery-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.2s, opacity 0.2s;
+    display: block;
+  }
+
+  .gallery-item:hover img {
+    transform: scale(1.06);
+    opacity: 0.85;
+  }
+
+  .gallery-empty {
+    color: #666;
+    padding: 0 20px;
+    font-style: italic;
+  }
+
+  /* ── modal ── */
+  #ceramics-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.92);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+  }
+
+  #ceramics-modal.open {
+    display: flex;
+  }
+
+  .modal-img-wrap {
+    max-width: 90vw;
+    max-height: 75vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal-img-wrap img {
+    max-width: 90vw;
+    max-height: 75vh;
+    object-fit: contain;
+    border-radius: 2px;
+  }
+
+  .modal-desc {
+    color: #ccc;
+    margin-top: 14px;
+    font-size: 14px;
+    text-align: center;
+    max-width: min(600px, 90vw);
+    padding: 0 20px;
+    font-family: Trebuchet MS;
+    min-height: 1.4em;
+  }
+
+  .modal-close {
+    position: fixed;
+    top: 14px;
+    right: 18px;
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 36px;
+    cursor: pointer;
+    line-height: 1;
+    opacity: 0.7;
+  }
+
+  .modal-close:hover { opacity: 1; }
+
+  .modal-nav {
+    position: fixed;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255, 255, 255, 0.12);
+    border: none;
+    color: #fff;
+    font-size: 26px;
+    cursor: pointer;
+    padding: 14px 16px;
+    border-radius: 4px;
+    transition: background 0.15s;
+    line-height: 1;
+  }
+
+  .modal-nav:hover { background: rgba(255, 255, 255, 0.28); }
+  #modal-prev { left: 10px; }
+  #modal-next { right: 10px; }
+
+  .modal-counter {
+    position: fixed;
+    top: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: #888;
+    font-size: 12px;
+    font-family: Trebuchet MS;
+  }
+
+  @media (max-width: 480px) {
+    #ceramics-gallery {
+      grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    }
+    .modal-nav {
+      font-size: 20px;
+      padding: 10px 12px;
+    }
+  }
+</style>
+
+<h1>Ceramics</h1>
 
 <p>
-	Learning ceramics.
+	Notes and log from learning ceramics — hand-building, wheel throwing, and glazing.
 </p>
 
-<h2> Log </h2>
+<h2>Collection</h2>
+<div id="ceramics-gallery"></div>
+
+<h2>Goals</h2>
+<ul>
+	<li>Complete a first functional bowl on the wheel.</li>
+	<li>Understand basic glaze chemistry.</li>
+</ul>
+
+<h2>Log</h2>
 <ul>
 	<li>2026-04-10: Started tracking ceramics journey.</li>
 </ul>
 
+<!-- Modal -->
+<div id="ceramics-modal" role="dialog" aria-modal="true" aria-label="Image viewer">
+  <button class="modal-close" id="modal-close" aria-label="Close">&#x2715;</button>
+  <button class="modal-nav" id="modal-prev" aria-label="Previous">&#8592;</button>
+  <div class="modal-img-wrap">
+    <img id="modal-img" src="" alt="">
+  </div>
+  <p class="modal-desc" id="modal-desc"></p>
+  <button class="modal-nav" id="modal-next" aria-label="Next">&#8594;</button>
+  <span class="modal-counter" id="modal-counter"></span>
+</div>
+
+<script>
+const pieces = [
+  { thumb: "/ceramics/collection/thumbs/sample-cup.jpg", full: "/ceramics/collection/sample-cup.jpg", desc: "sample cup" }
+];
+
+const gallery  = document.getElementById('ceramics-gallery');
+const modal    = document.getElementById('ceramics-modal');
+const modalImg = document.getElementById('modal-img');
+const modalDesc= document.getElementById('modal-desc');
+const counter  = document.getElementById('modal-counter');
+let current    = 0;
+
+function buildGallery() {
+  if (pieces.length === 0) {
+    const p = document.createElement('p');
+    p.className = 'gallery-empty';
+    p.textContent = 'No pictures yet.';
+    gallery.appendChild(p);
+    return;
+  }
+  pieces.forEach((p, i) => {
+    const item = document.createElement('div');
+    item.className = 'gallery-item';
+    const img = document.createElement('img');
+    img.src = p.thumb;
+    img.alt = p.desc;
+    img.loading = 'lazy';
+    item.addEventListener('click', () => openModal(i));
+    item.appendChild(img);
+    gallery.appendChild(item);
+  });
+}
+
+function openModal(index) {
+  current = index;
+  showCurrent();
+  modal.classList.add('open');
+  document.body.style.overflow = 'hidden';
+  document.getElementById('modal-close').focus();
+}
+
+function closeModal() {
+  modal.classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function showCurrent() {
+  const p = pieces[current];
+  modalImg.src = p.full;
+  modalImg.alt = p.desc;
+  modalDesc.textContent = p.desc;
+  counter.textContent = `${current + 1} / ${pieces.length}`;
+}
+
+function next() { current = (current + 1) % pieces.length; showCurrent(); }
+function prev() { current = (current - 1 + pieces.length) % pieces.length; showCurrent(); }
+
+document.getElementById('modal-close').addEventListener('click', closeModal);
+document.getElementById('modal-next').addEventListener('click', next);
+document.getElementById('modal-prev').addEventListener('click', prev);
+
+// Close on backdrop click
+modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+
+// Keyboard navigation
+document.addEventListener('keydown', (e) => {
+  if (!modal.classList.contains('open')) return;
+  if      (e.key === 'ArrowRight') next();
+  else if (e.key === 'ArrowLeft')  prev();
+  else if (e.key === 'Escape')     closeModal();
+});
+
+buildGallery();
+</script>
+
 			<br /><br />
 			<hr />
 			<footer>
-				<p class="page-size"> the size of this page is: 657bytes</p>
-				<img src="./emacs.png" alt="powered by emacs" align="right" />
+				<p class="page-size"> the size of this page is: 6237bytes</p>
+				<img src="../emacs.png" alt="powered by emacs" align="right" />
 			</footer>
 		</main>
 	</body>
