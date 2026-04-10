@@ -3,7 +3,8 @@
 from os import listdir, makedirs
 import subprocess
 import shutil
-from os.path import isfile, join, isdir, getsize
+import sys
+from os.path import isfile, join, isdir
 import re
 
 PATH = "./src"
@@ -44,30 +45,25 @@ def parse_template(template, content, title=None):
     result = re.sub(r'{% title %}', title or 'Philipe Godoy - Just a dev | Home', result)
     return result
 
-def add_file_size_to_template(template, output_filepath):
-    filesize = str(getsize(output_filepath))
-    return re.sub(r'{% size %}', filesize, template)
-
 def save_file(current_dir, filename, template_to_save):
     rel = current_dir[len(PATH):]
     output_dir = f'{OUTPUT_PATH}{rel}'
     makedirs(output_dir, exist_ok=True)
     output_filepath = f'{output_dir}/{filename[:-3]}html'
-    with open(output_filepath, 'w') as file:
-        file.write(template_to_save)
-    template_to_save = add_file_size_to_template(template_to_save, output_filepath)
+    filesize = str(len(template_to_save.encode()))
+    template_to_save = re.sub(r'{% size %}', filesize, template_to_save)
     with open(output_filepath, 'w') as file:
         file.write(template_to_save)
 
 def generate(current_dir):
     print("Generating folder: ", current_dir)
     files = [f for f in listdir(current_dir) if isfile(join(current_dir, f)) and f not in IGNORED_FILES]
-    has_custom_build = "custom.py" in files and current_dir is not PATH
+    has_custom_build = "custom.py" in files and current_dir != PATH
     if has_custom_build:
         subprocess.call(['python3', f'{current_dir}/custom.py'])
     else:
         for f in files:
-            if f[-3:] == TEMPLATE_FORMAT:
+            if f.endswith(f'.{TEMPLATE_FORMAT}') and not f.endswith(f'.template.{TEMPLATE_FORMAT}'):
                 with open(f'{current_dir}/{f}', 'r') as file:
                     raw_content = file.read()
                 template_name, title, content = parse_jwm(raw_content)
@@ -88,4 +84,5 @@ def walk(current_dir):
         walk(directory)
     generate(current_dir)
 
-walk(PATH)
+target = sys.argv[1] if len(sys.argv) > 1 else PATH
+walk(target)
