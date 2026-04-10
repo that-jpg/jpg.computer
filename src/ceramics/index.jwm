@@ -139,7 +139,9 @@
 </p>
 
 <h2>Collection</h2>
-<div id="ceramics-gallery"></div>
+<div id="ceramics-gallery">
+{% gallery collection %}
+</div>
 
 <h2>Goals</h2>
 <ul>
@@ -152,7 +154,7 @@
 	<li>2026-04-10: Started tracking ceramics journey.</li>
 </ul>
 
-<!-- Modal -->
+<!-- Modal (hidden without JS; JS wires it up) -->
 <div id="ceramics-modal" role="dialog" aria-modal="true" aria-label="Image viewer">
   <button class="modal-close" id="modal-close" aria-label="Close">&#x2715;</button>
   <button class="modal-nav" id="modal-prev" aria-label="Previous">&#8592;</button>
@@ -165,35 +167,20 @@
 </div>
 
 <script>
-{% gallery collection %}
-
-const gallery  = document.getElementById('ceramics-gallery');
+const items    = Array.from(document.querySelectorAll('#ceramics-gallery .gallery-item'));
 const modal    = document.getElementById('ceramics-modal');
 const modalImg = document.getElementById('modal-img');
 const modalDesc= document.getElementById('modal-desc');
 const counter  = document.getElementById('modal-counter');
 let current    = 0;
 
-function buildGallery() {
-  if (pieces.length === 0) {
-    const p = document.createElement('p');
-    p.className = 'gallery-empty';
-    p.textContent = 'No pictures yet.';
-    gallery.appendChild(p);
-    return;
-  }
-  pieces.forEach((p, i) => {
-    const item = document.createElement('div');
-    item.className = 'gallery-item';
-    const img = document.createElement('img');
-    img.src = p.thumb;
-    img.alt = p.desc;
-    img.loading = 'lazy';
-    item.addEventListener('click', () => openModal(i));
-    item.appendChild(img);
-    gallery.appendChild(item);
+// Intercept clicks — open modal instead of following the link
+items.forEach((a, i) => {
+  a.addEventListener('click', (e) => {
+    e.preventDefault();
+    openModal(i);
   });
-}
+});
 
 function openModal(index) {
   current = index;
@@ -209,30 +196,26 @@ function closeModal() {
 }
 
 function showCurrent() {
-  const p = pieces[current];
-  modalImg.src = p.full;
-  modalImg.alt = p.desc;
-  modalDesc.textContent = p.desc;
-  counter.textContent = `${current + 1} / ${pieces.length}`;
+  const a = items[current];
+  modalImg.src = a.href;
+  modalImg.alt = a.dataset.desc;
+  modalDesc.textContent = a.dataset.desc;
+  counter.textContent = `${current + 1} / ${items.length}`;
 }
 
-function next() { current = (current + 1) % pieces.length; showCurrent(); }
-function prev() { current = (current - 1 + pieces.length) % pieces.length; showCurrent(); }
+function next() { current = (current + 1) % items.length; showCurrent(); }
+function prev() { current = (current - 1 + items.length) % items.length; showCurrent(); }
 
 document.getElementById('modal-close').addEventListener('click', closeModal);
 document.getElementById('modal-next').addEventListener('click', next);
 document.getElementById('modal-prev').addEventListener('click', prev);
 
-// Close on backdrop click
 modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
 
-// Keyboard navigation
 document.addEventListener('keydown', (e) => {
   if (!modal.classList.contains('open')) return;
   if      (e.key === 'ArrowRight') next();
   else if (e.key === 'ArrowLeft')  prev();
   else if (e.key === 'Escape')     closeModal();
 });
-
-buildGallery();
 </script>

@@ -5,7 +5,7 @@ import subprocess
 import shutil
 import sys
 import json
-from os.path import isfile, join, isdir, splitext, getmtime, relpath
+from os.path import isfile, join, isdir, splitext, getmtime, getsize, relpath
 import re
 
 PATH = "./src"
@@ -96,26 +96,47 @@ def process_gallery(content, current_dir):
 
         url_base = '/' + relpath(current_dir, PATH).replace('\\', '/') + '/'
 
-        entries = []
+        if not images:
+            return '<p class="gallery-empty">No pictures yet.</p>'
+
+        items = []
         for img in images:
             name = splitext(img)[0]
             desc = descriptions.get(img, descriptions.get(name,
                 name.replace('-', ' ').replace('_', ' ')))
             full  = f'{url_base}{folder}/{img}'
             thumb = f'{url_base}{folder}/thumbs/{img}'
-            entries.append(
-                f'  {{ thumb: {json.dumps(thumb)}, full: {json.dumps(full)}, desc: {json.dumps(desc)} }}'
+            items.append(
+                f'  <a class="gallery-item" href="{full}" target="_blank" data-desc="{desc}">'
+                f'<img src="{thumb}" alt="{desc}" loading="lazy"></a>'
             )
 
-        joined = ',\n'.join(entries)
-        return f'const pieces = [\n{joined}\n];'
+        return '\n'.join(items)
 
     return re.sub(r'\{%\s*gallery\s+(\S+)\s*%\}', replace, content)
+
+IMG_PATH_RE = re.compile(
+    r'["\']([^"\']*\.(?:jpg|jpeg|png|gif|webp|avif))["\']',
+    re.IGNORECASE
+)
+
+def page_total_size(html_content, output_dir):
+    total = len(html_content.encode())
+    seen = set()
+    for m in IMG_PATH_RE.finditer(html_content):
+        src = m.group(1)
+        if src.startswith(('http://', 'https://', 'data:')):
+            continue
+        img_path = join(OUTPUT_PATH, src.lstrip('/')) if src.startswith('/') else join(output_dir, src)
+        if img_path not in seen and isfile(img_path):
+            total += getsize(img_path)
+            seen.add(img_path)
+    return total
 
 def save_file(output_dir, filename, template_to_save):
     makedirs(output_dir, exist_ok=True)
     output_filepath = f'{output_dir}/{filename[:-3]}html'
-    filesize = str(len(template_to_save.encode()))
+    filesize = str(page_total_size(template_to_save, output_dir))
     template_to_save = re.sub(r'{% size %}', filesize, template_to_save)
     with open(output_filepath, 'w') as file:
         file.write(template_to_save)
