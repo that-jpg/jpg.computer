@@ -1,0 +1,561 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<!-- 2019-08-20 ter 22:46 -->
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>&lrm;</title>
+<meta name="generator" content="Org mode" />
+<meta name="author" content="jpg" />
+<style type="text/css">
+ <!--/*--><![CDATA[/*><!--*/
+  .title  { text-align: center;
+             margin-bottom: .2em; }
+  .subtitle { text-align: center;
+              font-size: medium;
+              font-weight: bold;
+              margin-top:0; }
+  .todo   { font-family: monospace; color: red; }
+  .done   { font-family: monospace; color: green; }
+  .priority { font-family: monospace; color: orange; }
+  .tag    { background-color: #eee; font-family: monospace;
+            padding: 2px; font-size: 80%; font-weight: normal; }
+  .timestamp { color: #bebebe; }
+  .timestamp-kwd { color: #5f9ea0; }
+  .org-right  { margin-left: auto; margin-right: 0px;  text-align: right; }
+  .org-left   { margin-left: 0px;  margin-right: auto; text-align: left; }
+  .org-center { margin-left: auto; margin-right: auto; text-align: center; }
+  .underline { text-decoration: underline; }
+  #postamble p, #preamble p { font-size: 90%; margin: .2em; }
+  p.verse { margin-left: 3%; }
+  pre {
+    border: 1px solid #ccc;
+    box-shadow: 3px 3px 3px #eee;
+    padding: 8pt;
+    font-family: monospace;
+    overflow: auto;
+    margin: 1.2em;
+  }
+  pre.src {
+    position: relative;
+    overflow: visible;
+    padding-top: 1.2em;
+  }
+  pre.src:before {
+    display: none;
+    position: absolute;
+    background-color: white;
+    top: -10px;
+    right: 10px;
+    padding: 3px;
+    border: 1px solid black;
+  }
+  pre.src:hover:before { display: inline;}
+  /* Languages per Org manual */
+  pre.src-asymptote:before { content: 'Asymptote'; }
+  pre.src-awk:before { content: 'Awk'; }
+  pre.src-C:before { content: 'C'; }
+  /* pre.src-C++ doesn't work in CSS */
+  pre.src-clojure:before { content: 'Clojure'; }
+  pre.src-css:before { content: 'CSS'; }
+  pre.src-D:before { content: 'D'; }
+  pre.src-ditaa:before { content: 'ditaa'; }
+  pre.src-dot:before { content: 'Graphviz'; }
+  pre.src-calc:before { content: 'Emacs Calc'; }
+  pre.src-emacs-lisp:before { content: 'Emacs Lisp'; }
+  pre.src-fortran:before { content: 'Fortran'; }
+  pre.src-gnuplot:before { content: 'gnuplot'; }
+  pre.src-haskell:before { content: 'Haskell'; }
+  pre.src-hledger:before { content: 'hledger'; }
+  pre.src-java:before { content: 'Java'; }
+  pre.src-js:before { content: 'Javascript'; }
+  pre.src-latex:before { content: 'LaTeX'; }
+  pre.src-ledger:before { content: 'Ledger'; }
+  pre.src-lisp:before { content: 'Lisp'; }
+  pre.src-lilypond:before { content: 'Lilypond'; }
+  pre.src-lua:before { content: 'Lua'; }
+  pre.src-matlab:before { content: 'MATLAB'; }
+  pre.src-mscgen:before { content: 'Mscgen'; }
+  pre.src-ocaml:before { content: 'Objective Caml'; }
+  pre.src-octave:before { content: 'Octave'; }
+  pre.src-org:before { content: 'Org mode'; }
+  pre.src-oz:before { content: 'OZ'; }
+  pre.src-plantuml:before { content: 'Plantuml'; }
+  pre.src-processing:before { content: 'Processing.js'; }
+  pre.src-python:before { content: 'Python'; }
+  pre.src-R:before { content: 'R'; }
+  pre.src-ruby:before { content: 'Ruby'; }
+  pre.src-sass:before { content: 'Sass'; }
+  pre.src-scheme:before { content: 'Scheme'; }
+  pre.src-screen:before { content: 'Gnu Screen'; }
+  pre.src-sed:before { content: 'Sed'; }
+  pre.src-sh:before { content: 'shell'; }
+  pre.src-sql:before { content: 'SQL'; }
+  pre.src-sqlite:before { content: 'SQLite'; }
+  /* additional languages in org.el's org-babel-load-languages alist */
+  pre.src-forth:before { content: 'Forth'; }
+  pre.src-io:before { content: 'IO'; }
+  pre.src-J:before { content: 'J'; }
+  pre.src-makefile:before { content: 'Makefile'; }
+  pre.src-maxima:before { content: 'Maxima'; }
+  pre.src-perl:before { content: 'Perl'; }
+  pre.src-picolisp:before { content: 'Pico Lisp'; }
+  pre.src-scala:before { content: 'Scala'; }
+  pre.src-shell:before { content: 'Shell Script'; }
+  pre.src-ebnf2ps:before { content: 'ebfn2ps'; }
+  /* additional language identifiers per "defun org-babel-execute"
+       in ob-*.el */
+  pre.src-cpp:before  { content: 'C++'; }
+  pre.src-abc:before  { content: 'ABC'; }
+  pre.src-coq:before  { content: 'Coq'; }
+  pre.src-groovy:before  { content: 'Groovy'; }
+  /* additional language identifiers from org-babel-shell-names in
+     ob-shell.el: ob-shell is the only babel language using a lambda to put
+     the execution function name together. */
+  pre.src-bash:before  { content: 'bash'; }
+  pre.src-csh:before  { content: 'csh'; }
+  pre.src-ash:before  { content: 'ash'; }
+  pre.src-dash:before  { content: 'dash'; }
+  pre.src-ksh:before  { content: 'ksh'; }
+  pre.src-mksh:before  { content: 'mksh'; }
+  pre.src-posh:before  { content: 'posh'; }
+  /* Additional Emacs modes also supported by the LaTeX listings package */
+  pre.src-ada:before { content: 'Ada'; }
+  pre.src-asm:before { content: 'Assembler'; }
+  pre.src-caml:before { content: 'Caml'; }
+  pre.src-delphi:before { content: 'Delphi'; }
+  pre.src-html:before { content: 'HTML'; }
+  pre.src-idl:before { content: 'IDL'; }
+  pre.src-mercury:before { content: 'Mercury'; }
+  pre.src-metapost:before { content: 'MetaPost'; }
+  pre.src-modula-2:before { content: 'Modula-2'; }
+  pre.src-pascal:before { content: 'Pascal'; }
+  pre.src-ps:before { content: 'PostScript'; }
+  pre.src-prolog:before { content: 'Prolog'; }
+  pre.src-simula:before { content: 'Simula'; }
+  pre.src-tcl:before { content: 'tcl'; }
+  pre.src-tex:before { content: 'TeX'; }
+  pre.src-plain-tex:before { content: 'Plain TeX'; }
+  pre.src-verilog:before { content: 'Verilog'; }
+  pre.src-vhdl:before { content: 'VHDL'; }
+  pre.src-xml:before { content: 'XML'; }
+  pre.src-nxml:before { content: 'XML'; }
+  /* add a generic configuration mode; LaTeX export needs an additional
+     (add-to-list 'org-latex-listings-langs '(conf " ")) in .emacs */
+  pre.src-conf:before { content: 'Configuration File'; }
+
+  table { border-collapse:collapse; }
+  caption.t-above { caption-side: top; }
+  caption.t-bottom { caption-side: bottom; }
+  td, th { vertical-align:top;  }
+  th.org-right  { text-align: center;  }
+  th.org-left   { text-align: center;   }
+  th.org-center { text-align: center; }
+  td.org-right  { text-align: right;  }
+  td.org-left   { text-align: left;   }
+  td.org-center { text-align: center; }
+  dt { font-weight: bold; }
+  .footpara { display: inline; }
+  .footdef  { margin-bottom: 1em; }
+  .figure { padding: 1em; }
+  .figure p { text-align: center; }
+  .equation-container {
+    display: table;
+    text-align: center;
+    width: 100%;
+  }
+  .equation {
+    vertical-align: middle;
+  }
+  .equation-label {
+    display: table-cell;
+    text-align: right;
+    vertical-align: middle;
+  }
+  .inlinetask {
+    padding: 10px;
+    border: 2px solid gray;
+    margin: 10px;
+    background: #ffffcc;
+  }
+  #org-div-home-and-up
+   { text-align: right; font-size: 70%; white-space: nowrap; }
+  textarea { overflow-x: auto; }
+  .linenr { font-size: smaller }
+  .code-highlighted { background-color: #ffff00; }
+  .org-info-js_info-navigation { border-style: none; }
+  #org-info-js_console-label
+    { font-size: 10px; font-weight: bold; white-space: nowrap; }
+  .org-info-js_search-highlight
+    { background-color: #ffff00; color: #000000; font-weight: bold; }
+  .org-svg { width: 90%; }
+  /*]]>*/-->
+</style>
+<script type="text/javascript">
+/*
+@licstart  The following is the entire license notice for the
+JavaScript code in this tag.
+
+Copyright (C) 2012-2019 Free Software Foundation, Inc.
+
+The JavaScript code in this tag is free software: you can
+redistribute it and/or modify it under the terms of the GNU
+General Public License (GNU GPL) as published by the Free Software
+Foundation, either version 3 of the License, or (at your option)
+any later version.  The code is distributed WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+
+As additional permission under GNU GPL version 3 section 7, you
+may distribute non-source (e.g., minimized or compacted) forms of
+that code without the copy of the GNU GPL normally required by
+section 4, provided you include this license notice and a URL
+through which recipients can access the Corresponding Source.
+
+
+@licend  The above is the entire license notice
+for the JavaScript code in this tag.
+*/
+<!--/*--><![CDATA[/*><!--*/
+ function CodeHighlightOn(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(null != target) {
+     elem.cacheClassElem = elem.className;
+     elem.cacheClassTarget = target.className;
+     target.className = "code-highlighted";
+     elem.className   = "code-highlighted";
+   }
+ }
+ function CodeHighlightOff(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(elem.cacheClassElem)
+     elem.className = elem.cacheClassElem;
+   if(elem.cacheClassTarget)
+     target.className = elem.cacheClassTarget;
+ }
+/*]]>*///-->
+</script>
+</head>
+<body>
+<div id="content">
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#orgf4c4d17">1. 2019-08-15</a>
+<ul>
+<li><a href="#orgdb3ca63">1.1. How we can improve processing when the physics start to impose it's limit?</a></li>
+<li><a href="#org0d368fd">1.2. How can we improve caching?</a></li>
+</ul>
+</li>
+<li><a href="#org7ae83f1">2. Capitulo 1</a>
+<ul>
+<li><a href="#org667b2e5">2.1. Files</a></li>
+<li><a href="#org14e79f8">2.2. Modelos de Sistemas Operacionais</a>
+<ul>
+<li><a href="#org1de1061">2.2.1. Monoli-thic systems</a></li>
+<li><a href="#orgc1c6fce">2.2.2. Layered System</a></li>
+<li><a href="#orgdb5043b">2.2.3. Microkernels</a></li>
+<li><a href="#orgea7e5b5">2.2.4. Client-Server Model</a></li>
+<li><a href="#orgd04a5cd">2.2.5. Virtual Machines</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#org4d76327">3. Capitulo 2</a>
+<ul>
+<li><a href="#org13fc1c5">3.1. Processo</a>
+<ul>
+<li><a href="#org1f1a4ec">3.1.1. Multiprogramacao (como rodamos varios programas ao 'mesmo' tempo?)</a></li>
+<li><a href="#org27d6bdc">3.1.2. Criacao de processo</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#org15f7358">4. Commandos interessantes</a></li>
+<li><a href="#org6ce7584">5. [offtopic]</a>
+<ul>
+<li><a href="#org5109454">5.1. Alexandre Oliva [pica?]</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div id="outline-container-orgf4c4d17" class="outline-2">
+<h2 id="orgf4c4d17"><span class="section-number-2">1</span> 2019-08-15</h2>
+<div class="outline-text-2" id="text-1">
+</div>
+<div id="outline-container-orgdb3ca63" class="outline-3">
+<h3 id="orgdb3ca63"><span class="section-number-3">1.1</span> How we can improve processing when the physics start to impose it's limit?</h3>
+<div class="outline-text-3" id="text-1-1">
+<dl class="org-dl">
+<dt><b>Pipeline</b></dt><dd>The answer is multi-processing, the exactly same problem that are now</dd>
+</dl>
+<p>
+happening on the cloud was solved by the processors designers in the 80's.
+The key of multi-processing in making sure that all parts are not iddle or waiting for
+resource when they could be working.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org0d368fd" class="outline-3">
+<h3 id="org0d368fd"><span class="section-number-3">1.2</span> How can we improve caching?</h3>
+<div class="outline-text-3" id="text-1-2">
+<dl class="org-dl">
+<dt><b>Locality principle</b></dt><dd>It can be spacial or temporal, you are more likely to acess</dd>
+</dl>
+<p>
+variables that you just access than to variables that you access a long time ago
+(or even do not accessed yet), the same can be said for data that are close spacialy to
+the data that you are using, this principal works because of the way that our code need
+loops and our main data structure is arrays or is based on arrays;
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org7ae83f1" class="outline-2">
+<h2 id="org7ae83f1"><span class="section-number-2">2</span> Capitulo 1</h2>
+<div class="outline-text-2" id="text-2">
+</div>
+<div id="outline-container-org667b2e5" class="outline-3">
+<h3 id="org667b2e5"><span class="section-number-3">2.1</span> Files</h3>
+<div class="outline-text-3" id="text-2-1">
+<ol class="org-ol">
+<li>Estrutura de arquivos</li>
+<li>Pipes
+<ul class="org-ul">
+<li>Fornece um canal de comunicacao, um buffer onde um processo pode fornecer
+dados e outro pode consumir (buffers esses que sao gerenciados pelo sistema
+operacional) [piping like a true chad]</li>
+</ul></li>
+<li>Ontogeny Recapitulates Phylogeny
+<ul class="org-ul">
+<li>Estamos sempre repetindo os erros do passado. Mudancas e avancos
+tecnologicos trazem problemas antigos.</li>
+</ul></li>
+<li>System-calls
+<ul class="org-ul">
+<li>Chamadas no sistemas que chamam recursos e procedimentos dentro do Kernel,
+normalmente os sistemas operacionais abstraem esses conceitos;</li>
+<li>Temos meios abstratos de montar funcoes que realizam funcoes em codigo
+maquina (envolvendo o SO e suas especificadades).</li>
+<li>As system calls tambem server para gereciar quais processo estao sendo
+executados de acordo com a prioridade de cada um, rodando eles
+'simultaneamente'.</li>
+<li>Existem system calls para gerenciar os processos</li>
+<li>Existem system calls para lidarmos com arquivos</li>
+<li>System calls abstraem calls que gerenciam diretorios
+<ul class="org-ul">
+<li>Links inclusos, existe uma regiao do armazenamento com dados, se
+quisermos estruturar melhor esses dados podemos criar um 'ponteiro' para
+ele associando a estrutura de dados aos dados originais.</li>
+<li>Muitas vezes alguns comandos da interface do usuario sao abstraidos e nao
+fazem exatamente o que achamos, o 'delete' do filesystem normalmente e
+apenas um link. Deletar um arquivo iria requer muitos recursos
+'desnecessarios' (eh assim que a lixeira funciona internamente[?])</li>
+<li>Um link associa um i-node a um 'path' [Isso nao e muito importante]</li>
+</ul></li>
+
+<li>System calls tambem sao responsaveis para outras funcoes como `kill`,
+`seconds`, `chdir`, or `chmod`;</li>
+<li>Commandos como `kill` ou `hangout` sao apenas sinals que sao enviados do
+processos e a maioria deles sao apenas <b>sinals</b>.</li>
+<li><p>
+Exemplo de system call for process management.
+#BEGIN lang=c
+  #define TRUE 1
+</p>
+
+<p>
+while (TRUE) {
+  type<sub>prompt</sub>();
+  read<sub>command</sub>(command, parameters);       // read input from terminal
+</p>
+
+<p>
+    if (fork() != 0) {                       <i>/ fork off child process
+      /</i> Parent code
+      waitpid(-1, &amp;status, 0);               // wait for child to exit
+    } else {
+      <i>/ Child code
+      execve(command, parameters, 0);        /</i> Execute command
+    }
+  }
+#end
+</p></li>
+</ul></li>
+<li>Processo
+<ul class="org-ul">
+<li>Para um processo executar ele, nos criamos uma copia dele com uma parte do
+processo filho nele, onde apos o filho ser executado nos voltamos a imagem
+original com a resposta do filho, assim 'executando' o filho.</li>
+<li>Possuem tres segmentos: text (codigo do programa), data (dados definidos
+nos programas), and stack (onde implementamos nossas chamadas de funcoes)</li>
+</ul></li>
+</ol>
+</div>
+</div>
+
+<div id="outline-container-org14e79f8" class="outline-3">
+<h3 id="org14e79f8"><span class="section-number-3">2.2</span> Modelos de Sistemas Operacionais</h3>
+<div class="outline-text-3" id="text-2-2">
+</div>
+<div id="outline-container-org1de1061" class="outline-4">
+<h4 id="org1de1061"><span class="section-number-4">2.2.1</span> Monoli-thic systems</h4>
+<div class="outline-text-4" id="text-2-2-1">
+<p>
+Estrutura basica de um SO
+</p>
+<ol class="org-ol">
+<li>Um programa principal que invoca servicos</li>
+<li>Um servico que lida com system calls</li>
+<li>Conjunto de funcoes utilitarias que completam os outros servicos.</li>
+</ol>
+</div>
+</div>
+
+<div id="outline-container-orgc1c6fce" class="outline-4">
+<h4 id="orgc1c6fce"><span class="section-number-4">2.2.2</span> Layered System</h4>
+<div class="outline-text-4" id="text-2-2-2">
+<p>
+Sistema conceitual desenvolvido para o dysjjjjktra
+</p>
+<ul class="org-ul">
+<li>Separa em camadas de abstracao as operacoes e processos, quanto mais alta mais
+abstratos sao os conceitos usados pelo SO</li>
+</ul>
+</div>
+</div>
+<div id="outline-container-orgdb5043b" class="outline-4">
+<h4 id="orgdb5043b"><span class="section-number-4">2.2.3</span> Microkernels</h4>
+<div class="outline-text-4" id="text-2-2-3">
+<p>
+A maior parte dos processos e procedimentos de hardware do SO sao mais expostas
+para o nivel de usuario, deixando o desenvolvimento mais livre porem com alguns
+novos problemas.
+</p>
+</div>
+</div>
+<div id="outline-container-orgea7e5b5" class="outline-4">
+<h4 id="orgea7e5b5"><span class="section-number-4">2.2.4</span> Client-Server Model</h4>
+<div class="outline-text-4" id="text-2-2-4">
+<p>
+Separacao de responsabilidade 'asker' and 'answerer' onde um tem resposibilidade
+de ficar pedindo operacoes e outro de lidar com requisoes (como funciona a web).
+</p>
+</div>
+</div>
+<div id="outline-container-orgd04a5cd" class="outline-4">
+<h4 id="orgd04a5cd"><span class="section-number-4">2.2.5</span> Virtual Machines</h4>
+<div class="outline-text-4" id="text-2-2-5">
+<p>
+A ideia de abstrair em codigo recursos de hardware de maneira a simular
+processos, onde um processo da maquina virtual nao pode afetar a maquina
+original mantendo uma 'sandbox' para que um ambiente <span class="underline">nunca</span> nao afete o outro.
+</p>
+</div>
+<ol class="org-ol">
+<li><a id="orgc4b00e2"></a>Rediscovered<br />
+<div class="outline-text-5" id="text-2-2-5-1">
+<ol class="org-ol">
+<li>Type 1 supervisor: A ideia de usarmos varios sistemas operacionais de forma a que cada um seja</li>
+</ol>
+<p>
+responsavel por um 'recurso', assim podendo rodar varios ambientes diferentes no
+mesmo hardware mantendo a seguranca que maquinas virtuais fornecem.
+</p>
+<ol class="org-ol">
+<li>Pure Type: Simular um hardware e rodar esse SO em cima desse hardware simulado;</li>
+<li>Type 2 supervisor: O mais comum, onde rodamos um type 1 supervisor em cima de
+um sistema operacional (a forma que usamos as virtual machines hoje).</li>
+</ol>
+</div>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div id="outline-container-org4d76327" class="outline-2">
+<h2 id="org4d76327"><span class="section-number-2">3</span> Capitulo 2</h2>
+<div class="outline-text-2" id="text-3">
+</div>
+<div id="outline-container-org13fc1c5" class="outline-3">
+<h3 id="org13fc1c5"><span class="section-number-3">3.1</span> Processo</h3>
+<div class="outline-text-3" id="text-3-1">
+<p>
+A diferenca entre um programa e um processo e que o processo e o programa para
+ser 'rodado', ja com os dados e codigos prontos para serem executados pelo
+processor, quando as instrucoes de um programa estao prontas para serem
+executadas nos o chamamos de processo.
+</p>
+</div>
+<div id="outline-container-org1f1a4ec" class="outline-4">
+<h4 id="org1f1a4ec"><span class="section-number-4">3.1.1</span> Multiprogramacao (como rodamos varios programas ao 'mesmo' tempo?)</h4>
+<div class="outline-text-4" id="text-3-1-1">
+<p>
+O principal objetivo desse tipo de tecnica e diminuir o tempo em que o
+computador fica ocioso (seja por conta de latencia do hardware ou por espera de algum
+tipo de IO).
+</p>
+<ul class="org-ul">
+<li>Rodizio de recursos</li>
+<li>Rodar os programas de maneira independente</li>
+<li>Dedicacao do processador a apenas um programa por intervalo de tempo, assim a
+ir executando todos eles 'por partes'</li>
+<li>Possibilidade de multiprocessamento (por multiplos processadores)</li>
+<li>Gerenciamento das prioridades dos processos (entity-ranked-queue)</li>
+<li><span class="underline">time sharing</span>: Vamos enganar o usuario</li>
+</ul>
+</div>
+</div>
+<div id="outline-container-org27d6bdc" class="outline-4">
+<h4 id="org27d6bdc"><span class="section-number-4">3.1.2</span> Criacao de processo</h4>
+<div class="outline-text-4" id="text-3-1-2">
+<p>
+E importante que tenhamos o poder de criar processos para poder fornecer os
+recursos de uma maquina.
+</p>
+<ul class="org-ul">
+<li><b>init(<i>unix</i>)</b>: Inicializacao do sistema, pai de todos os projetos.</li>
+<li><b>syscall</b>: Chamar e gerenciar outros processos, -sub-processos</li>
+<li>Entender requests do usuario para criar novos processos;</li>
+<li>inicio de operacoes a partir de eventos (como uma hora, por exemplo) de operacoes em -batch- (agrupados)</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+
+
+<div id="outline-container-org15f7358" class="outline-2">
+<h2 id="org15f7358"><span class="section-number-2">4</span> Commandos interessantes</h2>
+<div class="outline-text-2" id="text-4">
+<ul class="org-ul">
+<li>`ln`: Cria um link para um arquivo (atalho).</li>
+<li>`cron`: Executa processos em determinados eventos.</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-org6ce7584" class="outline-2">
+<h2 id="org6ce7584"><span class="section-number-2">5</span> [offtopic]</h2>
+<div class="outline-text-2" id="text-5">
+</div>
+<div id="outline-container-org5109454" class="outline-3">
+<h3 id="org5109454"><span class="section-number-3">5.1</span> Alexandre Oliva [pica?]</h3>
+</div>
+</div>
+</div>
+<div id="postamble" class="status">
+<p class="author">Author: jpg</p>
+<p class="date">Created: 2019-08-20 ter 22:46</p>
+<p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
+</div>
+</body>
+</html>

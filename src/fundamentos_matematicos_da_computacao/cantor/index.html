@@ -1,0 +1,119 @@
+<html>
+ <meta http-equiv="Content-Type" content="text/html;charset=ISO-8859-1">
+
+    <style>
+        .bg {
+            height: 750px;
+            width: 750px;
+            background-color: #000000;
+            display: block;
+            position: absolute;
+            margin: 30px 50% 0 50%;
+            left: -375px;
+
+        }
+
+        .cantor {
+            background-color: #000000;
+            height: 100%;
+            width: 100%;
+            display: block;
+            position: relative;
+        }
+        .section {
+          margin: 0 auto;
+          width: 960px;
+        }
+    </style>
+    <body>
+        <div class='section'>
+          <h1> The Cantor Set </h1>
+          <p> O conjunto de Cantor &eacute; um subconjunto do intervalo [0,1] definido pelo matem&aacute;tico George Cantor como limite de um processo iterativo.[0] </p>
+          <p> Abaixo voc&ecirc; encontra uma vers&atilde;o 2D do conjunto sugerido por Cantor, usando o mesmo processo de cria&ccedil;&atilde;o recursiva, por&eacute;m o aplicando para um
+            quadrado. </p>
+          <p> No entando, como n&atilde;o podemos representar pelo navegador a infinidade de pontos que constinuem em um quadrado, n&oacute;s precisamos limitar a quantidade
+            de itera&ccedil;&otilde;es que a fun&ccedil;&atilde;o recursiva ir&aacute; percorrer. </p>
+          <h2> N&uacute;mero de Itera&ccedil;&otilde;es: (qualquer n&uacute;mero maior que 5 pode travar seu navegador) </h2>
+          <button onclick="calculateCantor(1)">1</button>
+          <button onclick="calculateCantor(2)">2</button>
+          <button onclick="calculateCantor(3)">3</button>
+          <button onclick="calculateCantor(4)">4</button>
+          <button onclick="calculateCantor(5)">5</button>
+          <button onclick="calculateCantor(6)">6</button>
+        </div>
+
+        <div class='bg'>
+            <div class='cantor' id='1-1'>
+            </div>
+        </div>
+    </body>
+    <script>
+
+    function getIterationColor(index) {
+      var array_of_colors = [
+        '#000000',
+        '#607D8B',
+        '#9E9E9E',
+        '#795548',
+        '#FF5722',
+        '#FF9800',
+        '#FFC107'];
+      return array_of_colors[index];
+    }
+
+    function getStyle(size, left, top, iteration) {
+      var style = "";
+      style += "height: " + size + "px; ";
+      style += "width: " + size + "px; ";
+      style += "top: "+ top + "px; ";
+      style += "left: "+ left + "px; ";
+      style += "background-color: " + getIterationColor(iteration) + "; ";
+      style += "position: absolute; ";
+      return style;
+    }
+
+    function createChildren(parent, iteration) {
+        var size = parent.offsetWidth / 3;
+        var parentName = parent.id;
+        var el1_1 = document.createElement('div');
+        el1_1.setAttribute("style", getStyle(size, 0, 0, iteration));
+        el1_1.setAttribute("class", 'cantor');
+        el1_1.setAttribute("id", parentName + "-1-1");
+        parent.append(el1_1);
+
+        var el1_3 = document.createElement('div');
+        el1_3.setAttribute("style", getStyle(size, 2 * size, 0, iteration));
+        el1_3.setAttribute("class", 'cantor');
+        el1_3.setAttribute("id", parentName + "-1-3");
+        parent.append(el1_3);
+
+        var el3_1 = document.createElement('div');
+        el3_1.setAttribute("style", getStyle(size, 0, 2 * size, iteration));
+        el3_1.setAttribute("class", 'cantor');
+        el3_1.setAttribute("id", parentName + "-3-1");
+        parent.append(el3_1);
+
+        var el3_3 = document.createElement('div');
+        el3_3.setAttribute("style", getStyle(size, 2 * size, 2 * size, iteration));
+        el3_3.setAttribute("class", 'cantor');
+        el3_3.setAttribute("id", parentName + "-3-3");
+        parent.append(el3_3);
+
+        parent.setAttribute('style', ' background: none; ' + parent.getAttribute('style'));
+    }
+
+    function cantorSetzise(el, iteration) {
+        createChildren(el, iteration);
+        if (iteration != 1) {
+          for (var i = 0; i < el.children.length; i++) {
+            cantorSetzise(el.children[i], iteration - 1);
+          }
+        }
+    }
+    function calculateCantor(numberOfIterations){
+      var el = document.getElementById('1-1');
+      cantorSetzise(el, numberOfIterations);
+    }
+
+    </script>
+</html>

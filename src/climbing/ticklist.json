@@ -1,0 +1,483 @@
+{
+  "routes": [
+    {
+      "grade": "7c (5.12d)",
+      "climbs": [
+        {
+          "name": "Linha Branca",
+          "location": "Pedreira do Garcia, Campinas"
+        }
+      ]
+    },
+    {
+      "grade": "7b (5.12b)",
+      "climbs": [
+        {
+          "name": "Regiminho",
+          "location": "Pedreira do Garcia, Campinas",
+          "date": "June, 2021"
+        },
+        {
+          "name": "Sovietica",
+          "location": "Pedra da Divisa, Sao Bento da Sapucai"
+        },
+        {
+          "name": "Ze Mane (FA)",
+          "location": "Pedreira do Garcia, Campinas"
+        }
+      ]
+    }, {
+      "grade": "7a+ (5.12a)",
+      "climbs": [
+        {
+          "name": "Quem mandou nao estudar ⚡",
+          "location": "Pedra da Divisa, Sao Bento da Sapucai"
+        },
+        {
+          "name": "Comunista",
+          "location": "Pedra da Divisa, Sao Bento da Sapucai"
+        },
+        {
+          "name": "Ze Negocinho",
+          "location": "Pedreira do Garcia, Campinas"
+        },
+        {
+          "name": "Dia das crianças (#12)",
+          "location": "Pedreira do Garcia, Campinas",
+          "date": "January 2, 2021",
+          "progress": [
+            {
+              "date": "November 12, 2020",
+              "note": "Top rope, fell after the second crux, did not finish the route"
+            },
+            {
+              "date": "November 14, 2020",
+              "note": "First crux is hard, it's a entity that requires falling."
+            },
+            {
+              "date": "December 10, 2020",
+              "note": "First crux solved, two more to go."
+            },
+            {
+              "date": "December 23, 2020",
+              "note": "the crimps are just too crimps."
+            },
+            {
+              "date": "December 28, 2020",
+              "note": "falling on the second crux."
+            },
+            {
+              "date": "December 29, 2020",
+              "note": "Second crux solved, one more to go."
+            },
+            {
+              "date": "December 30, 2020",
+              "note": "All moves done, just need to link all."
+            }
+          ]
+        }
+      ]
+    }, {
+      "grade": "7a (5.11d)",
+      "climbs": [
+        {
+          "name": "Aresta Nego Drama",
+          "location": "Pedreira do Garcia, Campinas",
+          "date": "September 25, 2020"
+        },
+        {
+          "name": "Cafeina ⚡️",
+          "location": "Rastro, Arcos, MG",
+          "date": "May 22, 2020"
+        },
+        {
+          "name": "Zé Pilintra",
+          "location": "Pedreira do Garcia, Campinas",
+          "date": "June 2020"
+        }
+      ]
+    }, {
+      "grade": "6c+ (5.11c)",
+      "climbs": [
+        {
+          "name": "Senta que lá vem história (#3)",
+          "location": "Pedreira do Garcia, Campinas",
+          "date": "November 14, 2020"
+        },
+        {
+          "name": "Moça Bonita (#2)",
+          "location": "Pedreira do Garcia, Campinas",
+          "description": "Via extremamente bonita, agarrões com movimentos que precisam ser acreditados."
+        },
+        {
+          "name": "Indaiatubanos (#2)",
+          "location": "Pedreira do Garcia, Campinas"
+        },
+        {
+          "name": "Imperio Galactico ⚡️",
+          "location": "Rastro, Arcos, MG"
+        },
+        {
+          "name": "Chapa no Quadrado️",
+          "location": "Pedreira do Garcia, Campinas"
+        }
+      ]
+    }, {
+      "grade": "6c (5.11a)",
+      "climbs": [
+        {
+          "name": "Doctor Crazy ⚡️",
+          "location": "Pedreira do Garcia, Campinas"
+        },
+        {
+          "name": "Saci de Muleta ⚡️",
+          "location": "Pedreira do Garcia, Campinas",
+          "date": "September 19, 2020"
+        },
+        {
+          "name": "Linha Vermelha",
+          "location": "Pedreira do Garcia, Campinas",
+          "date": "September 23, 2020"
+        },
+        {
+          "name": "Ombrocídio (#2)",
+          "location": "Pedreira do Garcia, Campinas",
+          "date": "October 06, 2020"
+        },
+        {
+          "name": "Crença Limitante",
+          "location": "Colorido, São Pedro",
+          "date": "November 1, 2020"
+        },
+        {
+          "name": "Homem Cobra (#3)",
+          "location": "Pedreira do Garcia, Campinas",
+          "date": "November 12, 2020"
+        },
+        {
+          "name": "O Chamado ⚡️",
+          "location": "Colorido, São Pedro",
+          "date": "December 12, 2020"
+        },
+        {
+          "name": "First Child (#2)",
+          "location": "Pedreira do Garcia, Campinas"
+        },
+        {
+          "name": "Extraordinaria ⚡️",
+          "location": "Rastro, Arcos, MG"
+        },
+        {
+          "name": "Zé Preguicinha",
+          "location": "Pedreira do Garcia, Campinas",
+          "date": "November 12, 2020"
+        },
+        {
+          "name": "Brecha Livre",
+          "location": "Pedreira do Garcia, Campinas"
+        }
+      ]
+    },  {
+      "grade": "6a+ (5.10c)",
+      "climbs": [
+        {
+          "name": "Jab no Bloco",
+          "location": "Pedreira do Garcia, Campinas",
+          "date": "August 13, 2020"
+        },
+        {
+          "name": "Primata",
+          "location": "Pedreira do Garcia, Campinas",
+          "date": "August 27, 2020"
+        },
+        {
+          "name": "Gerard",
+          "location": "Pedreira do Garcia, Campinas",
+          "date": "August 27, 2020"
+        },
+        {
+          "name": "Moai",
+          "location": "Pedreira do Garcia, Campinas",
+          "date": "September 19, 2020"
+        },
+        {
+          "name": "Alternativas",
+          "location": "Pedreira do Garcia, Campinas",
+          "date": "September 23, 2020"
+        },
+        {
+          "name": "Voadora de Peru ⚡️",
+          "location": "Itaqueri, Itirapina",
+          "date": "October 11, 2020"
+        },
+        {
+          "name": "Quarto Elemento ⚡️",
+          "location": "Itaqueri, Itirapina",
+          "date": "October 11, 2020"
+        },
+        {
+          "name": "Ganhando Tempo",
+          "location": "Pedreira do Garcia, Campinas",
+          "date": "November 17, 2020"
+        },
+        {
+          "name": "Voo Livre",
+          "location": "Pedreira do Garcia",
+          "dates": [
+            "December 7, 2020",
+            "January 7, 2020 [2x]"
+          ]
+        },
+        {
+          "name": "Stone Fischer ⚡️",
+          "location": "Rastro, Arcos, MG"
+        },
+        {
+          "name": "Stone Fischer (#2)",
+          "location": "Rastro, Arcos, MG"
+        }
+      ]
+    }, {
+      "grade": "6a (5.10a)",
+      "climbs": [
+        {
+          "name": "Via do Upa",
+          "location": "Pedreira do Garcia, Campinas",
+          "date": "September 15, 2020"
+        },
+        {
+          "name": "A Fabulosa Jornada do Aprendiz",
+          "location": "Colorido, São Pedro",
+          "date": "October 10, 2020"
+        },
+        {
+          "name": "Circo Garcia ⚡️",
+          "location": "Pedreira do Garcia, Campinas",
+          "date": "November 4, 2020"
+        },
+        {
+          "name": "Tudo (ou nada) é Relativo ⚡️",
+          "location": "Pedreira do Garcia, Campinas",
+          "date": "November 17, 2020"
+        }
+      ]
+    }, {
+      "grade": "5c (5.10a)",
+      "climbs": [
+        {
+          "name": "Quinta Série [3]",
+          "location": "Colorido, São Pedro",
+          "dates": [
+            "August 08, 2020",
+            "November 1, 2020 [2x]"
+          ]
+        }
+      ]
+    }, {
+      "grade": "5b (5.9)",
+      "climbs": [
+        {
+          "name": "Não é um quarto [2]",
+          "location": "Colorido, São Pedro",
+          "dates": [
+            "August 09, 2020",
+            "November 1, 2020"
+          ]
+        },
+        {
+          "name": "Cantil na Cabeça",
+          "location": "Pedreira do Garcia, Campinas",
+          "date": "August 22, 2020"
+        },
+        {
+          "name": "Fim das Picada",
+          "location": "Pedreira do Garcia, Campinas",
+          "dates": [
+            "August 22, 2020",
+            "November 20, 2020"
+          ]
+        },
+        {
+          "name": "Descomplicada",
+          "location": "Pedreira do Garcia, Campinas",
+          "dates": [
+            "October 4, 2020",
+            "November 26, 2020",
+            "December 02, 2020"
+          ]
+        },
+        {
+          "name": "Daqui ninguem me tira ⚡️",
+          "location": "Rastro, Arcos, MG"
+        },
+        {
+          "name": "Sombra e agua fresca ⚡️",
+          "location": "Rastro, Arcos, MG"
+        }
+      ]
+    }, {
+      "grade": "5a (5.8)",
+      "climbs": [
+        {
+          "name": "Expressinha",
+          "location": "Pedreira do Garcia, Campinas",
+          "date": "July 14, 2020"
+        },
+        {
+          "name": "Motor de Lancha ⚡️",
+          "location": "Itaqueri, Itirapina",
+          "date": "October 11, 2020"
+        }
+      ]
+    }, {
+      "grade": "4 (5.5)",
+      "climbs": [
+        {
+          "name": "O Quarto",
+          "location": "Pedreira do Garcia, Campinas",
+          "date": "August 22, 2020"
+        },
+        {
+          "name": "Castelo de Cartas ⚡️",
+          "location": "Itaqueri, Itirapina",
+          "date": "October 11, 2020"
+        }
+      ]
+    }
+  ],
+  "bouldering": [
+    {
+      "grade": "V9 (7C)",
+      "problems": [
+        {
+          "name": "Lulaby sit",
+          "location": "Fontainebleau"
+        }
+      ]
+    },
+    {
+      "grade": "V8 (7B/7B+)",
+      "problems": [
+        {
+          "name": "Wolverine",
+          "location": "Fontainebleau"
+        },
+        {
+          "name": "Dévera Mais Tés pas Sûr",
+          "location": "Fontainebleau"
+        },
+        {
+          "name": "Velociraptor",
+          "location": "Fontainebleau"
+        },
+        {
+          "name": "Delirio",
+          "location": "Ipero"
+        }
+      ]
+    },
+    {
+      "grade": "V7 (7A+)",
+      "problems": [
+        {
+          "name": "Dévera Mais Tés pas Sûr",
+          "location": "Fontainebleau"
+        },
+        {
+          "name": "Holey Moley",
+          "location": "Fontainebleau"
+        },
+        {
+          "name": "L'Épevier sit",
+          "location": "Fontainebleau"
+        },
+        {
+          "name": "Femme, Femme, Femme",
+          "location": "Fontainebleau"
+        }
+      ]
+    },
+    {
+      "grade": "V6 (7A)",
+      "problems": [
+        {
+          "name": "Demi-Citron",
+          "location": "Fontainebleau"
+        },
+        {
+          "name": "Parabellum",
+          "location": "Fontainebleau"
+        },
+        {
+          "name": "Deverrs et des Pas Durs",
+          "location": "Fontainebleau"
+        },
+        {
+          "name": "Cosmos Negro",
+          "location": "Iperocks, Ipero"
+        },
+        {
+          "name": "Pelo Sertao",
+          "location": "Fortaleza, Ubatuba"
+        },
+        {
+          "name": "Manabu Cósmico",
+          "location": "Iperocks, Ipero"
+        }
+      ]
+    },
+    {
+      "grade": "V5 (6C+)",
+      "problems": [
+        {
+          "name": "Cosmos️",
+          "location": "Iperocks, Ipero"
+        },
+        {
+          "name": "Taxi Lunar",
+          "location": "Iperocks, Ipero"
+        },
+        {
+          "name": "Sorvete",
+          "location": "Fortaleza, Ubatuba"
+        }
+      ]
+    },
+    {
+      "grade": "V4 (6B)",
+      "problems": [
+        {
+          "name": "MSP",
+          "location": "Iperocks, Ipero"
+        },
+        {
+          "name": "Chavinha ⚡️",
+          "location": "Ubatuba, UBT Rocks"
+        }
+      ]
+    }, {
+      "grade": "V3 (6A)",
+      "problems": [
+        {
+          "name": "Sertao ⚡️",
+          "location": "Ubatuba, UBT Rocks",
+          "date": "October 23, 2020"
+        },
+        {
+          "name": "Se cair, é Pof!",
+          "location": "Ubatuba, UBT Rocks",
+          "date": "October 23, 2020"
+        },
+        {
+          "name": "Liberte ⚡️",
+          "location": "Iperocks, Ipero",
+          "date": "November 27, 2020"
+        },
+        {
+          "name": "Caindo de Cara",
+          "location": "Ubatuba, UBT Rocks"
+        }
+      ]
+    }
+  ]
+}

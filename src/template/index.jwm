@@ -1,0 +1,7 @@
+			<h2> {{ TEMPLATE_TITLE }} </h2>
+			<img src='' alt='' />
+			<p>
+
+			</p>
+			<br /><br />
+			<hr />

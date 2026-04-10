@@ -1,0 +1,57 @@
+#+TITLE: Notes
+
+* Aula 7
+Mapeamento conceitual -> Logico
+** Esquema
+Esquema e' a especificacao de um arquivo de banco de dados,
+e o "esqueleto", tambem pode ser chamado de template:
+- Enumeracao dos atributos e seus dominios
+- Restricoes (chave, dependencia de inclusao)
+
+*** Esquemas relacionais (teoria relacional)
+Baseada em que cada arquivo e' uma tabela
+- Cada arquivo e uma tabela
+- Cada registro e' uma linha dessa tabela (tupla)
+
+E necessario colocarmos os atributos dessa tabela e a definicao
+desses atributos (que tipo eles sao)
+Para efeito de mapeamento nao falaremos do dominio dos atributos
+
+Os proximos videos irao exemplificar algoritmos de transformacao/mapeamento
+de 1 diagrama ER para esquema relacional.
+
+Modelo Logico -> e' transformavel em modelo fisico e implementacao.
+todo modelo relacional possui teoria que sendo criado e' correto.
+(desde que o diagrama esteja de acordo com o que a aplicacao/usuario especifica).
+
+* Video 8
+Banco de dados relacionais. Existem outras, porem esse e o que estamos estudando.
+Uma relacao, tambem pode ser chamada de tabela.
+** Atributos multivalorados
+Exemplos, Pessoa(cpf, placa_carro), Aluno(Disciplina, Nota), e preciso
+criar um esquema adicional para o atributo, onde a chave do novo esquema e a chave concatenada
+com o attributo multivalorados:
+
+Exemplo:
+        pessoa(cpf, nome, telefone)
+        ->
+        pessoa(cpf, nome)
+        telefone(cpf, numTelefone)
+        Telefone(cpf) ref Pessoa(cpf)
+
+** Modelo Conceitual -> Modelo Logico
+- Existem regras
+- Esse modelo define apenas os esquemas e nao envolve criacao fisica das tabelas
+- Apos definicao do modelo logico ainda existe um processo fisico para melhorar
+  o desenpenho do mesmo.
+*** Algumas simplificacoes
+- Tabela === relacao
+- as regras nao criam tabelas, mas sim especificam os esquemas
+- o correto e falar identificadores e nao chaves, mas vamos falar chaves
+por breviedade.
+- O mapemanto na otrasforma ER em tabela, mas sim ER em esquema
+*** Notacao
+- Relacionamento
+  (X:Y) significa um relacionamento entre duas entidades em que a cardinalidade
+  de um lado e do outro sao especificadas
+  os valores de X podem ser 1 ou n, os valores de Y podem ser 1 ou N
