@@ -1,5 +1,5 @@
 {
   "buildCommand": "python3 generate.py",
   "outputDirectory": "build",
-  "installCommand": "pip install Pillow"
+  "installCommand": "uv pip install Pillow --system"
 }
