@@ -1,0 +1,218 @@
+{% title = Pomodoro — JPG %}
+<style>
+  #pomodoro {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px 0 40px;
+    gap: 24px;
+  }
+
+  #mode-tabs {
+    display: flex;
+    gap: 8px;
+  }
+
+  .mode-btn {
+    background: none;
+    border: 1px solid #444;
+    color: #888;
+    padding: 6px 16px;
+    cursor: pointer;
+    font-family: 'Trebuchet MS', sans-serif;
+    font-size: 0.85em;
+    border-radius: 4px;
+    transition: all 0.15s;
+  }
+
+  .mode-btn.active {
+    border-color: #7fffd4;
+    color: #7fffd4;
+  }
+
+  #timer-ring {
+    position: relative;
+    width: 220px;
+    height: 220px;
+  }
+
+  #timer-ring svg {
+    transform: rotate(-90deg);
+  }
+
+  #ring-track {
+    fill: none;
+    stroke: #222;
+    stroke-width: 8;
+  }
+
+  #ring-progress {
+    fill: none;
+    stroke: #7fffd4;
+    stroke-width: 8;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 1s linear, stroke 0.3s;
+  }
+
+  #timer-display {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3em;
+    color: white;
+    font-family: monospace;
+    letter-spacing: 2px;
+  }
+
+  #controls {
+    display: flex;
+    gap: 12px;
+  }
+
+  .ctrl-btn {
+    background: none;
+    border: 1px solid #555;
+    color: white;
+    padding: 10px 28px;
+    cursor: pointer;
+    font-family: 'Trebuchet MS', sans-serif;
+    font-size: 1em;
+    border-radius: 4px;
+    transition: border-color 0.15s, color 0.15s;
+  }
+
+  .ctrl-btn:hover {
+    border-color: #7fffd4;
+    color: #7fffd4;
+  }
+
+  #session-count {
+    color: #555;
+    font-size: 0.85em;
+  }
+
+  #session-count span {
+    color: #7fffd4;
+  }
+</style>
+
+<div id="pomodoro">
+  <div id="mode-tabs">
+    <button class="mode-btn active" data-mode="work" data-minutes="25">Work</button>
+    <button class="mode-btn" data-mode="short" data-minutes="5">Short break</button>
+    <button class="mode-btn" data-mode="long" data-minutes="15">Long break</button>
+  </div>
+
+  <div id="timer-ring">
+    <svg width="220" height="220" viewBox="0 0 220 220">
+      <circle id="ring-track" cx="110" cy="110" r="100"/>
+      <circle id="ring-progress" cx="110" cy="110" r="100"/>
+    </svg>
+    <div id="timer-display">25:00</div>
+  </div>
+
+  <div id="controls">
+    <button class="ctrl-btn" id="btn-start">Start</button>
+    <button class="ctrl-btn" id="btn-reset">Reset</button>
+  </div>
+
+  <div id="session-count">Sessions completed: <span id="count">0</span></div>
+</div>
+
+<script>
+  const CIRCUMFERENCE = 2 * Math.PI * 100;
+  const ring = document.getElementById('ring-progress');
+  const display = document.getElementById('timer-display');
+  const btnStart = document.getElementById('btn-start');
+  const btnReset = document.getElementById('btn-reset');
+  const countEl = document.getElementById('count');
+  ring.style.strokeDasharray = CIRCUMFERENCE;
+
+  let totalSeconds, remaining, interval, running = false, sessions = 0;
+
+  fetch('/api/pomodoro')
+    .then(r => r.json())
+    .then(({ count }) => { sessions = count; countEl.textContent = sessions; })
+    .catch(() => {});
+
+  function setMode(minutes) {
+    clearInterval(interval);
+    running = false;
+    btnStart.textContent = 'Start';
+    totalSeconds = minutes * 60;
+    remaining = totalSeconds;
+    render();
+  }
+
+  function render() {
+    const m = String(Math.floor(remaining / 60)).padStart(2, '0');
+    const s = String(remaining % 60).padStart(2, '0');
+    display.textContent = `${m}:${s}`;
+    const offset = CIRCUMFERENCE * (1 - remaining / totalSeconds);
+    ring.style.strokeDashoffset = offset;
+  }
+
+  function beep() {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      [0, 0.3, 0.6].forEach(t => {
+        const o = ctx.createOscillator();
+        const g = ctx.createGain();
+        o.connect(g); g.connect(ctx.destination);
+        o.frequency.value = 880;
+        g.gain.setValueAtTime(0.3, ctx.currentTime + t);
+        g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + t + 0.25);
+        o.start(ctx.currentTime + t);
+        o.stop(ctx.currentTime + t + 0.25);
+      });
+    } catch(e) {}
+  }
+
+  document.querySelectorAll('.mode-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      ring.style.stroke = btn.dataset.mode === 'work' ? '#7fffd4' : '#20b2aa';
+      setMode(parseInt(btn.dataset.minutes));
+    });
+  });
+
+  btnStart.addEventListener('click', () => {
+    if (running) {
+      clearInterval(interval);
+      running = false;
+      btnStart.textContent = 'Resume';
+    } else {
+      running = true;
+      btnStart.textContent = 'Pause';
+      sessions++;
+      countEl.textContent = sessions;
+      fetch('/api/pomodoro', { method: 'POST' })
+        .then(r => r.json())
+        .then(({ count }) => { sessions = count; countEl.textContent = sessions; })
+        .catch(() => {});
+      interval = setInterval(() => {
+        remaining--;
+        render();
+        if (remaining <= 0) {
+          clearInterval(interval);
+          running = false;
+          btnStart.textContent = 'Start';
+          beep();
+        }
+      }, 1000);
+    }
+  });
+
+  btnReset.addEventListener('click', () => {
+    clearInterval(interval);
+    running = false;
+    btnStart.textContent = 'Start';
+    remaining = totalSeconds;
+    render();
+  });
+
+  setMode(25);
+</script>
