@@ -44,6 +44,22 @@ footer p {
   font-size: 10px;
 }
 
+#changelog ul {
+  list-style: none;
+  padding: 0 15px 0 20px;
+}
+
+#changelog li {
+  color: white;
+  padding: 3px 0;
+  font-size: 0.9em;
+}
+
+#changelog time {
+  color: #666;
+  font-family: monospace;
+}
+
 @media (max-width: 440px) {
   header em {
     display: block;

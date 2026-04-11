@@ -20,6 +20,12 @@
 	<h2>Running.</h2>
 	<p><a href="./running">Notes & log.</a></p>
 </section>
+<section id="changelog">
+	<h2>Changelog.</h2>
+	<ul>
+		<li><time>2026-04-11</time> — Added this changelog to the homepage.</li>
+	</ul>
+</section>
 <section>
 
 	<h2>Fragments.</h2>
