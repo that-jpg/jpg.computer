@@ -1,11 +1,20 @@
 {% title = Pomodoro — JPG %}
 <style>
   #pomodoro {
+    position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
     padding: 20px 0 40px;
     gap: 24px;
+  }
+
+  #top-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    width: 100%;
   }
 
   #mode-tabs {
@@ -15,8 +24,8 @@
 
   .mode-btn {
     background: none;
-    border: 1px solid #444;
-    color: #888;
+    border: 1px solid #555;
+    color: #aaa;
     padding: 6px 16px;
     cursor: pointer;
     font-family: 'Trebuchet MS', sans-serif;
@@ -66,6 +75,42 @@
     letter-spacing: 2px;
   }
 
+  #task-tabs {
+    display: flex;
+    gap: 8px;
+  }
+
+  .task-btn {
+    background: none;
+    border: 1px solid #555;
+    color: #aaa;
+    padding: 6px 16px;
+    cursor: pointer;
+    font-family: 'Trebuchet MS', sans-serif;
+    font-size: 0.85em;
+    border-radius: 4px;
+    transition: all 0.15s;
+  }
+
+  .task-btn[data-task="work"].active    { border-color: #7fffd4; color: #7fffd4; }
+  .task-btn[data-task="learning"].active { border-color: #93c5fd; color: #93c5fd; }
+  .task-btn[data-task="general"].active  { border-color: #fca5a5; color: #fca5a5; }
+
+  #count-work    { color: #7fffd4; }
+  #count-learning { color: #93c5fd; }
+  #count-general  { color: #fca5a5; }
+  #count-total    { color: #e2e8f0; }
+
+  .count-value.loading {
+    opacity: 0.3;
+    animation: pulse 1s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 0.3; }
+    50%       { opacity: 0.7; }
+  }
+
   #controls {
     display: flex;
     gap: 12px;
@@ -88,21 +133,116 @@
     color: #7fffd4;
   }
 
-  #session-count {
-    color: #555;
-    font-size: 0.85em;
+  #session-counts {
+    display: flex;
+    gap: 20px;
   }
 
-  #session-count span {
+  .count-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
+
+  .count-label {
+    color: #aaa;
+    font-size: 0.75em;
+  }
+
+  .count-value {
     color: #7fffd4;
+    font-family: monospace;
+    font-size: 1.1em;
+  }
+
+  #settings-toggle {
+    cursor: pointer;
+    position: absolute;
+    right: 0;
+  }
+
+  #settings-toggle summary {
+    list-style: none;
+    font-size: 2em;
+    color: #888;
+    transition: color 0.15s;
+    user-select: none;
+    line-height: 1;
+  }
+
+  #settings-toggle summary::-webkit-details-marker { display: none; }
+  #settings-toggle summary:hover { color: #7fffd4; }
+  #settings-toggle[open] summary { color: #7fffd4; }
+
+  #settings {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    background: #111;
+    border: 1px solid #333;
+    border-radius: 6px;
+    padding: 16px;
+    z-index: 10;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 10px 12px;
+    align-items: center;
+    white-space: nowrap;
+  }
+
+  .setting {
+    display: contents;
+  }
+
+  .setting label {
+    color: white;
+    font-size: 0.85em;
+    text-align: right;
+  }
+
+  .setting input {
+    background: none;
+    border: 1px solid #444;
+    color: white;
+    width: 52px;
+    padding: 4px 6px;
+    text-align: center;
+    font-family: monospace;
+    font-size: 0.9em;
+    border-radius: 4px;
+  }
+
+  .setting input:focus {
+    outline: none;
+    border-color: #7fffd4;
   }
 </style>
 
 <div id="pomodoro">
-  <div id="mode-tabs">
-    <button class="mode-btn active" data-mode="work" data-minutes="25">Work</button>
-    <button class="mode-btn" data-mode="short" data-minutes="5">Short break</button>
-    <button class="mode-btn" data-mode="long" data-minutes="15">Long break</button>
+  <div id="top-row">
+    <div id="mode-tabs">
+      <button class="mode-btn active" data-mode="work" data-minutes="25">Work</button>
+      <button class="mode-btn" data-mode="short" data-minutes="5">Short break</button>
+      <button class="mode-btn" data-mode="long" data-minutes="15">Long break</button>
+    </div>
+    <details id="settings-toggle">
+      <summary>⚙</summary>
+      <div id="settings">
+        <div class="setting">
+          <label>Work</label>
+          <input type="number" id="set-work" value="25" min="1" max="99">
+        </div>
+        <div class="setting">
+          <label>Short break</label>
+          <input type="number" id="set-short" value="5" min="1" max="99">
+        </div>
+        <div class="setting">
+          <label>Long break</label>
+          <input type="number" id="set-long" value="15" min="1" max="99">
+        </div>
+      </div>
+    </details>
   </div>
 
   <div id="timer-ring">
@@ -113,12 +253,35 @@
     <div id="timer-display">25:00</div>
   </div>
 
+  <div id="task-tabs">
+    <button class="task-btn active" data-task="work">Work</button>
+    <button class="task-btn" data-task="learning">Learning</button>
+    <button class="task-btn" data-task="general">General</button>
+  </div>
+
   <div id="controls">
     <button class="ctrl-btn" id="btn-start">Start</button>
     <button class="ctrl-btn" id="btn-reset">Reset</button>
   </div>
 
-  <div id="session-count">Sessions completed: <span id="count">0</span></div>
+  <div id="session-counts">
+    <div class="count-item">
+      <span class="count-label">Work</span>
+      <span class="count-value" id="count-work">0</span>
+    </div>
+    <div class="count-item">
+      <span class="count-label">Learning</span>
+      <span class="count-value" id="count-learning">0</span>
+    </div>
+    <div class="count-item">
+      <span class="count-label">General</span>
+      <span class="count-value" id="count-general">0</span>
+    </div>
+    <div class="count-item">
+      <span class="count-label">Total</span>
+      <span class="count-value" id="count-total">0</span>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -127,15 +290,32 @@
   const display = document.getElementById('timer-display');
   const btnStart = document.getElementById('btn-start');
   const btnReset = document.getElementById('btn-reset');
-  const countEl = document.getElementById('count');
   ring.style.strokeDasharray = CIRCUMFERENCE;
 
-  let totalSeconds, remaining, interval, running = false, sessions = 0;
+  const counts = { work: 0, learning: 0, general: 0 };
+  let activeTask = 'work';
+  let totalSeconds, remaining, interval, running = false;
 
+  const allCountEls = [...Object.keys(counts).map(t => document.getElementById(`count-${t}`)), document.getElementById('count-total')];
+
+  function setLoading(on) {
+    allCountEls.forEach(el => el.classList.toggle('loading', on));
+  }
+
+  function updateCounts(data) {
+    Object.keys(counts).forEach(t => {
+      counts[t] = data[t] || 0;
+      document.getElementById(`count-${t}`).textContent = counts[t];
+    });
+    document.getElementById('count-total').textContent = Object.values(counts).reduce((a, b) => a + b, 0);
+    setLoading(false);
+  }
+
+  setLoading(true);
   fetch('/api/pomodoro')
     .then(r => r.json())
-    .then(({ count }) => { sessions = count; countEl.textContent = sessions; })
-    .catch(() => {});
+    .then(updateCounts)
+    .catch(() => setLoading(false));
 
   function setMode(minutes) {
     clearInterval(interval);
@@ -170,12 +350,40 @@
     } catch(e) {}
   }
 
+  const inputs = {
+    work:  document.getElementById('set-work'),
+    short: document.getElementById('set-short'),
+    long:  document.getElementById('set-long'),
+  };
+
+  function activeMode() {
+    return document.querySelector('.mode-btn.active').dataset.mode;
+  }
+
+  function minutesForMode(mode) {
+    return parseInt(inputs[mode].value) || 1;
+  }
+
   document.querySelectorAll('.mode-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       ring.style.stroke = btn.dataset.mode === 'work' ? '#7fffd4' : '#20b2aa';
-      setMode(parseInt(btn.dataset.minutes));
+      setMode(minutesForMode(btn.dataset.mode));
+    });
+  });
+
+  document.querySelectorAll('.task-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.task-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeTask = btn.dataset.task;
+    });
+  });
+
+  Object.entries(inputs).forEach(([mode, input]) => {
+    input.addEventListener('change', () => {
+      if (activeMode() === mode) setMode(minutesForMode(mode));
     });
   });
 
@@ -187,12 +395,15 @@
     } else {
       running = true;
       btnStart.textContent = 'Pause';
-      sessions++;
-      countEl.textContent = sessions;
-      fetch('/api/pomodoro', { method: 'POST' })
-        .then(r => r.json())
-        .then(({ count }) => { sessions = count; countEl.textContent = sessions; })
-        .catch(() => {});
+      if (activeMode() === 'work') {
+        counts[activeTask]++;
+        document.getElementById(`count-${activeTask}`).textContent = counts[activeTask];
+        document.getElementById('count-total').textContent = Object.values(counts).reduce((a, b) => a + b, 0);
+        fetch(`/api/pomodoro?type=${activeTask}`, { method: 'POST' })
+          .then(r => r.json())
+          .then(updateCounts)
+          .catch(() => {});
+      }
       interval = setInterval(() => {
         remaining--;
         render();
@@ -215,4 +426,11 @@
   });
 
   setMode(25);
+
+  const settingsEl = document.getElementById('settings-toggle');
+  document.addEventListener('click', e => {
+    if (settingsEl.open && !settingsEl.contains(e.target)) {
+      settingsEl.removeAttribute('open');
+    }
+  });
 </script>

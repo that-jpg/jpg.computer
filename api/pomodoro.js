@@ -1,3 +1,5 @@
+const TYPES = ['work', 'learning', 'general'];
+
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
 
@@ -5,12 +7,17 @@ module.exports = async function handler(req, res) {
   const headers = { Authorization: `Bearer ${UPSTASH_REDIS_REST_TOKEN}` };
 
   if (req.method === 'POST') {
-    const r = await fetch(`${UPSTASH_REDIS_REST_URL}/incr/pomodoro-sessions`, { headers });
-    const { result } = await r.json();
-    res.json({ count: result });
-  } else {
-    const r = await fetch(`${UPSTASH_REDIS_REST_URL}/get/pomodoro-sessions`, { headers });
-    const { result } = await r.json();
-    res.json({ count: result || 0 });
+    const type = req.query.type && TYPES.includes(req.query.type) ? req.query.type : 'general';
+    await fetch(`${UPSTASH_REDIS_REST_URL}/incr/pomodoro-${type}`, { headers });
   }
+
+  const results = await Promise.all(
+    TYPES.map(t =>
+      fetch(`${UPSTASH_REDIS_REST_URL}/get/pomodoro-${t}`, { headers })
+        .then(r => r.json())
+        .then(({ result }) => [t, parseInt(result) || 0])
+    )
+  );
+
+  res.json(Object.fromEntries(results));
 }
