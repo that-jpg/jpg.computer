@@ -1,5 +1,5 @@
 {
-  "buildCommand": "python3 main.py",
+  "buildCommand": "python3 generate.py",
   "outputDirectory": "build",
   "installCommand": "pip install Pillow"
 }
