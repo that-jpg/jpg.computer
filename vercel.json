@@ -1,4 +1,4 @@
 {
-  "buildCommand": "pip install Pillow --quiet && python3 generate.py",
+  "buildCommand": "python3 -m pip install Pillow --quiet && python3 generate.py",
   "outputDirectory": "build"
 }
