@@ -1,3 +1,7 @@
+<section id="apps">
+	<h2>Apps.</h2>
+	<p><a href="./pomodoro">Pomodoro.</a></p>
+</section>
 <section id="courses">
 	<h2>Courses, workshops & presentations.</h2>
 	<p> From ninja to samurai, how to use the <a href="./c_samurai/index.html">Language C.</a></p>
@@ -19,10 +23,6 @@
 <section id="running">
 	<h2>Running.</h2>
 	<p><a href="./running">Notes & log.</a></p>
-</section>
-<section id="pomodoro">
-	<h2>Pomodoro.</h2>
-	<p><a href="./pomodoro">Timer.</a></p>
 </section>
 <section id="changelog">
 	<h2>Changelog.</h2>
