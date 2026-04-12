@@ -360,6 +360,25 @@
     long:  document.getElementById('set-long'),
   };
 
+  function saveSettings() {
+    localStorage.setItem('pomodoro-settings', JSON.stringify({
+      work:  parseInt(inputs.work.value)  || 25,
+      short: parseInt(inputs.short.value) || 5,
+      long:  parseInt(inputs.long.value)  || 15,
+    }));
+  }
+
+  function loadSettings() {
+    try {
+      const saved = JSON.parse(localStorage.getItem('pomodoro-settings'));
+      if (saved) {
+        if (saved.work)  inputs.work.value  = saved.work;
+        if (saved.short) inputs.short.value = saved.short;
+        if (saved.long)  inputs.long.value  = saved.long;
+      }
+    } catch (e) {}
+  }
+
   function activeMode() {
     return document.querySelector('.mode-btn.active').dataset.mode;
   }
@@ -367,6 +386,8 @@
   function minutesForMode(mode) {
     return parseInt(inputs[mode].value) || 1;
   }
+
+  loadSettings();
 
   document.querySelectorAll('.mode-btn').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -387,6 +408,7 @@
 
   Object.entries(inputs).forEach(([mode, input]) => {
     input.addEventListener('change', () => {
+      saveSettings();
       if (activeMode() === mode) setMode(minutesForMode(mode));
     });
   });
@@ -429,7 +451,7 @@
     render();
   });
 
-  setMode(25);
+  setMode(minutesForMode('work'));
 
   const settingsEl = document.getElementById('settings-toggle');
   document.addEventListener('click', e => {
