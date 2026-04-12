@@ -311,10 +311,14 @@
     setLoading(false);
   }
 
+  function isValidCounts(data) {
+    return data && Object.keys(counts).every(t => typeof data[t] === 'number');
+  }
+
   setLoading(true);
   fetch('/api/pomodoro')
     .then(r => r.json())
-    .then(updateCounts)
+    .then(data => { if (isValidCounts(data)) updateCounts(data); else setLoading(false); })
     .catch(() => setLoading(false));
 
   function setMode(minutes) {
@@ -401,7 +405,7 @@
         document.getElementById('count-total').textContent = Object.values(counts).reduce((a, b) => a + b, 0);
         fetch(`/api/pomodoro?type=${activeTask}`, { method: 'POST' })
           .then(r => r.json())
-          .then(updateCounts)
+          .then(data => { if (isValidCounts(data)) updateCounts(data); })
           .catch(() => {});
       }
       interval = setInterval(() => {
