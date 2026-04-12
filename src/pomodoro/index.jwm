@@ -439,6 +439,7 @@
       running = false;
       btnStart.textContent = 'Resume';
     } else {
+      if (remaining <= 0) { remaining = totalSeconds; render(); }
       running = true;
       btnStart.textContent = 'Pause';
       if (activeMode() === 'work') {
