@@ -394,6 +394,7 @@
       document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       ring.style.stroke = btn.dataset.mode === 'work' ? '#7fffd4' : '#20b2aa';
+      document.getElementById('task-tabs').style.display = btn.dataset.mode === 'work' ? '' : 'none';
       setMode(minutesForMode(btn.dataset.mode));
     });
   });
