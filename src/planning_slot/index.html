@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Planning Slot Machine</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      background: #1a1a2e;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      color: #fff;
+      padding: 2rem 1rem;
+      gap: 1.2rem;
+    }
+
+    h1 {
+      font-size: 2rem;
+      letter-spacing: 0.15em;
+      color: #f0c040;
+      text-shadow: 0 0 20px #f0c04088;
+      text-transform: uppercase;
+    }
+
+    .subtitle {
+      font-size: 0.85rem;
+      color: #aaa;
+      letter-spacing: 0.08em;
+    }
+
+    /* ── two-column layout ── */
+    .layout {
+      display: flex;
+      gap: 1.5rem;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    /* ── machine ── */
+    .machine {
+      background: linear-gradient(160deg, #2d2d54 0%, #1a1a3a 100%);
+      border: 3px solid #f0c040;
+      border-radius: 24px;
+      padding: 2rem 2.5rem 2.5rem;
+      box-shadow: 0 0 60px #f0c04033, 0 20px 60px #00000088, inset 0 1px 0 #ffffff22;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.5rem;
+    }
+
+    .reels-wrapper {
+      background: #0d0d1a;
+      border: 3px solid #333366;
+      border-radius: 16px;
+      padding: 1rem;
+      display: flex;
+      gap: 1rem;
+      box-shadow: inset 0 4px 20px #00000099;
+    }
+
+    .reel-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .reel-label {
+      font-size: 0.65rem;
+      color: #666688;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    .reel {
+      width: 90px;
+      height: 90px;
+      border: 2px solid #444488;
+      border-radius: 12px;
+      background: #111128;
+      overflow: hidden;
+      position: relative;
+      box-shadow: inset 0 0 20px #00000088;
+    }
+
+    .reel::before, .reel::after {
+      content: '';
+      position: absolute;
+      left: 0; right: 0;
+      height: 28px;
+      z-index: 2;
+      pointer-events: none;
+    }
+    .reel::before { top: 0; background: linear-gradient(to bottom, #111128ee, transparent); }
+    .reel::after  { bottom: 0; background: linear-gradient(to top,   #111128ee, transparent); }
+
+    .reel-strip { position: absolute; top: 0; left: 0; right: 0; will-change: top; }
+
+    .reel-cell {
+      height: 90px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      font-weight: 900;
+      border-bottom: 1px solid #22224488;
+      user-select: none;
+    }
+
+    .reel-cell.val-skull { color: #ff4466; text-shadow: 0 0 12px #ff446688; }
+    .reel-cell.val-0  { color: #9090ff; }
+    .reel-cell.val-1  { color: #80d4ff; }
+    .reel-cell.val-2  { color: #80ffcc; }
+    .reel-cell.val-3  { color: #aaff80; }
+    .reel-cell.val-5  { color: #fff080; }
+    .reel-cell.val-8  { color: #ffb060; }
+    .reel-cell.val-13 { color: #ff8080; font-size: 1.6rem; }
+    .reel-cell.val-21 { color: #ff60cc; font-size: 1.6rem; }
+
+    .highlight-bar {
+      position: absolute;
+      left: 0; right: 0;
+      top: 50%; transform: translateY(-50%);
+      height: 90px;
+      border-top: 2px solid #f0c04066;
+      border-bottom: 2px solid #f0c04066;
+      pointer-events: none;
+      z-index: 3;
+      background: #f0c04011;
+    }
+
+    .result-display { min-height: 2.5rem; display: flex; align-items: center; }
+
+    .result-badge {
+      padding: 0.3rem 1rem;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 1.1rem;
+      letter-spacing: 0.05em;
+      opacity: 0;
+      transform: translateY(6px);
+      transition: opacity 0.4s ease, transform 0.4s ease;
+    }
+    .result-badge.visible { opacity: 1; transform: translateY(0); }
+    .result-badge.win   { background: #f0c04022; border: 2px solid #f0c040; color: #f0c040; }
+    .result-badge.skull { background: #ff446622; border: 2px solid #ff4466; color: #ff4466; }
+    .result-badge.default { background: #8888ff22; border: 2px solid #8888ff; color: #aaaaff; }
+
+    .controls { display: flex; flex-direction: column; align-items: center; gap: 0.8rem; width: 100%; }
+
+    .spin-btn {
+      padding: 0.85rem 3.5rem;
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      background: linear-gradient(135deg, #f0c040, #e09020);
+      color: #1a1a2e;
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      box-shadow: 0 4px 20px #f0c04055, 0 2px 0 #a06010;
+      transition: transform 0.1s, box-shadow 0.1s;
+      width: 100%;
+    }
+    .spin-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 28px #f0c04077, 0 2px 0 #a06010; }
+    .spin-btn:active:not(:disabled) { transform: translateY(1px); box-shadow: 0 2px 10px #f0c04044, 0 1px 0 #a06010; }
+    .spin-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .options { display: flex; gap: 1rem; align-items: center; }
+    .reel-count-label { font-size: 0.78rem; color: #aaa; }
+    .reel-count-btns { display: flex; gap: 0.4rem; }
+
+    .count-btn {
+      width: 2rem; height: 2rem;
+      border-radius: 50%;
+      border: 2px solid #555577;
+      background: #22224488;
+      color: #ccc;
+      font-size: 0.85rem; font-weight: 700;
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s, background 0.2s;
+    }
+    .count-btn.active { border-color: #f0c040; color: #f0c040; background: #f0c04022; }
+    .count-btn:hover:not(.active) { border-color: #8888ff; color: #8888ff; }
+
+    .local-history { display: flex; gap: 0.4rem; flex-wrap: wrap; justify-content: center; max-width: 360px; min-height: 1.8rem; }
+
+    .history-chip {
+      padding: 0.2rem 0.6rem;
+      border-radius: 6px;
+      font-size: 0.72rem; font-weight: 700;
+      background: #22224488;
+      border: 1px solid #444466;
+      color: #aaaacc;
+      animation: chipIn 0.3s ease;
+    }
+
+    /* ── player name ── */
+    .player-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.8rem;
+      color: #aaa;
+    }
+    .player-input {
+      background: #22224488;
+      border: 1px solid #555577;
+      border-radius: 6px;
+      color: #ddd;
+      font-size: 0.8rem;
+      padding: 0.2rem 0.5rem;
+      width: 130px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .player-input:focus { border-color: #f0c040; color: #fff; }
+
+    /* ── live feed panel ── */
+    .feed-panel {
+      background: linear-gradient(160deg, #22224488 0%, #1a1a3a88 100%);
+      border: 2px solid #444466;
+      border-radius: 20px;
+      width: 260px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 10px 40px #00000066;
+    }
+
+    .feed-header {
+      padding: 0.9rem 1.2rem 0.7rem;
+      border-bottom: 1px solid #333355;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .feed-title {
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #aaaacc;
+    }
+
+    .feed-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: #44cc88;
+      box-shadow: 0 0 6px #44cc88;
+      animation: pulse 2s ease infinite;
+    }
+    .feed-dot.offline { background: #666; box-shadow: none; animation: none; }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.4; }
+    }
+
+    .feed-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0.5rem 0;
+      max-height: 440px;
+      scrollbar-width: thin;
+      scrollbar-color: #333355 transparent;
+    }
+
+    .feed-list::-webkit-scrollbar { width: 4px; }
+    .feed-list::-webkit-scrollbar-track { background: transparent; }
+    .feed-list::-webkit-scrollbar-thumb { background: #333355; border-radius: 4px; }
+
+    .feed-item {
+      padding: 0.55rem 1.2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+      border-bottom: 1px solid #1e1e3388;
+      animation: slideIn 0.35s ease;
+    }
+    .feed-item:last-child { border-bottom: none; }
+    .feed-item.mine { background: #f0c04008; }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(-10px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+
+    .feed-item-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+    }
+
+    .feed-player {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #8888cc;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .feed-item.mine .feed-player { color: #f0c040; }
+
+    .feed-time {
+      font-size: 0.65rem;
+      color: #555577;
+      flex-shrink: 0;
+    }
+
+    .feed-symbols {
+      display: flex;
+      gap: 0.35rem;
+      flex-wrap: wrap;
+    }
+
+    .feed-sym {
+      font-size: 0.78rem;
+      font-weight: 800;
+      padding: 0.15rem 0.45rem;
+      border-radius: 5px;
+      background: #22224488;
+    }
+    .feed-sym.val-skull { color: #ff4466; }
+    .feed-sym.val-0  { color: #9090ff; }
+    .feed-sym.val-1  { color: #80d4ff; }
+    .feed-sym.val-2  { color: #80ffcc; }
+    .feed-sym.val-3  { color: #aaff80; }
+    .feed-sym.val-5  { color: #fff080; }
+    .feed-sym.val-8  { color: #ffb060; }
+    .feed-sym.val-13 { color: #ff8080; }
+    .feed-sym.val-21 { color: #ff60cc; }
+
+    .feed-empty {
+      padding: 2rem 1rem;
+      text-align: center;
+      color: #444466;
+      font-size: 0.78rem;
+      line-height: 1.6;
+    }
+
+    /* ── animations ── */
+    @keyframes chipIn {
+      from { opacity: 0; transform: scale(0.7); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+
+    @keyframes flash {
+      0%, 100% { background: #0d0d1a; }
+      50%       { background: #f0c04022; }
+    }
+    .reel.flashing { animation: flash 0.25s ease 3; }
+
+    .confetti-canvas {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 100;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Planning Slot</h1>
+  <p class="subtitle">May the story points be ever in your favor</p>
+
+  <div class="layout">
+
+    <!-- ── slot machine ── -->
+    <div class="machine">
+
+      <div class="player-row">
+        <span>Playing as</span>
+        <input class="player-input" id="playerInput" maxlength="20" placeholder="your name" />
+      </div>
+
+      <div class="reels-wrapper" id="reelsWrapper"></div>
+
+      <div class="result-display">
+        <div class="result-badge" id="resultBadge"></div>
+      </div>
+
+      <div class="controls">
+        <button class="spin-btn" id="spinBtn">SPIN</button>
+        <div class="options">
+          <span class="reel-count-label">Reels:</span>
+          <div class="reel-count-btns" id="reelCountBtns">
+            <button class="count-btn" data-n="1">1</button>
+            <button class="count-btn" data-n="2">2</button>
+            <button class="count-btn active" data-n="3">3</button>
+            <button class="count-btn" data-n="4">4</button>
+            <button class="count-btn" data-n="5">5</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="local-history" id="localHistory"></div>
+    </div>
+
+    <!-- ── live feed ── -->
+    <div class="feed-panel">
+      <div class="feed-header">
+        <span class="feed-title">Live Feed</span>
+        <div class="feed-dot" id="feedDot"></div>
+      </div>
+      <div class="feed-list" id="feedList">
+        <div class="feed-empty">No spins yet.<br>Be the first to spin!</div>
+      </div>
+    </div>
+
+  </div>
+
+  <canvas class="confetti-canvas" id="confettiCanvas"></canvas>
+
+  <script>
+    const API = '/api/planning_slot';
+    const POLL_INTERVAL = 4000;
+
+    const SYMBOLS = [
+      { value: '0',  cls: 'val-0'     },
+      { value: '1',  cls: 'val-1'     },
+      { value: '2',  cls: 'val-2'     },
+      { value: '3',  cls: 'val-3'     },
+      { value: '5',  cls: 'val-5'     },
+      { value: '8',  cls: 'val-8'     },
+      { value: '13', cls: 'val-13'    },
+      { value: '21', cls: 'val-21'    },
+      { value: '💀', cls: 'val-skull' },
+    ];
+
+    const CELL_H = 90;
+    const SPIN_DURATION_BASE = 900;
+    const SPIN_DURATION_PER_REEL = 350;
+
+    let numReels = 3;
+    let reels = [];
+    let spinning = false;
+    let localHistory = [];
+    let feedEntries = [];
+    let myPlayerId = getPlayerId();
+    let myPlayerName = getPlayerName();
+
+    // ── player identity ──────────────────────────────────────────────
+    function getPlayerId() {
+      let id = localStorage.getItem('planning-slot-id');
+      if (!id) {
+        id = Math.random().toString(36).slice(2, 10);
+        localStorage.setItem('planning-slot-id', id);
+      }
+      return id;
+    }
+
+    function getPlayerName() {
+      return localStorage.getItem('planning-slot-name') || '';
+    }
+
+    function displayName() {
+      return myPlayerName.trim() || `Player #${myPlayerId.slice(0, 4)}`;
+    }
+
+    const playerInput = document.getElementById('playerInput');
+    playerInput.value = myPlayerName;
+    playerInput.addEventListener('input', () => {
+      myPlayerName = playerInput.value;
+      localStorage.setItem('planning-slot-name', myPlayerName);
+    });
+
+    // ── reels ────────────────────────────────────────────────────────
+    function buildStrip() {
+      return [...SYMBOLS, ...SYMBOLS, ...SYMBOLS];
+    }
+
+    function createReel(index) {
+      const strip = buildStrip();
+      const container = document.createElement('div');
+      container.className = 'reel-container';
+
+      const label = document.createElement('div');
+      label.className = 'reel-label';
+      label.textContent = `Reel ${index + 1}`;
+      container.appendChild(label);
+
+      const reelEl = document.createElement('div');
+      reelEl.className = 'reel';
+
+      const highlight = document.createElement('div');
+      highlight.className = 'highlight-bar';
+      reelEl.appendChild(highlight);
+
+      const stripEl = document.createElement('div');
+      stripEl.className = 'reel-strip';
+      strip.forEach(sym => {
+        const cell = document.createElement('div');
+        cell.className = `reel-cell ${sym.cls}`;
+        cell.textContent = sym.value;
+        stripEl.appendChild(cell);
+      });
+      reelEl.appendChild(stripEl);
+      container.appendChild(reelEl);
+
+      const startIdx = SYMBOLS.length + Math.floor(Math.random() * SYMBOLS.length);
+      stripEl.style.top = `${-(startIdx * CELL_H)}px`;
+
+      return { container, reelEl, stripEl, strip, currentIdx: startIdx };
+    }
+
+    function buildReels() {
+      const wrapper = document.getElementById('reelsWrapper');
+      wrapper.innerHTML = '';
+      reels = [];
+      for (let i = 0; i < numReels; i++) {
+        const reel = createReel(i);
+        wrapper.appendChild(reel.container);
+        reels.push(reel);
+      }
+    }
+
+    function spinReel(reel, targetSymIdx, duration) {
+      return new Promise(resolve => {
+        const stripEl = reel.stripEl;
+        const currentTop = parseInt(stripEl.style.top) || 0;
+        const currentIdx = -currentTop / CELL_H;
+        const targetInStrip = SYMBOLS.length * 2 + targetSymIdx;
+        let cellsToScroll = targetInStrip - currentIdx;
+        if (cellsToScroll <= SYMBOLS.length) cellsToScroll += SYMBOLS.length;
+        const targetTop = currentTop - cellsToScroll * CELL_H;
+        const startTop = currentTop;
+        const distance = targetTop - startTop;
+        const startTime = performance.now();
+
+        function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
+
+        function frame(now) {
+          const elapsed = now - startTime;
+          const progress = Math.min(elapsed / duration, 1);
+          stripEl.style.top = `${startTop + distance * easeOutCubic(progress)}px`;
+          if (progress < 1) {
+            requestAnimationFrame(frame);
+          } else {
+            const normalizedIdx = targetSymIdx + SYMBOLS.length;
+            stripEl.style.top = `${-normalizedIdx * CELL_H}px`;
+            reel.currentIdx = normalizedIdx;
+            resolve(targetSymIdx);
+          }
+        }
+        requestAnimationFrame(frame);
+      });
+    }
+
+    // ── spin ─────────────────────────────────────────────────────────
+    async function spin() {
+      if (spinning) return;
+      spinning = true;
+      document.getElementById('spinBtn').disabled = true;
+      hideResult();
+
+      const targets = reels.map(() => Math.floor(Math.random() * SYMBOLS.length));
+      await Promise.all(reels.map((reel, i) =>
+        new Promise(resolve => setTimeout(() =>
+          spinReel(reel, targets[i], SPIN_DURATION_BASE + i * SPIN_DURATION_PER_REEL).then(resolve),
+          i * 120
+        ))
+      ));
+
+      const resultSymbols = targets.map(idx => SYMBOLS[idx]);
+      showResult(resultSymbols);
+      addLocalHistory(resultSymbols);
+      postSpin(resultSymbols);
+
+      spinning = false;
+      document.getElementById('spinBtn').disabled = false;
+    }
+
+    // ── result display ───────────────────────────────────────────────
+    function hideResult() {
+      document.getElementById('resultBadge').classList.remove('visible');
+    }
+
+    function showResult(symbols) {
+      const badge = document.getElementById('resultBadge');
+      badge.className = 'result-badge';
+      const values = symbols.map(s => s.value);
+      const skulls = values.filter(v => v === '💀').length;
+      const allSame = values.every(v => v === values[0]);
+
+      if (skulls === symbols.length) {
+        badge.textContent = '💀 Total disaster!';
+        badge.classList.add('skull');
+      } else if (skulls > 0) {
+        badge.textContent = `💀 Chaos! Maybe ${values.filter(v => v !== '💀').join(', ')}?`;
+        badge.classList.add('skull');
+      } else if (allSame && symbols.length > 1) {
+        badge.textContent = `🎰 JACKPOT! All ${values[0]}!`;
+        badge.classList.add('win');
+        flashReels();
+        launchConfetti();
+      } else if (symbols.length === 1) {
+        badge.textContent = `→ ${values[0]} story points`;
+        badge.classList.add('default');
+      } else {
+        badge.textContent = `→ ${values.join(' · ')} pts`;
+        badge.classList.add('default');
+      }
+      badge.classList.add('visible');
+    }
+
+    function flashReels() {
+      reels.forEach(r => {
+        r.reelEl.classList.remove('flashing');
+        void r.reelEl.offsetWidth;
+        r.reelEl.classList.add('flashing');
+        r.reelEl.addEventListener('animationend', () => r.reelEl.classList.remove('flashing'), { once: true });
+      });
+    }
+
+    // ── local history chips ──────────────────────────────────────────
+    function addLocalHistory(symbols) {
+      localHistory.unshift(symbols.map(s => s.value).join(' · '));
+      if (localHistory.length > 10) localHistory.pop();
+      const el = document.getElementById('localHistory');
+      el.innerHTML = '';
+      localHistory.forEach(h => {
+        const chip = document.createElement('div');
+        chip.className = 'history-chip';
+        chip.textContent = h;
+        el.appendChild(chip);
+      });
+    }
+
+    // ── API ──────────────────────────────────────────────────────────
+    async function postSpin(symbols) {
+      try {
+        await fetch(API, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            symbols: symbols.map(s => s.value),
+            playerId: displayName(),
+          }),
+        });
+        await pollFeed();
+      } catch (_) {}
+    }
+
+    async function pollFeed() {
+      const dot = document.getElementById('feedDot');
+      try {
+        const res = await fetch(API);
+        if (!res.ok) throw new Error();
+        const { entries } = await res.json();
+        dot.classList.remove('offline');
+        renderFeed(entries || []);
+      } catch (_) {
+        dot.classList.add('offline');
+      }
+    }
+
+    function renderFeed(entries) {
+      feedEntries = entries;
+      const list = document.getElementById('feedList');
+
+      if (!entries.length) {
+        list.innerHTML = '<div class="feed-empty">No spins yet.<br>Be the first to spin!</div>';
+        return;
+      }
+
+      const scrolledToTop = list.scrollTop < 30;
+
+      list.innerHTML = '';
+      entries.forEach(entry => {
+        const isMine = entry.playerId === displayName();
+        const item = document.createElement('div');
+        item.className = `feed-item${isMine ? ' mine' : ''}`;
+
+        const top = document.createElement('div');
+        top.className = 'feed-item-top';
+
+        const playerEl = document.createElement('span');
+        playerEl.className = 'feed-player';
+        playerEl.textContent = isMine ? `${entry.playerId} (you)` : entry.playerId;
+
+        const timeEl = document.createElement('span');
+        timeEl.className = 'feed-time';
+        timeEl.textContent = timeAgo(entry.ts);
+
+        top.appendChild(playerEl);
+        top.appendChild(timeEl);
+
+        const symsEl = document.createElement('div');
+        symsEl.className = 'feed-symbols';
+        entry.symbols.forEach(v => {
+          const sym = document.createElement('span');
+          const cls = SYMBOLS.find(s => s.value === v)?.cls || '';
+          sym.className = `feed-sym ${cls}`;
+          sym.textContent = v;
+          symsEl.appendChild(sym);
+        });
+
+        item.appendChild(top);
+        item.appendChild(symsEl);
+        list.appendChild(item);
+      });
+
+      if (scrolledToTop) list.scrollTop = 0;
+    }
+
+    function timeAgo(ts) {
+      const secs = Math.floor((Date.now() - ts) / 1000);
+      if (secs < 5)  return 'just now';
+      if (secs < 60) return `${secs}s ago`;
+      const mins = Math.floor(secs / 60);
+      if (mins < 60) return `${mins}m ago`;
+      return `${Math.floor(mins / 60)}h ago`;
+    }
+
+    // ── reel count ───────────────────────────────────────────────────
+    document.getElementById('reelCountBtns').addEventListener('click', e => {
+      const btn = e.target.closest('.count-btn');
+      if (!btn || spinning) return;
+      const n = parseInt(btn.dataset.n);
+      if (n === numReels) return;
+      numReels = n;
+      document.querySelectorAll('.count-btn').forEach(b =>
+        b.classList.toggle('active', parseInt(b.dataset.n) === numReels)
+      );
+      buildReels();
+      hideResult();
+    });
+
+    document.getElementById('spinBtn').addEventListener('click', spin);
+    document.addEventListener('keydown', e => {
+      if ((e.code === 'Space' || e.code === 'Enter') && !spinning &&
+          document.activeElement !== playerInput) {
+        e.preventDefault();
+        spin();
+      }
+    });
+
+    // ── confetti ─────────────────────────────────────────────────────
+    function launchConfetti() {
+      const canvas = document.getElementById('confettiCanvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      const pieces = Array.from({ length: 120 }, () => ({
+        x: Math.random() * canvas.width, y: -20,
+        r: 4 + Math.random() * 6,
+        dx: (Math.random() - 0.5) * 4,
+        dy: 2 + Math.random() * 4,
+        color: `hsl(${Math.random() * 360},80%,60%)`,
+        rot: Math.random() * Math.PI * 2,
+        drot: (Math.random() - 0.5) * 0.2,
+      }));
+      let rafId;
+      function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        let alive = 0;
+        pieces.forEach(p => {
+          if (p.y > canvas.height + 30) return;
+          alive++;
+          p.x += p.dx; p.y += p.dy; p.dy += 0.05; p.rot += p.drot;
+          ctx.save();
+          ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+          ctx.fillStyle = p.color;
+          ctx.fillRect(-p.r, -p.r / 2, p.r * 2, p.r);
+          ctx.restore();
+        });
+        if (alive > 0) rafId = requestAnimationFrame(draw);
+        else ctx.clearRect(0, 0, canvas.width, canvas.height);
+      }
+      cancelAnimationFrame(rafId);
+      draw();
+    }
+
+    // ── init ─────────────────────────────────────────────────────────
+    buildReels();
+    pollFeed();
+    setInterval(pollFeed, POLL_INTERVAL);
+
+    // refresh "X ago" times every 30s without a full re-fetch
+    setInterval(() => { if (feedEntries.length) renderFeed(feedEntries); }, 30000);
+  </script>
+</body>
+</html>
