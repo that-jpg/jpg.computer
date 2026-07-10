@@ -123,6 +123,24 @@
       border-bottom: 1px solid #1a1a1a;
     }
 
+    .todo-handle {
+      border: none;
+      background: none;
+      color: #444;
+      padding: 2px 4px;
+      font-size: 1.05em;
+      cursor: grab;
+      touch-action: none;
+      user-select: none;
+    }
+
+    .todo-handle:hover { color: #aaa; }
+
+    #todo-list li.dragging {
+      opacity: 0.55;
+      background: #111;
+    }
+
     .todo-toggle {
       width: 18px;
       height: 18px;
@@ -437,12 +455,52 @@
       syncStatus.classList.toggle('error', Boolean(isError));
     }
 
+    function attachDrag(handle, li) {
+      handle.addEventListener('pointerdown', e => {
+        e.preventDefault();
+        li.classList.add('dragging');
+
+        const move = ev => {
+          ev.preventDefault();
+          const after = [...listEl.children]
+            .filter(x => x !== li)
+            .find(x => {
+              const r = x.getBoundingClientRect();
+              return ev.clientY < r.top + r.height / 2;
+            });
+          if (after) listEl.insertBefore(li, after);
+          else listEl.appendChild(li);
+        };
+
+        const up = () => {
+          li.classList.remove('dragging');
+          document.removeEventListener('pointermove', move);
+          document.removeEventListener('pointerup', up);
+          document.removeEventListener('pointercancel', up);
+          const order = [...listEl.children].map(x => x.dataset.id);
+          todos.sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id));
+          scheduleSave();
+        };
+
+        document.addEventListener('pointermove', move);
+        document.addEventListener('pointerup', up);
+        document.addEventListener('pointercancel', up);
+      });
+    }
+
     function render() {
       listEl.innerHTML = '';
       emptyState.classList.toggle('hidden', todos.length > 0);
       for (const todo of todos) {
         const li = document.createElement('li');
         li.classList.toggle('done', todo.done);
+        li.dataset.id = todo.id;
+
+        const handle = document.createElement('button');
+        handle.className = 'todo-handle';
+        handle.textContent = '≡';
+        handle.setAttribute('aria-label', 'Reorder todo');
+        attachDrag(handle, li);
 
         const toggle = document.createElement('button');
         toggle.className = 'todo-toggle';
@@ -467,7 +525,7 @@
           scheduleSave();
         });
 
-        li.append(toggle, text, del);
+        li.append(handle, toggle, text, del);
         listEl.appendChild(li);
       }
     }
