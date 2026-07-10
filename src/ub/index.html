@@ -175,6 +175,95 @@
     }
 
     #sync-status.error { color: #fca5a5; }
+
+    #fitness {
+      border-bottom: 1px solid #333;
+      padding-bottom: 20px;
+      margin-bottom: 24px;
+    }
+
+    #deficit-stat { margin-bottom: 16px; }
+
+    .stat-label {
+      display: block;
+      color: #aaa;
+      font-size: 0.8em;
+    }
+
+    .stat-value {
+      display: block;
+      color: white;
+      font-size: 1.7em;
+      font-weight: 600;
+      margin: 2px 0;
+    }
+
+    .stat-sub {
+      display: block;
+      color: #666;
+      font-size: 0.75em;
+    }
+
+    #chart-wrap {
+      position: relative;
+      width: 100%;
+    }
+
+    #chart-wrap svg {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    #chart-tooltip {
+      position: absolute;
+      background: #111;
+      border: 1px solid #333;
+      border-radius: 4px;
+      padding: 6px 9px;
+      font-size: 0.75em;
+      color: #e2e8f0;
+      pointer-events: none;
+      white-space: nowrap;
+      display: none;
+      z-index: 5;
+    }
+
+    #chart-tooltip .tt-muted { color: #888; }
+
+    #chart-caption {
+      color: #666;
+      font-size: 0.72em;
+      margin: 6px 0 0;
+    }
+
+    #fitness details { margin-top: 8px; }
+
+    #fitness summary {
+      color: #666;
+      font-size: 0.75em;
+      cursor: pointer;
+    }
+
+    #fitness table {
+      border-collapse: collapse;
+      font-family: monospace;
+      font-size: 0.78em;
+      color: #aaa;
+      margin-top: 6px;
+    }
+
+    #fitness td, #fitness th {
+      padding: 2px 12px 2px 0;
+      text-align: right;
+    }
+
+    #fitness td:first-child, #fitness th:first-child { text-align: left; }
+
+    #fitness th {
+      color: #666;
+      font-weight: normal;
+    }
   </style>
 </head>
 <body>
@@ -192,6 +281,23 @@
     </form>
 
     <section id="app-view" class="hidden">
+      <section id="fitness" class="hidden">
+        <div id="deficit-stat">
+          <span class="stat-label">7-day calorie deficit</span>
+          <span class="stat-value" id="deficit-value">—</span>
+          <span class="stat-sub" id="deficit-sub"></span>
+        </div>
+        <div id="chart-wrap">
+          <svg id="chart" viewBox="0 0 480 170" role="img" aria-label="Calories per day, last 7 days plus today"></svg>
+          <div id="chart-tooltip"></div>
+        </div>
+        <p id="chart-caption"></p>
+        <details>
+          <summary>data</summary>
+          <table id="fitness-table"></table>
+        </details>
+      </section>
+
       <form id="add-form">
         <input id="add-input" placeholder="New todo" maxlength="500" autocomplete="off">
         <button type="submit">Add</button>
@@ -305,6 +411,194 @@
       }
     }
 
+    const SVG_NS = 'http://www.w3.org/2000/svg';
+    const BAR_FILL = '#14a37f';
+    const CHART = { w: 480, h: 170, left: 40, right: 6, top: 16, bottom: 22 };
+
+    function svgEl(name, attrs) {
+      const el = document.createElementNS(SVG_NS, name);
+      for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
+      return el;
+    }
+
+    function fmt(n) {
+      return n == null ? '—' : Math.round(n).toLocaleString('en-US');
+    }
+
+    function dayLabel(iso, partial) {
+      if (partial) return 'today';
+      return new Date(iso + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short' });
+    }
+
+    function barPath(x, y, w, baseY) {
+      const r = Math.min(4, (baseY - y) / 2, w / 2);
+      return `M${x},${baseY} L${x},${y + r} Q${x},${y} ${x + r},${y} L${x + w - r},${y} Q${x + w},${y} ${x + w},${y + r} L${x + w},${baseY} Z`;
+    }
+
+    function renderDeficitStat(f) {
+      const value = document.getElementById('deficit-value');
+      const sub = document.getElementById('deficit-sub');
+      if (f.deficit_total == null) {
+        value.textContent = '—';
+        sub.textContent = 'no completed days with intake data yet';
+        return;
+      }
+      value.textContent = `${fmt(f.deficit_total)} kcal`;
+      const parts = [`avg ${fmt(f.deficit_avg)}/day over ${f.days_counted} days`];
+      if (f.days_estimated > 0) {
+        parts.push(`out estimated at ~${fmt(f.tdee_estimate)} for ${f.days_estimated}/${f.days_counted}`);
+      }
+      sub.textContent = parts.join(' · ');
+    }
+
+    function renderChart(f) {
+      const svg = document.getElementById('chart');
+      const tooltip = document.getElementById('chart-tooltip');
+      svg.innerHTML = '';
+      const days = f.days;
+      const plotW = CHART.w - CHART.left - CHART.right;
+      const plotH = CHART.h - CHART.top - CHART.bottom;
+      const baseY = CHART.top + plotH;
+      const band = plotW / days.length;
+      const barW = Math.min(24, band * 0.55);
+      const maxVal = Math.max(3000, ...days.flatMap(d => [d.in || 0, d.out || 0]));
+      const yMax = Math.ceil(maxVal / 500) * 500;
+      const yOf = v => CHART.top + plotH * (1 - v / yMax);
+
+      for (let v = 1000; v <= yMax; v += 1000) {
+        svg.append(svgEl('line', {
+          x1: CHART.left, x2: CHART.w - CHART.right, y1: yOf(v), y2: yOf(v),
+          stroke: '#1a1a1a', 'stroke-width': 1,
+        }));
+        const tick = svgEl('text', {
+          x: CHART.left - 6, y: yOf(v) + 3, fill: '#666',
+          'font-size': 9, 'text-anchor': 'end',
+          style: 'font-family: monospace; font-variant-numeric: tabular-nums',
+        });
+        tick.textContent = fmt(v);
+        svg.append(tick);
+      }
+      svg.append(svgEl('line', {
+        x1: CHART.left, x2: CHART.w - CHART.right, y1: baseY, y2: baseY,
+        stroke: '#333', 'stroke-width': 1,
+      }));
+
+      let lastCompleted = null;
+      for (const d of days) if (!d.partial && d.in != null) lastCompleted = d;
+
+      days.forEach((d, i) => {
+        const cx = CHART.left + band * i + band / 2;
+        const x = cx - barW / 2;
+
+        if (d.in != null) {
+          const bar = svgEl('path', { d: barPath(x, yOf(d.in), barW, baseY), fill: BAR_FILL });
+          if (d.partial) bar.setAttribute('opacity', 0.45);
+          svg.append(bar);
+        }
+
+        if (d.out != null) {
+          svg.append(svgEl('line', {
+            x1: cx - barW / 2 - 6, x2: cx + barW / 2 + 6, y1: yOf(d.out), y2: yOf(d.out),
+            stroke: '#a3a3a3', 'stroke-width': 2, 'stroke-linecap': 'round',
+            opacity: d.out_estimated ? 0.55 : 1,
+          }));
+        }
+
+        if (d === lastCompleted && d.in != null) {
+          const cap = svgEl('text', {
+            x: cx, y: yOf(d.in) - 5, fill: '#e2e8f0', 'font-size': 10, 'text-anchor': 'middle',
+            style: 'font-family: monospace',
+          });
+          cap.textContent = fmt(d.in);
+          svg.append(cap);
+        }
+
+        const label = svgEl('text', {
+          x: cx, y: CHART.h - 8, fill: d.partial ? '#aaa' : '#666',
+          'font-size': 10, 'text-anchor': 'middle',
+        });
+        label.textContent = dayLabel(d.date, d.partial);
+        svg.append(label);
+
+        const hit = svgEl('rect', {
+          x: CHART.left + band * i, y: CHART.top, width: band, height: plotH,
+          fill: 'transparent',
+        });
+        hit.addEventListener('mousemove', e => {
+          const date = new Date(d.date + 'T12:00:00')
+            .toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+          const outText = d.out == null ? '—' : (d.out_estimated ? `~${fmt(d.out)} est` : fmt(d.out));
+          const deficitText = d.deficit == null ? '—' : `${d.deficit >= 0 ? '+' : ''}${fmt(d.deficit)}`;
+          tooltip.innerHTML =
+            `${date}${d.partial ? ' <span class="tt-muted">(partial)</span>' : ''}<br>` +
+            `in ${fmt(d.in)} <span class="tt-muted">·</span> out ${outText}<br>` +
+            `deficit ${deficitText}`;
+          tooltip.style.display = 'block';
+          const wrap = tooltip.parentElement.getBoundingClientRect();
+          const ttW = tooltip.offsetWidth;
+          let px = e.clientX - wrap.left + 12;
+          if (px + ttW > wrap.width) px = e.clientX - wrap.left - ttW - 12;
+          tooltip.style.left = `${Math.max(0, px)}px`;
+          tooltip.style.top = `${e.clientY - wrap.top - 10}px`;
+        });
+        hit.addEventListener('mouseleave', () => { tooltip.style.display = 'none'; });
+        svg.append(hit);
+      });
+    }
+
+    function renderFitnessTable(f) {
+      const table = document.getElementById('fitness-table');
+      table.innerHTML = '';
+      const head = document.createElement('tr');
+      for (const h of ['date', 'in', 'out', 'deficit']) {
+        const th = document.createElement('th');
+        th.textContent = h;
+        head.appendChild(th);
+      }
+      table.appendChild(head);
+      for (const d of f.days) {
+        const tr = document.createElement('tr');
+        const cells = [
+          d.date + (d.partial ? ' *' : ''),
+          fmt(d.in),
+          d.out == null ? '—' : (d.out_estimated ? `~${fmt(d.out)}` : fmt(d.out)),
+          d.deficit == null ? '—' : `${d.deficit >= 0 ? '+' : ''}${fmt(d.deficit)}`,
+        ];
+        for (const c of cells) {
+          const td = document.createElement('td');
+          td.textContent = c;
+          tr.appendChild(td);
+        }
+        table.appendChild(tr);
+      }
+    }
+
+    function renderFitness(f) {
+      const panel = document.getElementById('fitness');
+      if (!f || !Array.isArray(f.days) || f.days.length === 0) {
+        panel.classList.add('hidden');
+        return;
+      }
+      panel.classList.remove('hidden');
+      renderDeficitStat(f);
+      renderChart(f);
+      renderFitnessTable(f);
+      const captionParts = ['bars: calories in', 'gray tick: calories out'];
+      if (f.days.some(d => d.out_estimated)) captionParts.push('~ estimated (TDEE)');
+      if (f.days.some(d => d.partial)) captionParts.push('today still logging');
+      document.getElementById('chart-caption').textContent = captionParts.join(' · ');
+    }
+
+    async function loadFitness() {
+      try {
+        const r = await api('fitness');
+        if (!r.ok) throw new Error();
+        renderFitness((await r.json()).fitness);
+      } catch (e) {
+        document.getElementById('fitness').classList.add('hidden');
+      }
+    }
+
     async function loadTodos() {
       try {
         const r = await api('todos');
@@ -341,6 +635,7 @@
         localStorage.setItem(TOKEN_KEY, data.token);
         document.getElementById('login-pass').value = '';
         loadTodos();
+        loadFitness();
       } catch (e) {
         loginError.textContent = 'Network error';
       }
@@ -362,8 +657,12 @@
       showLogin();
     });
 
-    if (token()) loadTodos();
-    else showLogin();
+    if (token()) {
+      loadTodos();
+      loadFitness();
+    } else {
+      showLogin();
+    }
   </script>
 </body>
 </html>
