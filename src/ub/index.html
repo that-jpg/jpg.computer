@@ -177,10 +177,21 @@
     #sync-status.error { color: #fca5a5; }
 
     #fitness {
-      border-bottom: 1px solid #333;
-      padding-bottom: 20px;
-      margin-bottom: 24px;
+      border-top: 1px solid #333;
+      padding-top: 16px;
+      margin-top: 28px;
     }
+
+    #fitness > summary {
+      color: #aaa;
+      font-size: 0.9em;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    #fitness > summary:hover { color: #7fffd4; }
+
+    #fitness[open] > summary { margin-bottom: 18px; }
 
     #stat-row {
       display: flex;
@@ -287,7 +298,7 @@
 
     #fitness details { margin-top: 8px; }
 
-    #fitness summary {
+    #fitness details summary {
       color: #666;
       font-size: 0.75em;
       cursor: pointer;
@@ -329,7 +340,16 @@
     </form>
 
     <section id="app-view" class="hidden">
-      <section id="fitness" class="hidden">
+      <form id="add-form">
+        <input id="add-input" placeholder="New todo" maxlength="500" autocomplete="off">
+        <button type="submit">Add</button>
+      </form>
+      <ul id="todo-list"></ul>
+      <p id="empty-state" class="hidden">Nothing to do.</p>
+      <p id="sync-status"></p>
+
+      <details id="fitness" class="hidden">
+        <summary>fitness</summary>
         <div id="stat-row">
           <div id="deficit-stat">
             <span class="stat-label">7-day calorie deficit</span>
@@ -362,15 +382,7 @@
           <summary>data</summary>
           <table id="fitness-table"></table>
         </details>
-      </section>
-
-      <form id="add-form">
-        <input id="add-input" placeholder="New todo" maxlength="500" autocomplete="off">
-        <button type="submit">Add</button>
-      </form>
-      <ul id="todo-list"></ul>
-      <p id="empty-state" class="hidden">Nothing to do.</p>
-      <p id="sync-status"></p>
+      </details>
     </section>
   </main>
 
