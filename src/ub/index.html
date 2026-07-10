@@ -182,7 +182,55 @@
       margin-bottom: 24px;
     }
 
-    #deficit-stat { margin-bottom: 16px; }
+    #stat-row {
+      display: flex;
+      gap: 40px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .stat-delta-good { color: #14a37f; }
+    .stat-delta-bad { color: #fca5a5; }
+
+    #cut-progress { margin-bottom: 20px; }
+
+    .meter-head {
+      display: flex;
+      justify-content: space-between;
+      color: #aaa;
+      font-size: 0.8em;
+      margin-bottom: 6px;
+    }
+
+    #meter {
+      position: relative;
+      height: 10px;
+      border-radius: 5px;
+      background: #0e332a;
+      overflow: visible;
+    }
+
+    #meter-fill {
+      height: 100%;
+      border-radius: 5px;
+      background: #14a37f;
+      min-width: 0;
+    }
+
+    #meter-tick {
+      position: absolute;
+      top: -3px;
+      width: 2px;
+      height: 16px;
+      background: #a3a3a3;
+      border-radius: 1px;
+    }
+
+    #cut-sub {
+      color: #666;
+      font-size: 0.72em;
+      margin: 6px 0 0;
+    }
 
     .stat-label {
       display: block;
@@ -282,10 +330,28 @@
 
     <section id="app-view" class="hidden">
       <section id="fitness" class="hidden">
-        <div id="deficit-stat">
-          <span class="stat-label">7-day calorie deficit</span>
-          <span class="stat-value" id="deficit-value">—</span>
-          <span class="stat-sub" id="deficit-sub"></span>
+        <div id="stat-row">
+          <div id="deficit-stat">
+            <span class="stat-label">7-day calorie deficit</span>
+            <span class="stat-value" id="deficit-value">—</span>
+            <span class="stat-sub" id="deficit-sub"></span>
+          </div>
+          <div id="weight-stat" class="hidden">
+            <span class="stat-label">current weight</span>
+            <span class="stat-value" id="weight-value">—</span>
+            <span class="stat-sub" id="weight-sub"></span>
+          </div>
+        </div>
+        <div id="cut-progress" class="hidden">
+          <div class="meter-head">
+            <span id="cut-title"></span>
+            <span id="cut-days"></span>
+          </div>
+          <div id="meter">
+            <div id="meter-fill"></div>
+            <div id="meter-tick"></div>
+          </div>
+          <p id="cut-sub"></p>
         </div>
         <div id="chart-wrap">
           <svg id="chart" viewBox="0 0 480 170" role="img" aria-label="Calories per day, last 7 days plus today"></svg>
@@ -573,6 +639,41 @@
       }
     }
 
+    function shortDate(iso) {
+      return new Date(iso + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    }
+
+    function renderWeight(w) {
+      const tile = document.getElementById('weight-stat');
+      const cut = document.getElementById('cut-progress');
+      if (!w) {
+        tile.classList.add('hidden');
+        cut.classList.add('hidden');
+        return;
+      }
+      tile.classList.remove('hidden');
+      cut.classList.remove('hidden');
+
+      document.getElementById('weight-value').textContent = `${w.current.toFixed(1)} kg`;
+      const delta = w.current - w.cut_start;
+      const deltaClass = delta <= 0 ? 'stat-delta-good' : 'stat-delta-bad';
+      const deltaText = `${delta > 0 ? '+' : ''}${delta.toFixed(1)} kg since ${shortDate(w.cut_start_date)}`;
+      document.getElementById('weight-sub').innerHTML =
+        `logged ${shortDate(w.date)} · <span class="${deltaClass}">${deltaText}</span>`;
+
+      const planned = w.cut_start - w.cut_target;
+      const lostFrac = Math.min(Math.max((w.cut_start - w.current) / planned, 0), 1);
+      const expectedFrac = Math.min(Math.max((w.cut_start - w.expected_today) / planned, 0), 1);
+      document.getElementById('meter-fill').style.width = `${lostFrac * 100}%`;
+      document.getElementById('meter-tick').style.left = `calc(${expectedFrac * 100}% - 1px)`;
+      document.getElementById('cut-title').textContent =
+        `cut ${w.cut_start.toFixed(1)} → ${w.cut_target.toFixed(1)} kg`;
+      document.getElementById('cut-days').textContent =
+        w.days_left > 0 ? `${w.days_left} days left` : 'ended';
+      document.getElementById('cut-sub').textContent =
+        `target ${w.cut_target.toFixed(1)} by ${shortDate(w.cut_end_date)} · on-pace today ${w.expected_today.toFixed(1)} (gray tick)`;
+    }
+
     function renderFitness(f) {
       const panel = document.getElementById('fitness');
       if (!f || !Array.isArray(f.days) || f.days.length === 0) {
@@ -580,6 +681,7 @@
         return;
       }
       panel.classList.remove('hidden');
+      renderWeight(f.weight);
       renderDeficitStat(f);
       renderChart(f);
       renderFitnessTable(f);
