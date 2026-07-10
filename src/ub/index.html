@@ -539,7 +539,7 @@
       const baseY = CHART.top + plotH;
       const band = plotW / days.length;
       const barW = Math.min(24, band * 0.55);
-      const maxVal = Math.max(3000, ...days.flatMap(d => [d.in || 0, d.out || 0]));
+      const maxVal = Math.max(3000, ...days.flatMap(d => [d.in || 0, d.target || 0]));
       const yMax = Math.ceil(maxVal / 500) * 500;
       const yOf = v => CHART.top + plotH * (1 - v / yMax);
 
@@ -574,11 +574,10 @@
           svg.append(bar);
         }
 
-        if (d.out != null) {
+        if (d.target != null) {
           svg.append(svgEl('line', {
-            x1: cx - barW / 2 - 6, x2: cx + barW / 2 + 6, y1: yOf(d.out), y2: yOf(d.out),
+            x1: cx - barW / 2 - 6, x2: cx + barW / 2 + 6, y1: yOf(d.target), y2: yOf(d.target),
             stroke: '#a3a3a3', 'stroke-width': 2, 'stroke-linecap': 'round',
-            opacity: d.out_estimated ? 0.55 : 1,
           }));
         }
 
@@ -609,8 +608,8 @@
           const deficitText = d.deficit == null ? '—' : `${d.deficit >= 0 ? '+' : ''}${fmt(d.deficit)}`;
           tooltip.innerHTML =
             `${date}${d.partial ? ' <span class="tt-muted">(partial)</span>' : ''}<br>` +
-            `in ${fmt(d.in)} <span class="tt-muted">·</span> out ${outText}<br>` +
-            `deficit ${deficitText}`;
+            `in ${fmt(d.in)} <span class="tt-muted">·</span> target ${fmt(d.target)}<br>` +
+            `out ${outText} <span class="tt-muted">·</span> deficit ${deficitText}`;
           tooltip.style.display = 'block';
           const wrap = tooltip.parentElement.getBoundingClientRect();
           const ttW = tooltip.offsetWidth;
@@ -628,7 +627,7 @@
       const table = document.getElementById('fitness-table');
       table.innerHTML = '';
       const head = document.createElement('tr');
-      for (const h of ['date', 'in', 'out', 'deficit']) {
+      for (const h of ['date', 'in', 'target', 'out', 'deficit']) {
         const th = document.createElement('th');
         th.textContent = h;
         head.appendChild(th);
@@ -639,6 +638,7 @@
         const cells = [
           d.date + (d.partial ? ' *' : ''),
           fmt(d.in),
+          fmt(d.target),
           d.out == null ? '—' : (d.out_estimated ? `~${fmt(d.out)}` : fmt(d.out)),
           d.deficit == null ? '—' : `${d.deficit >= 0 ? '+' : ''}${fmt(d.deficit)}`,
         ];
@@ -697,8 +697,7 @@
       renderDeficitStat(f);
       renderChart(f);
       renderFitnessTable(f);
-      const captionParts = ['bars: calories in', 'gray tick: calories out'];
-      if (f.days.some(d => d.out_estimated)) captionParts.push('~ estimated (TDEE)');
+      const captionParts = ['bars: calories in', 'gray tick: day intake target'];
       if (f.days.some(d => d.partial)) captionParts.push('today still logging');
       document.getElementById('chart-caption').textContent = captionParts.join(' · ');
     }
