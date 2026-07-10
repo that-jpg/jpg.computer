@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>ub</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      background-color: black;
+      color: white;
+      font-family: 'Trebuchet MS', sans-serif;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+    }
+
+    main {
+      width: 100%;
+      max-width: 520px;
+    }
+
+    header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      border-bottom: 1px solid #333;
+      padding-bottom: 10px;
+      margin-bottom: 24px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 1.4em;
+    }
+
+    h1 em {
+      color: #666;
+      font-style: normal;
+      font-size: 0.7em;
+    }
+
+    .hidden { display: none !important; }
+
+    #login-view {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 60px;
+    }
+
+    input, button {
+      font-family: inherit;
+      font-size: 1em;
+      border-radius: 4px;
+    }
+
+    input {
+      background: none;
+      border: 1px solid #444;
+      color: white;
+      padding: 10px 12px;
+      width: 100%;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: #7fffd4;
+    }
+
+    button {
+      background: none;
+      border: 1px solid #555;
+      color: white;
+      padding: 10px 20px;
+      cursor: pointer;
+      transition: border-color 0.15s, color 0.15s;
+    }
+
+    button:hover {
+      border-color: #7fffd4;
+      color: #7fffd4;
+    }
+
+    #login-error {
+      color: #fca5a5;
+      font-size: 0.85em;
+      min-height: 1.2em;
+      margin: 0;
+    }
+
+    #logout {
+      border: none;
+      color: #666;
+      padding: 0;
+      font-size: 0.8em;
+    }
+
+    #logout:hover { color: #fca5a5; }
+
+    #add-form {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    #add-form button { white-space: nowrap; }
+
+    #todo-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    #todo-list li {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 4px;
+      border-bottom: 1px solid #1a1a1a;
+    }
+
+    .todo-toggle {
+      width: 18px;
+      height: 18px;
+      min-width: 18px;
+      border: 1px solid #555;
+      border-radius: 50%;
+      background: none;
+      cursor: pointer;
+      padding: 0;
+    }
+
+    li.done .todo-toggle {
+      border-color: #7fffd4;
+      background: #7fffd4;
+    }
+
+    .todo-text {
+      flex: 1;
+      word-break: break-word;
+    }
+
+    li.done .todo-text {
+      color: #666;
+      text-decoration: line-through;
+    }
+
+    .todo-delete {
+      border: none;
+      color: #444;
+      padding: 2px 6px;
+      font-size: 1.1em;
+      line-height: 1;
+    }
+
+    .todo-delete:hover { color: #fca5a5; }
+
+    #empty-state {
+      color: #666;
+      text-align: center;
+      padding: 30px 0;
+    }
+
+    #sync-status {
+      color: #666;
+      font-size: 0.75em;
+      text-align: right;
+      min-height: 1.2em;
+      margin-top: 14px;
+      font-family: monospace;
+    }
+
+    #sync-status.error { color: #fca5a5; }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>ub <em>dashboard</em></h1>
+      <button id="logout" class="hidden">logout</button>
+    </header>
+
+    <form id="login-view" class="hidden">
+      <input id="login-user" placeholder="user" autocomplete="username" required>
+      <input id="login-pass" type="password" placeholder="password" autocomplete="current-password" required>
+      <p id="login-error"></p>
+      <button type="submit">Enter</button>
+    </form>
+
+    <section id="app-view" class="hidden">
+      <form id="add-form">
+        <input id="add-input" placeholder="New todo" maxlength="500" autocomplete="off">
+        <button type="submit">Add</button>
+      </form>
+      <ul id="todo-list"></ul>
+      <p id="empty-state" class="hidden">Nothing to do.</p>
+      <p id="sync-status"></p>
+    </section>
+  </main>
+
+  <script>
+    const API = '/api/ub';
+    const TOKEN_KEY = 'ub-token';
+
+    const loginView = document.getElementById('login-view');
+    const appView = document.getElementById('app-view');
+    const loginError = document.getElementById('login-error');
+    const logoutBtn = document.getElementById('logout');
+    const addForm = document.getElementById('add-form');
+    const addInput = document.getElementById('add-input');
+    const listEl = document.getElementById('todo-list');
+    const emptyState = document.getElementById('empty-state');
+    const syncStatus = document.getElementById('sync-status');
+
+    let todos = [];
+    let saveTimer = null;
+
+    function token() {
+      return localStorage.getItem(TOKEN_KEY);
+    }
+
+    function api(action, options = {}) {
+      return fetch(`${API}?action=${action}`, {
+        ...options,
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token() ? { Authorization: `Bearer ${token()}` } : {}),
+        },
+      });
+    }
+
+    function showLogin() {
+      localStorage.removeItem(TOKEN_KEY);
+      appView.classList.add('hidden');
+      logoutBtn.classList.add('hidden');
+      loginView.classList.remove('hidden');
+      document.getElementById('login-user').focus();
+    }
+
+    function showApp() {
+      loginView.classList.add('hidden');
+      appView.classList.remove('hidden');
+      logoutBtn.classList.remove('hidden');
+      addInput.focus();
+    }
+
+    function setStatus(text, isError) {
+      syncStatus.textContent = text;
+      syncStatus.classList.toggle('error', Boolean(isError));
+    }
+
+    function render() {
+      listEl.innerHTML = '';
+      emptyState.classList.toggle('hidden', todos.length > 0);
+      for (const todo of todos) {
+        const li = document.createElement('li');
+        li.classList.toggle('done', todo.done);
+
+        const toggle = document.createElement('button');
+        toggle.className = 'todo-toggle';
+        toggle.setAttribute('aria-label', todo.done ? 'Mark as not done' : 'Mark as done');
+        toggle.addEventListener('click', () => {
+          todo.done = !todo.done;
+          render();
+          scheduleSave();
+        });
+
+        const text = document.createElement('span');
+        text.className = 'todo-text';
+        text.textContent = todo.text;
+
+        const del = document.createElement('button');
+        del.className = 'todo-delete';
+        del.textContent = '×';
+        del.setAttribute('aria-label', 'Delete todo');
+        del.addEventListener('click', () => {
+          todos = todos.filter(t => t.id !== todo.id);
+          render();
+          scheduleSave();
+        });
+
+        li.append(toggle, text, del);
+        listEl.appendChild(li);
+      }
+    }
+
+    function scheduleSave() {
+      setStatus('saving...');
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(save, 400);
+    }
+
+    async function save() {
+      try {
+        const r = await api('todos', { method: 'PUT', body: JSON.stringify({ todos }) });
+        if (r.status === 401) return showLogin();
+        if (!r.ok) throw new Error();
+        setStatus('saved');
+      } catch (e) {
+        setStatus('sync failed - changes not saved', true);
+      }
+    }
+
+    async function loadTodos() {
+      try {
+        const r = await api('todos');
+        if (r.status === 401) return showLogin();
+        if (!r.ok) throw new Error();
+        todos = (await r.json()).todos;
+        showApp();
+        render();
+        setStatus('');
+      } catch (e) {
+        showApp();
+        render();
+        setStatus('failed to load todos', true);
+      }
+    }
+
+    loginView.addEventListener('submit', async e => {
+      e.preventDefault();
+      loginError.textContent = '';
+      try {
+        const r = await fetch(`${API}?action=login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            username: document.getElementById('login-user').value,
+            password: document.getElementById('login-pass').value,
+          }),
+        });
+        const data = await r.json();
+        if (!r.ok) {
+          loginError.textContent = data.error || 'Login failed';
+          return;
+        }
+        localStorage.setItem(TOKEN_KEY, data.token);
+        document.getElementById('login-pass').value = '';
+        loadTodos();
+      } catch (e) {
+        loginError.textContent = 'Network error';
+      }
+    });
+
+    addForm.addEventListener('submit', e => {
+      e.preventDefault();
+      const text = addInput.value.trim();
+      if (!text) return;
+      todos.unshift({ id: crypto.randomUUID(), text, done: false, created: Date.now() });
+      addInput.value = '';
+      render();
+      scheduleSave();
+    });
+
+    logoutBtn.addEventListener('click', async () => {
+      try { await api('logout', { method: 'POST' }); } catch (e) {}
+      todos = [];
+      showLogin();
+    });
+
+    if (token()) loadTodos();
+    else showLogin();
+  </script>
+</body>
+</html>
