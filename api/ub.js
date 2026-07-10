@@ -61,6 +61,8 @@ function sanitizeTodos(todos) {
       text: t.text.slice(0, 500),
       done: Boolean(t.done),
       created: Number(t.created) || 0,
+      kind: t.kind === 'daily' ? 'daily' : 'global',
+      doneOn: typeof t.doneOn === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(t.doneOn) ? t.doneOn : null,
     });
   }
   return clean;
