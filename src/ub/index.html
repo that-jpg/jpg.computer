@@ -101,6 +101,21 @@
 
     #logout:hover { color: #fca5a5; }
 
+    #timer-widget {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      border-bottom: 1px solid #1a1a1a;
+      padding-bottom: 12px;
+      margin-bottom: 20px;
+    }
+
+    #timer-value {
+      font-family: monospace;
+      font-variant-numeric: tabular-nums;
+      margin: 0;
+    }
+
     #add-form {
       display: flex;
       gap: 8px;
@@ -392,6 +407,10 @@
     </form>
 
     <section id="app-view" class="hidden">
+      <div id="timer-widget">
+        <span class="stat-label">since Jul 15, 08:30</span>
+        <span class="stat-value" id="timer-value">—</span>
+      </div>
       <form id="add-form">
         <input id="add-input" placeholder="New todo" maxlength="500" autocomplete="off">
         <button type="button" id="kind-toggle" aria-pressed="false">daily</button>
@@ -898,6 +917,22 @@
         loginError.textContent = 'Network error';
       }
     });
+
+    const TIMER_EPOCH = new Date('2026-07-15T08:30:00-03:00');
+    const timerValue = document.getElementById('timer-value');
+
+    function renderTimer() {
+      const total = Math.max(0, Math.floor((Date.now() - TIMER_EPOCH.getTime()) / 1000));
+      const days = Math.floor(total / 86400);
+      const hours = Math.floor((total % 86400) / 3600);
+      const minutes = Math.floor((total % 3600) / 60);
+      const seconds = total % 60;
+      const pad = n => String(n).padStart(2, '0');
+      timerValue.textContent = `${days}d ${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+    }
+
+    renderTimer();
+    setInterval(renderTimer, 1000);
 
     kindToggle.addEventListener('click', () => {
       const active = kindToggle.classList.toggle('active');
