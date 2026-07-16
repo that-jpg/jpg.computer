@@ -280,7 +280,7 @@
       margin-bottom: 6px;
     }
 
-    #meter {
+    #meter, #french-meter {
       position: relative;
       height: 10px;
       border-radius: 5px;
@@ -288,7 +288,7 @@
       overflow: visible;
     }
 
-    #meter-fill {
+    #meter-fill, #french-meter-fill {
       height: 100%;
       border-radius: 5px;
       background: #14a37f;
@@ -482,6 +482,15 @@
             <span class="stat-label">all time</span>
             <span class="stat-value" id="french-alltime-value">—</span>
             <span class="stat-sub" id="french-alltime-sub"></span>
+          </div>
+        </div>
+        <div id="french-level">
+          <div class="meter-head">
+            <span>A1 → A2</span>
+            <span id="french-level-pct"></span>
+          </div>
+          <div id="french-meter">
+            <div id="french-meter-fill"></div>
           </div>
         </div>
       </details>
@@ -915,6 +924,9 @@
         `${f.vocab.introduced} / ${f.vocab.total}`;
       document.getElementById('french-vocab-sub').textContent =
         `words introduced · ${f.vocab.known} known`;
+      const levelPct = Math.min(100 * f.vocab.known / f.vocab.total, 100);
+      document.getElementById('french-level-pct').textContent = `${levelPct.toFixed(1)}%`;
+      document.getElementById('french-meter-fill').style.width = `${levelPct}%`;
       renderFrenchReviews('week', f.week);
       renderFrenchReviews('alltime', f.all_time);
     }
