@@ -206,6 +206,11 @@
       background: #7fffd4;
     }
 
+    li.doing .todo-toggle {
+      border-color: #7fffd4;
+      background: linear-gradient(90deg, #7fffd4 50%, transparent 50%);
+    }
+
     .todo-text {
       flex: 1;
       word-break: break-word;
@@ -519,6 +524,11 @@
       return todo.kind === 'daily' ? 'daily' : 'global';
     }
 
+    function stateOf(todo) {
+      if (todo.state === 'doing' || todo.state === 'done') return todo.state;
+      return todo.done ? 'done' : 'todo';
+    }
+
     function localDate() {
       return new Date().toLocaleDateString('en-CA');
     }
@@ -591,7 +601,7 @@
           todos = [
             ...[...dailyListEl.children].map(x => byId(x.dataset.id)),
             ...[...listEl.children].map(x => byId(x.dataset.id)),
-            ...todos.filter(t => kindOf(t) === 'global' && t.done),
+            ...todos.filter(t => kindOf(t) === 'global' && stateOf(t) === 'done'),
           ];
           scheduleSave();
         };
@@ -603,17 +613,27 @@
     }
 
     function buildItem(todo, draggable, container) {
-      const isDone = kindOf(todo) === 'daily' ? isDoneToday(todo) : todo.done;
+      const state = kindOf(todo) === 'daily'
+        ? (isDoneToday(todo) ? 'done' : 'todo')
+        : stateOf(todo);
+      const nextState = state === 'todo' ? 'doing' : state === 'doing' ? 'done' : 'todo';
       const li = document.createElement('li');
-      li.classList.toggle('done', isDone);
+      li.classList.toggle('done', state === 'done');
+      li.classList.toggle('doing', state === 'doing');
       li.dataset.id = todo.id;
 
       const toggle = document.createElement('button');
       toggle.className = 'todo-toggle';
-      toggle.setAttribute('aria-label', isDone ? 'Mark as not done' : 'Mark as done');
+      toggle.setAttribute('aria-label', kindOf(todo) === 'daily'
+        ? (state === 'done' ? 'Mark as not done' : 'Mark as done')
+        : `Mark as ${nextState}`);
       toggle.addEventListener('click', () => {
-        if (kindOf(todo) === 'daily') todo.doneOn = isDoneToday(todo) ? null : localDate();
-        else todo.done = !todo.done;
+        if (kindOf(todo) === 'daily') {
+          todo.doneOn = isDoneToday(todo) ? null : localDate();
+        } else {
+          todo.state = nextState;
+          todo.done = nextState === 'done';
+        }
         render();
         scheduleSave();
       });
@@ -650,8 +670,8 @@
       dailyListEl.innerHTML = '';
       doneListEl.innerHTML = '';
       const daily = todos.filter(t => kindOf(t) === 'daily');
-      const active = todos.filter(t => kindOf(t) === 'global' && !t.done);
-      const done = todos.filter(t => kindOf(t) === 'global' && t.done);
+      const active = todos.filter(t => kindOf(t) === 'global' && stateOf(t) !== 'done');
+      const done = todos.filter(t => kindOf(t) === 'global' && stateOf(t) === 'done');
 
       dailyBlock.classList.toggle('hidden', daily.length === 0);
       document.getElementById('daily-count').textContent =
@@ -1012,6 +1032,7 @@
       todos.unshift({
         id: crypto.randomUUID(),
         text,
+        state: 'todo',
         done: false,
         created: Date.now(),
         kind: kindToggle.classList.contains('active') ? 'daily' : 'global',

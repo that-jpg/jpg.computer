@@ -56,10 +56,12 @@ function sanitizeTodos(todos) {
   const clean = [];
   for (const t of todos) {
     if (!t || typeof t.text !== 'string' || !t.text.trim()) return null;
+    const state = t.done ? 'done' : t.state === 'doing' ? 'doing' : 'todo';
     clean.push({
       id: String(t.id || '').slice(0, 40),
       text: t.text.slice(0, 500),
-      done: Boolean(t.done),
+      state,
+      done: state === 'done',
       created: Number(t.created) || 0,
       kind: t.kind === 'daily' ? 'daily' : 'global',
       doneOn: typeof t.doneOn === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(t.doneOn) ? t.doneOn : null,
