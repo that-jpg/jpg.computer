@@ -86,6 +86,11 @@ module.exports = async function handler(req, res) {
       return res.json({ fitness: raw ? JSON.parse(raw) : null });
     }
 
+    if (action === 'french' && req.method === 'GET') {
+      const raw = await redis('GET', 'ub-french');
+      return res.json({ french: raw ? JSON.parse(raw) : null });
+    }
+
     if (action === 'todos' && req.method === 'GET') {
       const raw = await redis('GET', 'ub-todos');
       return res.json({ todos: raw ? JSON.parse(raw) : [] });

@@ -243,24 +243,24 @@
 
     #sync-status.error { color: #fca5a5; }
 
-    #fitness {
+    #fitness, #french {
       border-top: 1px solid #333;
       padding-top: 16px;
       margin-top: 28px;
     }
 
-    #fitness > summary {
+    #fitness > summary, #french > summary {
       color: #aaa;
       font-size: 0.9em;
       cursor: pointer;
       user-select: none;
     }
 
-    #fitness > summary:hover { color: #7fffd4; }
+    #fitness > summary:hover, #french > summary:hover { color: #7fffd4; }
 
-    #fitness[open] > summary { margin-bottom: 18px; }
+    #fitness[open] > summary, #french[open] > summary { margin-bottom: 18px; }
 
-    #stat-row {
+    #stat-row, #french-stat-row {
       display: flex;
       gap: 40px;
       flex-wrap: wrap;
@@ -463,6 +463,27 @@
           <summary>data</summary>
           <table id="fitness-table"></table>
         </details>
+      </details>
+
+      <details id="french" class="hidden">
+        <summary>french</summary>
+        <div id="french-stat-row">
+          <div>
+            <span class="stat-label">vocabulary</span>
+            <span class="stat-value" id="french-vocab-value">—</span>
+            <span class="stat-sub" id="french-vocab-sub"></span>
+          </div>
+          <div>
+            <span class="stat-label">last 7 days</span>
+            <span class="stat-value" id="french-week-value">—</span>
+            <span class="stat-sub" id="french-week-sub"></span>
+          </div>
+          <div>
+            <span class="stat-label">all time</span>
+            <span class="stat-value" id="french-alltime-value">—</span>
+            <span class="stat-sub" id="french-alltime-sub"></span>
+          </div>
+        </div>
       </details>
     </section>
   </main>
@@ -876,6 +897,38 @@
       }
     }
 
+    function renderFrenchReviews(id, stats) {
+      const value = document.getElementById(`french-${id}-value`);
+      const sub = document.getElementById(`french-${id}-sub`);
+      value.textContent = `${stats.reviews} review${stats.reviews === 1 ? '' : 's'}`;
+      sub.textContent = stats.accuracy == null ? 'no reviews yet' : `${stats.accuracy}% correct`;
+    }
+
+    function renderFrench(f) {
+      const panel = document.getElementById('french');
+      if (!f || !f.vocab || !f.week || !f.all_time) {
+        panel.classList.add('hidden');
+        return;
+      }
+      panel.classList.remove('hidden');
+      document.getElementById('french-vocab-value').textContent =
+        `${f.vocab.introduced} / ${f.vocab.total}`;
+      document.getElementById('french-vocab-sub').textContent =
+        `words introduced · ${f.vocab.known} known`;
+      renderFrenchReviews('week', f.week);
+      renderFrenchReviews('alltime', f.all_time);
+    }
+
+    async function loadFrench() {
+      try {
+        const r = await api('french');
+        if (!r.ok) throw new Error();
+        renderFrench((await r.json()).french);
+      } catch (e) {
+        document.getElementById('french').classList.add('hidden');
+      }
+    }
+
     async function loadTodos() {
       try {
         const r = await api('todos');
@@ -913,6 +966,7 @@
         document.getElementById('login-pass').value = '';
         loadTodos();
         loadFitness();
+        loadFrench();
       } catch (e) {
         loginError.textContent = 'Network error';
       }
@@ -965,6 +1019,7 @@
     if (token()) {
       loadTodos();
       loadFitness();
+      loadFrench();
     } else {
       showLogin();
     }
