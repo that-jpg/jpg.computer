@@ -51,23 +51,13 @@ async function authenticate(req) {
   return token;
 }
 
-function sanitizeTodos(todos) {
-  if (!Array.isArray(todos) || todos.length > MAX_TODOS) return null;
-  const clean = [];
-  for (const t of todos) {
-    if (!t || typeof t.text !== 'string' || !t.text.trim()) return null;
-    const state = t.done ? 'done' : t.state === 'doing' ? 'doing' : 'todo';
-    clean.push({
-      id: String(t.id || '').slice(0, 40),
-      text: t.text.slice(0, 500),
-      state,
-      done: state === 'done',
-      created: Number(t.created) || 0,
-      kind: t.kind === 'daily' ? 'daily' : 'global',
-      doneOn: typeof t.doneOn === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(t.doneOn) ? t.doneOn : null,
-    });
-  }
-  return clean;
+async function readTodos() {
+  const raw = await redis('GET', 'ub-todos');
+  return raw ? JSON.parse(raw) : [];
+}
+
+function writeTodos(todos) {
+  return redis('SET', 'ub-todos', JSON.stringify(todos));
 }
 
 module.exports = async function handler(req, res) {
@@ -94,15 +84,73 @@ module.exports = async function handler(req, res) {
     }
 
     if (action === 'todos' && req.method === 'GET') {
-      const raw = await redis('GET', 'ub-todos');
-      return res.json({ todos: raw ? JSON.parse(raw) : [] });
+      return res.json({ todos: await readTodos() });
+    }
+
+    if (action === 'todos' && req.method === 'POST') {
+      const body = req.body || {};
+      const text = typeof body.text === 'string'
+        ? body.text.replace(/\s+/g, ' ').trim().slice(0, 500)
+        : '';
+      if (!text) return res.status(400).json({ error: 'Invalid todo' });
+      const todos = await readTodos();
+      if (todos.length >= MAX_TODOS) return res.status(400).json({ error: 'Too many todos' });
+      todos.unshift({
+        id: crypto.randomUUID(),
+        text,
+        state: 'todo',
+        done: false,
+        created: Date.now(),
+        kind: body.kind === 'daily' ? 'daily' : 'global',
+        doneOn: null,
+      });
+      await writeTodos(todos);
+      return res.json({ todos });
+    }
+
+    if (action === 'todos' && req.method === 'PATCH') {
+      const { id, state, doneOn } = req.body || {};
+      const todos = await readTodos();
+      const todo = todos.find(t => t.id === id);
+      if (!todo) return res.status(404).json({ error: 'Not found' });
+      if (state !== undefined) {
+        if (!['todo', 'doing', 'done'].includes(state)) {
+          return res.status(400).json({ error: 'Invalid state' });
+        }
+        todo.state = state;
+        todo.done = state === 'done';
+      }
+      if (doneOn !== undefined) {
+        if (doneOn !== null && !/^\d{4}-\d{2}-\d{2}$/.test(String(doneOn))) {
+          return res.status(400).json({ error: 'Invalid doneOn' });
+        }
+        todo.doneOn = doneOn;
+      }
+      await writeTodos(todos);
+      return res.json({ todos });
+    }
+
+    if (action === 'todos' && req.method === 'DELETE') {
+      const id = String(req.query.id || '');
+      const todos = await readTodos();
+      const remaining = todos.filter(t => t.id !== id);
+      if (remaining.length === todos.length) return res.status(404).json({ error: 'Not found' });
+      await writeTodos(remaining);
+      return res.json({ todos: remaining });
     }
 
     if (action === 'todos' && req.method === 'PUT') {
-      const todos = sanitizeTodos((req.body || {}).todos);
-      if (!todos) return res.status(400).json({ error: 'Invalid todos' });
-      await redis('SET', 'ub-todos', JSON.stringify(todos));
-      return res.json({ ok: true });
+      const order = (req.body || {}).order;
+      if (!Array.isArray(order) || order.length > MAX_TODOS || order.some(x => typeof x !== 'string')) {
+        return res.status(400).json({ error: 'Invalid order' });
+      }
+      const pos = new Map(order.map((id, i) => [id, i]));
+      const todos = await readTodos();
+      const known = todos.filter(t => pos.has(t.id)).sort((a, b) => pos.get(a.id) - pos.get(b.id));
+      const unknown = todos.filter(t => !pos.has(t.id));
+      const reordered = [...unknown, ...known];
+      await writeTodos(reordered);
+      return res.json({ todos: reordered });
     }
 
     return res.status(405).json({ error: 'Method not allowed' });

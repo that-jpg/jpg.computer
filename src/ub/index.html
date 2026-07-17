@@ -539,7 +539,8 @@
     const syncStatus = document.getElementById('sync-status');
 
     let todos = [];
-    let saveTimer = null;
+    let mutationSeq = 0;
+    let lastMutatedAt = 0;
 
     function token() {
       return localStorage.getItem(TOKEN_KEY);
@@ -597,13 +598,16 @@
           document.removeEventListener('pointermove', move);
           document.removeEventListener('pointerup', up);
           document.removeEventListener('pointercancel', up);
+          const order = [
+            ...[...dailyListEl.children].map(x => x.dataset.id),
+            ...[...listEl.children].map(x => x.dataset.id),
+          ];
           const byId = id => todos.find(t => t.id === id);
           todos = [
-            ...[...dailyListEl.children].map(x => byId(x.dataset.id)),
-            ...[...listEl.children].map(x => byId(x.dataset.id)),
+            ...order.map(byId),
             ...todos.filter(t => kindOf(t) === 'global' && stateOf(t) === 'done'),
-          ];
-          scheduleSave();
+          ].filter(Boolean);
+          mutate('todos', { method: 'PUT', body: JSON.stringify({ order }) });
         };
 
         document.addEventListener('pointermove', move);
@@ -628,14 +632,17 @@
         ? (state === 'done' ? 'Mark as not done' : 'Mark as done')
         : `Mark as ${nextState}`);
       toggle.addEventListener('click', () => {
+        let patch;
         if (kindOf(todo) === 'daily') {
           todo.doneOn = isDoneToday(todo) ? null : localDate();
+          patch = { id: todo.id, doneOn: todo.doneOn };
         } else {
           todo.state = nextState;
           todo.done = nextState === 'done';
+          patch = { id: todo.id, state: nextState };
         }
         render();
-        scheduleSave();
+        mutate('todos', { method: 'PATCH', body: JSON.stringify(patch) });
       });
 
       const text = document.createElement('span');
@@ -649,7 +656,7 @@
       del.addEventListener('click', () => {
         todos = todos.filter(t => t.id !== todo.id);
         render();
-        scheduleSave();
+        mutate(`todos&id=${encodeURIComponent(todo.id)}`, { method: 'DELETE' });
       });
 
       if (draggable) {
@@ -686,20 +693,23 @@
       for (const todo of done) doneListEl.appendChild(buildItem(todo, false, doneListEl));
     }
 
-    function scheduleSave() {
+    async function mutate(query, init) {
+      const seq = ++mutationSeq;
+      lastMutatedAt = Date.now();
       setStatus('saving...');
-      clearTimeout(saveTimer);
-      saveTimer = setTimeout(save, 400);
-    }
-
-    async function save() {
       try {
-        const r = await api('todos', { method: 'PUT', body: JSON.stringify({ todos }) });
+        const r = await api(query, init);
         if (r.status === 401) return showLogin();
         if (!r.ok) throw new Error();
-        setStatus('saved');
+        const data = await r.json();
+        lastMutatedAt = Date.now();
+        if (seq === mutationSeq) {
+          todos = data.todos;
+          render();
+          setStatus('saved');
+        }
       } catch (e) {
-        setStatus('sync failed - changes not saved', true);
+        setStatus('sync failed - refresh to see the saved list', true);
       }
     }
 
@@ -1029,18 +1039,19 @@
       e.preventDefault();
       const text = addInput.value.trim();
       if (!text) return;
+      const kind = kindToggle.classList.contains('active') ? 'daily' : 'global';
       todos.unshift({
-        id: crypto.randomUUID(),
+        id: `pending-${Date.now()}`,
         text,
         state: 'todo',
         done: false,
         created: Date.now(),
-        kind: kindToggle.classList.contains('active') ? 'daily' : 'global',
+        kind,
         doneOn: null,
       });
       addInput.value = '';
       render();
-      scheduleSave();
+      mutate('todos', { method: 'POST', body: JSON.stringify({ text, kind }) });
     });
 
     logoutBtn.addEventListener('click', async () => {
@@ -1048,6 +1059,15 @@
       todos = [];
       showLogin();
     });
+
+    function refreshTodos() {
+      if (document.hidden || !token() || appView.classList.contains('hidden')) return;
+      if (Date.now() - lastMutatedAt < 5000) return;
+      loadTodos();
+    }
+
+    document.addEventListener('visibilitychange', refreshTodos);
+    setInterval(refreshTodos, 60000);
 
     if (token()) {
       loadTodos();
