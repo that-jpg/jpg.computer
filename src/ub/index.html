@@ -145,9 +145,7 @@
       margin: 18px 0 2px;
     }
 
-    #daily-block { margin-bottom: 6px; }
-
-    #todo-list, #done-list, #daily-list {
+    .item-list {
       list-style: none;
       margin: 0;
       padding: 0;
@@ -184,7 +182,23 @@
       border-color: #7fffd4;
     }
 
-    #month-block { margin: 6px 0 14px; }
+    #month-fold { margin-top: 24px; }
+
+    #month-fold > summary {
+      color: #aaa;
+      font-size: 0.9em;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    #month-fold > summary:hover { color: #7fffd4; }
+
+    #month-updated {
+      color: #666;
+      font-size: 0.72em;
+      text-align: right;
+      margin: 8px 0 0;
+    }
 
     #goal-cards { margin-top: 10px; }
 
@@ -308,12 +322,37 @@
       padding: 2px 6px;
     }
 
-    #todo-list li, #done-list li, #daily-list li {
+    .item-list > li {
       display: flex;
       align-items: center;
       gap: 12px;
       padding: 10px 4px;
       border-bottom: 1px solid #1a1a1a;
+    }
+
+    li.habit .todo-text { color: #888; }
+
+    .habit-mark {
+      width: 18px;
+      min-width: 18px;
+      text-align: center;
+      color: #555;
+      font-size: 0.85em;
+    }
+
+    li.habit.habit-done .habit-mark { color: #7fffd4; }
+
+    li.habit.habit-done .todo-text { color: #666; }
+
+    li.habit-soft .todo-text, li.habit-soft .habit-mark { color: #555; }
+
+    li.habit-stale { opacity: 0.5; }
+
+    #habit-note {
+      color: #666;
+      font-size: 0.72em;
+      text-align: right;
+      margin: 4px 0 0;
     }
 
     .todo-handle {
@@ -329,7 +368,7 @@
 
     .todo-handle:hover { color: #aaa; }
 
-    #todo-list li.dragging, #daily-list li.dragging {
+    .item-list li.dragging {
       opacity: 0.55;
       background: #111;
     }
@@ -566,20 +605,23 @@
         <button type="submit">Add</button>
       </form>
       <div id="project-chips" class="hidden"></div>
-      <div id="daily-block" class="hidden">
-        <div class="section-title"><span>daily</span><span id="daily-count"></span></div>
-        <ul id="daily-list"></ul>
-      </div>
-      <div id="month-block" class="hidden">
-        <div class="section-title"><span id="month-title"></span><span id="month-updated"></span></div>
-        <div id="goal-cards"></div>
-      </div>
-      <div class="section-title" id="global-title"><span id="global-title-text">todos</span></div>
-      <ul id="todo-list"></ul>
+      <div class="section-title"><span>today</span><span id="today-count"></span></div>
+      <ul id="overdue-list" class="item-list"></ul>
+      <ul id="due-list" class="item-list"></ul>
+      <ul id="daily-list" class="item-list"></ul>
+      <ul id="habit-list" class="item-list"></ul>
+      <ul id="inbox-list" class="item-list"></ul>
+      <ul id="done-today-list" class="item-list"></ul>
+      <p id="habit-note" class="hidden"></p>
       <p id="empty-state" class="hidden">Nothing to do.</p>
+      <details id="month-fold" class="hidden">
+        <summary id="month-summary"></summary>
+        <p id="month-updated"></p>
+        <div id="goal-cards"></div>
+      </details>
       <details id="done-section" class="hidden">
         <summary id="done-summary"></summary>
-        <ul id="done-list"></ul>
+        <ul id="done-list" class="item-list"></ul>
       </details>
       <p id="sync-status"></p>
 
@@ -661,15 +703,20 @@
     const logoutBtn = document.getElementById('logout');
     const addForm = document.getElementById('add-form');
     const addInput = document.getElementById('add-input');
-    const listEl = document.getElementById('todo-list');
-    const dailyListEl = document.getElementById('daily-list');
-    const dailyBlock = document.getElementById('daily-block');
+    const bandEls = {
+      overdue: document.getElementById('overdue-list'),
+      due: document.getElementById('due-list'),
+      daily: document.getElementById('daily-list'),
+      habits: document.getElementById('habit-list'),
+      inbox: document.getElementById('inbox-list'),
+      doneToday: document.getElementById('done-today-list'),
+    };
     const doneListEl = document.getElementById('done-list');
     const doneSection = document.getElementById('done-section');
     const emptyState = document.getElementById('empty-state');
     const kindToggle = document.getElementById('kind-toggle');
     const chipsRow = document.getElementById('project-chips');
-    const monthBlock = document.getElementById('month-block');
+    const monthFold = document.getElementById('month-fold');
     const goalCards = document.getElementById('goal-cards');
 
     function kindOf(todo) {
@@ -771,14 +818,11 @@
           document.removeEventListener('pointermove', move);
           document.removeEventListener('pointerup', up);
           document.removeEventListener('pointercancel', up);
-          const order = [
-            ...[...dailyListEl.children].map(x => x.dataset.id),
-            ...[...listEl.children].map(x => x.dataset.id),
-          ];
+          const order = [...container.children].map(x => x.dataset.id);
           const byId = id => todos.find(t => t.id === id);
           todos = [
-            ...order.map(byId).filter(Boolean),
             ...todos.filter(t => !order.includes(t.id)),
+            ...order.map(byId).filter(Boolean),
           ];
           mutate('todos', { method: 'PUT', body: JSON.stringify({ order }) });
         };
@@ -847,7 +891,8 @@
         } else {
           todo.state = nextState;
           todo.done = nextState === 'done';
-          patch = { id: todo.id, state: nextState };
+          todo.doneOn = nextState === 'done' ? localDate() : null;
+          patch = { id: todo.id, state: nextState, doneOn: todo.doneOn };
         }
         render();
         mutate('todos', { method: 'PATCH', body: JSON.stringify(patch) });
@@ -885,6 +930,22 @@
       }
       if (opts.tag && knownProjects().length) li.append(attachTag(todo));
       li.append(del);
+      return li;
+    }
+
+    function buildHabit(h, stale) {
+      const li = document.createElement('li');
+      li.className = 'habit'
+        + (h.done ? ' habit-done' : '')
+        + (h.soft ? ' habit-soft' : '')
+        + (stale ? ' habit-stale' : '');
+      const mark = document.createElement('span');
+      mark.className = 'habit-mark';
+      mark.textContent = h.done ? '◆' : '◇';
+      const text = document.createElement('span');
+      text.className = 'todo-text';
+      text.textContent = h.label;
+      li.append(mark, text);
       return li;
     }
 
@@ -988,12 +1049,21 @@
           };
         })
         .filter(c => c.meters.length > 0 || c.items.length > 0);
-      monthBlock.classList.toggle('hidden', cards.length === 0);
-      document.getElementById('month-title').textContent =
-        goalsSnap ? goalsSnap.title : 'projects';
+      for (const c of cards) goalCards.appendChild(buildCard(c));
+    }
+
+    function renderMonthFold() {
+      renderCards();
+      const hasCards = goalCards.children.length > 0;
+      monthFold.classList.toggle('hidden', !hasCards);
+      if (!hasCards) return;
+      const meters = goalsSnap ? goalsSnap.goals.flatMap(g => g.meters) : [];
+      const behind = meters.filter(m => m.ok === false).length;
+      const title = goalsSnap ? goalsSnap.title : 'projects';
+      document.getElementById('month-summary').textContent =
+        behind > 0 ? `${title} — ${behind} behind pace` : `${title} — on pace`;
       document.getElementById('month-updated').textContent =
         goalsSnap && goalsSnap.updated ? `as of ${goalsSnap.updated.slice(11, 16)}` : '';
-      for (const c of cards) goalCards.appendChild(buildCard(c));
     }
 
     function renderChips() {
@@ -1015,42 +1085,63 @@
     }
 
     function render() {
-      listEl.innerHTML = '';
-      dailyListEl.innerHTML = '';
+      for (const el of Object.values(bandEls)) el.innerHTML = '';
       doneListEl.innerHTML = '';
+      const today = localDate();
+      const byDue = (a, b) => (a.due < b.due ? -1 : 1);
       const daily = todos.filter(t => kindOf(t) === 'daily');
-      const inbox = todos.filter(t => kindOf(t) === 'global' && !t.project);
-      const active = inbox.filter(t => stateOf(t) !== 'done');
-      const done = inbox.filter(t => stateOf(t) === 'done');
+      const globals = todos.filter(t => kindOf(t) === 'global');
+      const open = globals.filter(t => stateOf(t) !== 'done');
+      const overdue = open.filter(isOverdue).sort(byDue);
+      const dueToday = open.filter(t => t.due === today);
+      const inbox = open.filter(t => !t.project && (!t.due || t.due > today));
+      const doneGlobals = globals.filter(t => stateOf(t) === 'done');
+      const doneTodayTodos = doneGlobals.filter(t => t.doneOn === today);
+      const doneHistory = doneGlobals.filter(t => t.doneOn !== today);
+      const dailyOpen = daily.filter(t => !isDoneToday(t));
+      const dailyDone = daily.filter(isDoneToday);
 
-      dailyBlock.classList.toggle('hidden', daily.length === 0);
-      document.getElementById('daily-count').textContent =
-        `${daily.filter(isDoneToday).length}/${daily.length} today`;
+      const todayBlock = goalsSnap && goalsSnap.today ? goalsSnap.today : null;
+      const stale = todayBlock ? todayBlock.date !== today : false;
+      const habits = todayBlock ? todayBlock.habits : [];
+      const habitsOpen = stale ? habits : habits.filter(h => !h.done);
+      const habitsDone = stale ? [] : habits.filter(h => h.done);
 
-      renderCards();
-      renderChips();
-      const cardsShown = !monthBlock.classList.contains('hidden');
+      for (const t of overdue) bandEls.overdue.appendChild(buildItem(t, { tag: !t.project }));
+      for (const t of dueToday) bandEls.due.appendChild(buildItem(t, { tag: !t.project }));
+      for (const t of dailyOpen) bandEls.daily.appendChild(buildItem(t));
+      for (const h of habitsOpen) bandEls.habits.appendChild(buildHabit(h, stale));
+      for (const t of inbox) {
+        bandEls.inbox.appendChild(buildItem(t, { drag: true, container: bandEls.inbox, tag: true }));
+      }
+      for (const t of doneTodayTodos) bandEls.doneToday.appendChild(buildItem(t));
+      for (const t of dailyDone) bandEls.doneToday.appendChild(buildItem(t));
+      for (const h of habitsDone) bandEls.doneToday.appendChild(buildHabit(h, false));
 
-      document.getElementById('global-title').classList.toggle(
-        'hidden',
-        !((daily.length > 0 || cardsShown) && active.length > 0)
-      );
-      document.getElementById('global-title-text').textContent =
-        cardsShown ? 'inbox' : 'todos';
+      const left = overdue.length + dueToday.length + dailyOpen.length
+        + (stale ? 0 : habitsOpen.length) + inbox.length;
+      document.getElementById('today-count').textContent =
+        left === 0 ? 'clear' : `${left} left`;
+
+      const note = document.getElementById('habit-note');
+      if (stale && habits.length) {
+        note.textContent = `habits stale — snapshot from ${todayBlock.date}`;
+        note.classList.remove('hidden');
+      } else {
+        note.classList.add('hidden');
+      }
+
       emptyState.classList.toggle(
         'hidden',
-        active.length > 0 || daily.length > 0 || cardsShown
+        left > 0 || bandEls.doneToday.children.length > 0
       );
-      doneSection.classList.toggle('hidden', done.length === 0);
-      document.getElementById('done-summary').textContent = `done (${done.length})`;
 
-      for (const todo of daily) {
-        dailyListEl.appendChild(buildItem(todo, { drag: true, container: dailyListEl }));
-      }
-      for (const todo of active) {
-        listEl.appendChild(buildItem(todo, { drag: true, container: listEl, tag: true }));
-      }
-      for (const todo of done) doneListEl.appendChild(buildItem(todo));
+      renderMonthFold();
+      renderChips();
+
+      doneSection.classList.toggle('hidden', doneHistory.length === 0);
+      document.getElementById('done-summary').textContent = `done (${doneHistory.length})`;
+      for (const t of doneHistory) doneListEl.appendChild(buildItem(t));
     }
 
     async function mutate(query, init) {
