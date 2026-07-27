@@ -164,6 +164,150 @@
 
     #done-section summary:hover { color: #aaa; }
 
+    #project-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin: -12px 0 20px;
+    }
+
+    .chip {
+      border: 1px solid #333;
+      color: #666;
+      font-size: 0.78em;
+      padding: 3px 10px;
+      border-radius: 10px;
+    }
+
+    .chip.active {
+      color: #7fffd4;
+      border-color: #7fffd4;
+    }
+
+    #month-block { margin: 6px 0 14px; }
+
+    #goal-cards { margin-top: 10px; }
+
+    .goal-card {
+      border: 1px solid #1a1a1a;
+      border-radius: 6px;
+      padding: 10px 12px 4px;
+      margin-bottom: 10px;
+    }
+
+    .goal-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+
+    .goal-name { color: #aaa; font-size: 0.85em; }
+
+    .goal-count {
+      color: #666;
+      font-size: 0.75em;
+      font-family: monospace;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .goal-meter { margin: 8px 0 10px; }
+
+    .gm-head {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.75em;
+      color: #888;
+      margin-bottom: 3px;
+    }
+
+    .gm-text {
+      font-family: monospace;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .gm-bad .gm-text { color: #fca5a5; }
+
+    .gm-bar {
+      position: relative;
+      height: 6px;
+      border-radius: 3px;
+      background: #12211d;
+      overflow: visible;
+    }
+
+    .gm-fill {
+      height: 100%;
+      border-radius: 3px;
+      background: #14a37f;
+      min-width: 0;
+    }
+
+    .gm-bad .gm-bar { background: #2a1616; }
+
+    .gm-bad .gm-fill { background: #a35555; }
+
+    .gm-tick {
+      position: absolute;
+      top: -2px;
+      width: 2px;
+      height: 10px;
+      background: #a3a3a3;
+      border-radius: 1px;
+    }
+
+    .goal-card ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    .goal-card li {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 0;
+      border-top: 1px solid #141414;
+    }
+
+    .due-chip {
+      color: #666;
+      font-size: 0.72em;
+      font-family: monospace;
+      white-space: nowrap;
+    }
+
+    li.overdue .due-chip, li.overdue .todo-text { color: #fca5a5; }
+
+    .goal-card details { padding: 6px 0; border-top: 1px solid #141414; }
+
+    .goal-card details summary {
+      color: #555;
+      font-size: 0.75em;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .goal-card details summary:hover { color: #aaa; }
+
+    .todo-tag {
+      border: none;
+      color: #444;
+      padding: 2px 6px;
+      font-size: 0.9em;
+      line-height: 1;
+    }
+
+    .todo-tag:hover { color: #7fffd4; }
+
+    .tag-select {
+      background: #111;
+      color: white;
+      border: 1px solid #444;
+      border-radius: 4px;
+      font-size: 0.85em;
+      padding: 2px 6px;
+    }
+
     #todo-list li, #done-list li, #daily-list li {
       display: flex;
       align-items: center;
@@ -421,11 +565,16 @@
         <button type="button" id="kind-toggle" aria-pressed="false">daily</button>
         <button type="submit">Add</button>
       </form>
+      <div id="project-chips" class="hidden"></div>
       <div id="daily-block" class="hidden">
         <div class="section-title"><span>daily</span><span id="daily-count"></span></div>
         <ul id="daily-list"></ul>
       </div>
-      <div class="section-title" id="global-title"><span>todos</span></div>
+      <div id="month-block" class="hidden">
+        <div class="section-title"><span id="month-title"></span><span id="month-updated"></span></div>
+        <div id="goal-cards"></div>
+      </div>
+      <div class="section-title" id="global-title"><span id="global-title-text">todos</span></div>
       <ul id="todo-list"></ul>
       <p id="empty-state" class="hidden">Nothing to do.</p>
       <details id="done-section" class="hidden">
@@ -519,6 +668,9 @@
     const doneSection = document.getElementById('done-section');
     const emptyState = document.getElementById('empty-state');
     const kindToggle = document.getElementById('kind-toggle');
+    const chipsRow = document.getElementById('project-chips');
+    const monthBlock = document.getElementById('month-block');
+    const goalCards = document.getElementById('goal-cards');
 
     function kindOf(todo) {
       return todo.kind === 'daily' ? 'daily' : 'global';
@@ -539,8 +691,29 @@
     const syncStatus = document.getElementById('sync-status');
 
     let todos = [];
+    let goalsSnap = null;
+    let selectedProject = null;
     let mutationSeq = 0;
     let lastMutatedAt = 0;
+
+    function isOverdue(todo) {
+      return Boolean(todo.due) && stateOf(todo) !== 'done' && todo.due < localDate();
+    }
+
+    function shortDue(iso) {
+      return new Date(iso + 'T12:00:00')
+        .toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+        .toLowerCase();
+    }
+
+    function knownProjects() {
+      const keys = [];
+      for (const g of (goalsSnap ? goalsSnap.goals : [])) keys.push(g.key);
+      for (const t of todos) {
+        if (t.project && !keys.includes(t.project)) keys.push(t.project);
+      }
+      return keys;
+    }
 
     function token() {
       return localStorage.getItem(TOKEN_KEY);
@@ -604,9 +777,9 @@
           ];
           const byId = id => todos.find(t => t.id === id);
           todos = [
-            ...order.map(byId),
-            ...todos.filter(t => kindOf(t) === 'global' && stateOf(t) === 'done'),
-          ].filter(Boolean);
+            ...order.map(byId).filter(Boolean),
+            ...todos.filter(t => !order.includes(t.id)),
+          ];
           mutate('todos', { method: 'PUT', body: JSON.stringify({ order }) });
         };
 
@@ -616,7 +789,41 @@
       });
     }
 
-    function buildItem(todo, draggable, container) {
+    function attachTag(todo) {
+      const btn = document.createElement('button');
+      btn.className = 'todo-tag';
+      btn.textContent = '#';
+      btn.setAttribute('aria-label', 'Assign to project');
+      btn.addEventListener('click', () => {
+        const select = document.createElement('select');
+        select.className = 'tag-select';
+        const first = document.createElement('option');
+        first.value = '';
+        first.textContent = 'project…';
+        select.appendChild(first);
+        for (const p of knownProjects()) {
+          const opt = document.createElement('option');
+          opt.value = p;
+          opt.textContent = p;
+          select.appendChild(opt);
+        }
+        btn.replaceWith(select);
+        select.focus();
+        select.addEventListener('change', () => {
+          if (!select.value) return;
+          todo.project = select.value;
+          render();
+          mutate('todos', {
+            method: 'PATCH',
+            body: JSON.stringify({ id: todo.id, project: todo.project }),
+          });
+        });
+        select.addEventListener('blur', () => render());
+      });
+      return btn;
+    }
+
+    function buildItem(todo, opts = {}) {
       const state = kindOf(todo) === 'daily'
         ? (isDoneToday(todo) ? 'done' : 'todo')
         : stateOf(todo);
@@ -624,6 +831,7 @@
       const li = document.createElement('li');
       li.classList.toggle('done', state === 'done');
       li.classList.toggle('doing', state === 'doing');
+      li.classList.toggle('overdue', isOverdue(todo));
       li.dataset.id = todo.id;
 
       const toggle = document.createElement('button');
@@ -659,17 +867,151 @@
         mutate(`todos&id=${encodeURIComponent(todo.id)}`, { method: 'DELETE' });
       });
 
-      if (draggable) {
+      if (opts.drag) {
         const handle = document.createElement('button');
         handle.className = 'todo-handle';
         handle.textContent = '≡';
         handle.setAttribute('aria-label', 'Reorder todo');
-        attachDrag(handle, li, container);
+        attachDrag(handle, li, opts.container);
         li.append(handle);
       }
 
-      li.append(toggle, text, del);
+      li.append(toggle, text);
+      if (todo.due) {
+        const chip = document.createElement('span');
+        chip.className = 'due-chip';
+        chip.textContent = shortDue(todo.due);
+        li.append(chip);
+      }
+      if (opts.tag && knownProjects().length) li.append(attachTag(todo));
+      li.append(del);
       return li;
+    }
+
+    function buildMeter(m) {
+      const wrap = document.createElement('div');
+      wrap.className = 'goal-meter' + (m.ok === false ? ' gm-bad' : '');
+      const head = document.createElement('div');
+      head.className = 'gm-head';
+      const label = document.createElement('span');
+      label.textContent = m.label;
+      const text = document.createElement('span');
+      text.className = 'gm-text';
+      text.textContent = m.text;
+      head.append(label, text);
+      const bar = document.createElement('div');
+      bar.className = 'gm-bar';
+      const fill = document.createElement('div');
+      fill.className = 'gm-fill';
+      fill.style.width = `${Math.max(0, Math.min(100, m.pct || 0))}%`;
+      bar.appendChild(fill);
+      if (m.pace_pct != null && m.pace_pct > 0) {
+        const tick = document.createElement('div');
+        tick.className = 'gm-tick';
+        tick.style.left = `calc(${Math.min(m.pace_pct, 100)}% - 1px)`;
+        bar.appendChild(tick);
+      }
+      wrap.append(head, bar);
+      return wrap;
+    }
+
+    function foldList(label, items) {
+      const fold = document.createElement('details');
+      const summary = document.createElement('summary');
+      summary.textContent = label;
+      fold.appendChild(summary);
+      const ul = document.createElement('ul');
+      for (const t of items) ul.appendChild(buildItem(t));
+      fold.appendChild(ul);
+      return fold;
+    }
+
+    function buildCard(card) {
+      const wrap = document.createElement('div');
+      wrap.className = 'goal-card';
+      const head = document.createElement('div');
+      head.className = 'goal-head';
+      const name = document.createElement('span');
+      name.className = 'goal-name';
+      name.textContent = card.title;
+      head.appendChild(name);
+      if (card.items.length) {
+        const count = document.createElement('span');
+        count.className = 'goal-count';
+        const doneCount = card.items.filter(t => stateOf(t) === 'done').length;
+        count.textContent = `${doneCount}/${card.items.length}`;
+        head.appendChild(count);
+      }
+      wrap.appendChild(head);
+
+      for (const m of card.meters) wrap.appendChild(buildMeter(m));
+
+      const open = card.items.filter(t => stateOf(t) !== 'done');
+      const doneItems = card.items.filter(t => stateOf(t) === 'done');
+      const byDue = (a, b) => (a.due < b.due ? -1 : 1);
+      const overdue = open.filter(isOverdue).sort(byDue);
+      const upcoming = open.filter(t => t.due && !isOverdue(t)).sort(byDue);
+      const undated = open.filter(t => !t.due);
+      const scheduled = upcoming.slice(1);
+
+      const list = document.createElement('ul');
+      for (const t of [...overdue, ...upcoming.slice(0, 1), ...undated]) {
+        list.appendChild(buildItem(t));
+      }
+      if (list.children.length) wrap.appendChild(list);
+      if (scheduled.length) wrap.appendChild(foldList(`+${scheduled.length} scheduled`, scheduled));
+      if (doneItems.length) wrap.appendChild(foldList(`${doneItems.length} done`, doneItems));
+      return wrap;
+    }
+
+    function renderCards() {
+      goalCards.innerHTML = '';
+      const snapGoals = goalsSnap ? goalsSnap.goals : [];
+      const byProject = {};
+      for (const t of todos) {
+        if (t.project && kindOf(t) === 'global') {
+          (byProject[t.project] = byProject[t.project] || []).push(t);
+        }
+      }
+      const keys = snapGoals.map(g => g.key);
+      for (const p of Object.keys(byProject)) {
+        if (!keys.includes(p)) keys.push(p);
+      }
+      const cards = keys
+        .map(key => {
+          const goal = snapGoals.find(g => g.key === key);
+          return {
+            key,
+            title: goal ? goal.title : key,
+            meters: goal ? goal.meters : [],
+            items: byProject[key] || [],
+          };
+        })
+        .filter(c => c.meters.length > 0 || c.items.length > 0);
+      monthBlock.classList.toggle('hidden', cards.length === 0);
+      document.getElementById('month-title').textContent =
+        goalsSnap ? goalsSnap.title : 'projects';
+      document.getElementById('month-updated').textContent =
+        goalsSnap && goalsSnap.updated ? `as of ${goalsSnap.updated.slice(11, 16)}` : '';
+      for (const c of cards) goalCards.appendChild(buildCard(c));
+    }
+
+    function renderChips() {
+      const projects = knownProjects();
+      chipsRow.innerHTML = '';
+      chipsRow.classList.toggle('hidden', projects.length === 0);
+      if (selectedProject && !projects.includes(selectedProject)) selectedProject = null;
+      for (const p of projects) {
+        const chip = document.createElement('button');
+        chip.type = 'button';
+        chip.className = 'chip' + (selectedProject === p ? ' active' : '');
+        chip.textContent = p;
+        chip.addEventListener('click', () => {
+          selectedProject = selectedProject === p ? null : p;
+          renderChips();
+        });
+        chipsRow.appendChild(chip);
+      }
     }
 
     function render() {
@@ -677,20 +1019,38 @@
       dailyListEl.innerHTML = '';
       doneListEl.innerHTML = '';
       const daily = todos.filter(t => kindOf(t) === 'daily');
-      const active = todos.filter(t => kindOf(t) === 'global' && stateOf(t) !== 'done');
-      const done = todos.filter(t => kindOf(t) === 'global' && stateOf(t) === 'done');
+      const inbox = todos.filter(t => kindOf(t) === 'global' && !t.project);
+      const active = inbox.filter(t => stateOf(t) !== 'done');
+      const done = inbox.filter(t => stateOf(t) === 'done');
 
       dailyBlock.classList.toggle('hidden', daily.length === 0);
       document.getElementById('daily-count').textContent =
         `${daily.filter(isDoneToday).length}/${daily.length} today`;
-      document.getElementById('global-title').classList.toggle('hidden', daily.length === 0);
-      emptyState.classList.toggle('hidden', active.length > 0 || daily.length > 0);
+
+      renderCards();
+      renderChips();
+      const cardsShown = !monthBlock.classList.contains('hidden');
+
+      document.getElementById('global-title').classList.toggle(
+        'hidden',
+        !((daily.length > 0 || cardsShown) && active.length > 0)
+      );
+      document.getElementById('global-title-text').textContent =
+        cardsShown ? 'inbox' : 'todos';
+      emptyState.classList.toggle(
+        'hidden',
+        active.length > 0 || daily.length > 0 || cardsShown
+      );
       doneSection.classList.toggle('hidden', done.length === 0);
       document.getElementById('done-summary').textContent = `done (${done.length})`;
 
-      for (const todo of daily) dailyListEl.appendChild(buildItem(todo, true, dailyListEl));
-      for (const todo of active) listEl.appendChild(buildItem(todo, true, listEl));
-      for (const todo of done) doneListEl.appendChild(buildItem(todo, false, doneListEl));
+      for (const todo of daily) {
+        dailyListEl.appendChild(buildItem(todo, { drag: true, container: dailyListEl }));
+      }
+      for (const todo of active) {
+        listEl.appendChild(buildItem(todo, { drag: true, container: listEl, tag: true }));
+      }
+      for (const todo of done) doneListEl.appendChild(buildItem(todo));
     }
 
     async function mutate(query, init) {
@@ -971,6 +1331,17 @@
       }
     }
 
+    async function loadGoals() {
+      try {
+        const r = await api('goals');
+        if (!r.ok) throw new Error();
+        goalsSnap = (await r.json()).goals;
+      } catch (e) {
+        goalsSnap = null;
+      }
+      render();
+    }
+
     async function loadTodos() {
       try {
         const r = await api('todos');
@@ -1007,6 +1378,7 @@
         localStorage.setItem(TOKEN_KEY, data.token);
         document.getElementById('login-pass').value = '';
         loadTodos();
+        loadGoals();
         loadFitness();
         loadFrench();
       } catch (e) {
@@ -1040,7 +1412,8 @@
       const text = addInput.value.trim();
       if (!text) return;
       const kind = kindToggle.classList.contains('active') ? 'daily' : 'global';
-      todos.unshift({
+      const project = kind === 'global' ? selectedProject : null;
+      const pending = {
         id: `pending-${Date.now()}`,
         text,
         state: 'todo',
@@ -1048,10 +1421,14 @@
         created: Date.now(),
         kind,
         doneOn: null,
-      });
+      };
+      if (project) pending.project = project;
+      todos.unshift(pending);
       addInput.value = '';
       render();
-      mutate('todos', { method: 'POST', body: JSON.stringify({ text, kind }) });
+      const body = { text, kind };
+      if (project) body.project = project;
+      mutate('todos', { method: 'POST', body: JSON.stringify(body) });
     });
 
     logoutBtn.addEventListener('click', async () => {
@@ -1064,6 +1441,7 @@
       if (document.hidden || !token() || appView.classList.contains('hidden')) return;
       if (Date.now() - lastMutatedAt < 5000) return;
       loadTodos();
+      loadGoals();
     }
 
     document.addEventListener('visibilitychange', refreshTodos);
@@ -1071,6 +1449,7 @@
 
     if (token()) {
       loadTodos();
+      loadGoals();
       loadFitness();
       loadFrench();
     } else {

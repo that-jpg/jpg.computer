@@ -6,6 +6,8 @@ const SESSION_TTL_SECONDS = 60 * 60 * 24 * 30;
 const LOGIN_WINDOW_SECONDS = 60 * 15;
 const LOGIN_MAX_ATTEMPTS = 10;
 const MAX_TODOS = 500;
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+const PROJECT_RE = /^[a-z][a-z0-9-]{0,23}$/;
 
 function redis(...command) {
   const { UPSTASH_REDIS_REST_URL, UPSTASH_REDIS_REST_TOKEN } = process.env;
@@ -83,6 +85,11 @@ module.exports = async function handler(req, res) {
       return res.json({ french: raw ? JSON.parse(raw) : null });
     }
 
+    if (action === 'goals' && req.method === 'GET') {
+      const raw = await redis('GET', 'ub-goals');
+      return res.json({ goals: raw ? JSON.parse(raw) : null });
+    }
+
     if (action === 'todos' && req.method === 'GET') {
       return res.json({ todos: await readTodos() });
     }
@@ -93,9 +100,15 @@ module.exports = async function handler(req, res) {
         ? body.text.replace(/\s+/g, ' ').trim().slice(0, 500)
         : '';
       if (!text) return res.status(400).json({ error: 'Invalid todo' });
+      if (body.project != null && !PROJECT_RE.test(String(body.project))) {
+        return res.status(400).json({ error: 'Invalid project' });
+      }
+      if (body.due != null && !DATE_RE.test(String(body.due))) {
+        return res.status(400).json({ error: 'Invalid due' });
+      }
       const todos = await readTodos();
       if (todos.length >= MAX_TODOS) return res.status(400).json({ error: 'Too many todos' });
-      todos.unshift({
+      const todo = {
         id: crypto.randomUUID(),
         text,
         state: 'todo',
@@ -103,13 +116,16 @@ module.exports = async function handler(req, res) {
         created: Date.now(),
         kind: body.kind === 'daily' ? 'daily' : 'global',
         doneOn: null,
-      });
+      };
+      if (body.project != null) todo.project = body.project;
+      if (body.due != null) todo.due = body.due;
+      todos.unshift(todo);
       await writeTodos(todos);
       return res.json({ todos });
     }
 
     if (action === 'todos' && req.method === 'PATCH') {
-      const { id, state, doneOn } = req.body || {};
+      const { id, state, doneOn, project, due } = req.body || {};
       const todos = await readTodos();
       const todo = todos.find(t => t.id === id);
       if (!todo) return res.status(404).json({ error: 'Not found' });
@@ -121,10 +137,24 @@ module.exports = async function handler(req, res) {
         todo.done = state === 'done';
       }
       if (doneOn !== undefined) {
-        if (doneOn !== null && !/^\d{4}-\d{2}-\d{2}$/.test(String(doneOn))) {
+        if (doneOn !== null && !DATE_RE.test(String(doneOn))) {
           return res.status(400).json({ error: 'Invalid doneOn' });
         }
         todo.doneOn = doneOn;
+      }
+      if (project !== undefined) {
+        if (project !== null && !PROJECT_RE.test(String(project))) {
+          return res.status(400).json({ error: 'Invalid project' });
+        }
+        if (project === null) delete todo.project;
+        else todo.project = project;
+      }
+      if (due !== undefined) {
+        if (due !== null && !DATE_RE.test(String(due))) {
+          return res.status(400).json({ error: 'Invalid due' });
+        }
+        if (due === null) delete todo.due;
+        else todo.due = due;
       }
       await writeTodos(todos);
       return res.json({ todos });
