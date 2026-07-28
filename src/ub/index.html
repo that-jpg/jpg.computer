@@ -966,9 +966,12 @@
 
     function eventsToday(today) {
       if (!calSnap || !Array.isArray(calSnap.events)) return [];
-      const matches = calSnap.events.filter(ev => ev.allDay
+      const skipped = new Set(
+        (calSnap.calendars || []).filter(c => c.today === false).map(c => c.id)
+      );
+      const matches = calSnap.events.filter(ev => !skipped.has(ev.cal) && (ev.allDay
         ? ev.start <= today && (ev.end > today || ev.end <= ev.start)
-        : ev.start.slice(0, 10) === today);
+        : ev.start.slice(0, 10) === today));
       return matches.sort((a, b) =>
         (b.allDay === true) - (a.allDay === true) || (a.start < b.start ? -1 : 1)
       );
