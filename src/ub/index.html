@@ -362,6 +362,17 @@
 
     li.habit-stale { opacity: 0.5; }
 
+    .habit-mark.event-dot { font-size: 0.7em; }
+
+    li.event-past { opacity: 0.45; }
+
+    .event-time {
+      color: #666;
+      font-size: 0.78em;
+      font-family: monospace;
+      font-variant-numeric: tabular-nums;
+    }
+
     #habit-note {
       color: #666;
       font-size: 0.72em;
@@ -625,6 +636,7 @@
       <div class="section-title"><span>today</span><span id="today-count"></span></div>
       <ul id="overdue-list" class="item-list"></ul>
       <ul id="due-list" class="item-list"></ul>
+      <ul id="event-list" class="item-list"></ul>
       <ul id="daily-list" class="item-list"></ul>
       <ul id="habit-list" class="item-list"></ul>
       <ul id="inbox-list" class="item-list"></ul>
@@ -723,6 +735,7 @@
     const bandEls = {
       overdue: document.getElementById('overdue-list'),
       due: document.getElementById('due-list'),
+      events: document.getElementById('event-list'),
       daily: document.getElementById('daily-list'),
       habits: document.getElementById('habit-list'),
       inbox: document.getElementById('inbox-list'),
@@ -756,6 +769,7 @@
 
     let todos = [];
     let goalsSnap = null;
+    let calSnap = null;
     let selectedProject = null;
     let mutationSeq = 0;
     let lastMutatedAt = 0;
@@ -950,6 +964,37 @@
       return li;
     }
 
+    function eventsToday(today) {
+      if (!calSnap || !Array.isArray(calSnap.events)) return [];
+      const matches = calSnap.events.filter(ev => ev.allDay
+        ? ev.start <= today && (ev.end > today || ev.end <= ev.start)
+        : ev.start.slice(0, 10) === today);
+      return matches.sort((a, b) =>
+        (b.allDay === true) - (a.allDay === true) || (a.start < b.start ? -1 : 1)
+      );
+    }
+
+    function buildEvent(ev, past) {
+      const li = document.createElement('li');
+      li.className = 'habit' + (past ? ' event-past' : '');
+      const mark = document.createElement('span');
+      mark.className = 'habit-mark event-dot';
+      mark.textContent = '●';
+      const cal = calSnap && (calSnap.calendars || []).find(c => c.id === ev.cal);
+      if (cal) mark.style.color = cal.color;
+      const text = document.createElement('span');
+      text.className = 'todo-text';
+      text.textContent = ev.title;
+      li.append(mark, text);
+      if (!ev.allDay) {
+        const time = document.createElement('span');
+        time.className = 'event-time';
+        time.textContent = `${ev.start.slice(11, 16)}–${ev.end.slice(11, 16)}`;
+        li.append(time);
+      }
+      return li;
+    }
+
     function buildHabit(h, stale) {
       const li = document.createElement('li');
       li.className = 'habit'
@@ -1124,8 +1169,14 @@
       const habitsOpen = stale ? habits : habits.filter(h => !h.done);
       const habitsDone = stale ? [] : habits.filter(h => h.done);
 
+      const now = new Date();
+      const dayEvents = eventsToday(today);
+      const eventsOpen = dayEvents.filter(ev => ev.allDay || new Date(ev.end) > now);
+      const eventsPast = dayEvents.filter(ev => !ev.allDay && new Date(ev.end) <= now);
+
       for (const t of overdue) bandEls.overdue.appendChild(buildItem(t, { tag: !t.project }));
       for (const t of dueToday) bandEls.due.appendChild(buildItem(t, { tag: !t.project }));
+      for (const ev of eventsOpen) bandEls.events.appendChild(buildEvent(ev, false));
       for (const t of dailyOpen) bandEls.daily.appendChild(buildItem(t));
       for (const h of habitsOpen) bandEls.habits.appendChild(buildHabit(h, stale));
       for (const t of inbox) {
@@ -1134,6 +1185,7 @@
       for (const t of doneTodayTodos) bandEls.doneToday.appendChild(buildItem(t));
       for (const t of dailyDone) bandEls.doneToday.appendChild(buildItem(t));
       for (const h of habitsDone) bandEls.doneToday.appendChild(buildHabit(h, false));
+      for (const ev of eventsPast) bandEls.doneToday.appendChild(buildEvent(ev, true));
 
       const left = overdue.length + dueToday.length + dailyOpen.length
         + (stale ? 0 : habitsOpen.length) + inbox.length;
@@ -1150,7 +1202,7 @@
 
       emptyState.classList.toggle(
         'hidden',
-        left > 0 || bandEls.doneToday.children.length > 0
+        left > 0 || eventsOpen.length > 0 || bandEls.doneToday.children.length > 0
       );
 
       renderMonthFold();
@@ -1450,6 +1502,17 @@
       render();
     }
 
+    async function loadCalendar() {
+      try {
+        const r = await api('calendar');
+        if (!r.ok) throw new Error();
+        calSnap = (await r.json()).calendar;
+      } catch (e) {
+        calSnap = null;
+      }
+      render();
+    }
+
     async function loadTodos() {
       try {
         const r = await api('todos');
@@ -1487,6 +1550,7 @@
         document.getElementById('login-pass').value = '';
         loadTodos();
         loadGoals();
+        loadCalendar();
         loadFitness();
         loadFrench();
       } catch (e) {
@@ -1550,6 +1614,7 @@
       if (Date.now() - lastMutatedAt < 5000) return;
       loadTodos();
       loadGoals();
+      loadCalendar();
     }
 
     document.addEventListener('visibilitychange', refreshTodos);
@@ -1558,6 +1623,7 @@
     if (token()) {
       loadTodos();
       loadGoals();
+      loadCalendar();
       loadFitness();
       loadFrench();
     } else {
