@@ -362,15 +362,21 @@
 
     li.habit-stale { opacity: 0.5; }
 
-    .habit-mark.event-dot { font-size: 0.7em; }
-
-    button.event-toggle {
-      background: none;
+    button.event-pill {
       border: none;
-      padding: 0;
+      border-radius: 999px;
+      padding: 2px 9px;
+      font-size: 0.62em;
+      font-family: inherit;
+      line-height: 1.6;
+      color: black;
       cursor: pointer;
-      transition: none;
+      white-space: nowrap;
+      flex-shrink: 0;
+      transition: opacity 0.15s;
     }
+
+    button.event-pill:hover { opacity: 0.75; }
 
     li.event-past { opacity: 0.45; }
 
@@ -379,7 +385,7 @@
       text-decoration: line-through;
     }
 
-    li.event-crossed .event-dot { opacity: 0.4; }
+    li.event-crossed .event-pill { opacity: 0.35; }
 
     .event-time {
       color: #666;
@@ -1018,17 +1024,23 @@
       }).catch(() => setStatus('sync failed - event cross not saved', true));
     }
 
+    function calLabel(ev, cal) {
+      const name = cal ? cal.name : ev.cal;
+      const short = name.includes('@') ? name.split('@')[0] : name;
+      return short.length > 12 ? `${short.slice(0, 11)}…` : short;
+    }
+
     function buildEvent(ev, opts) {
       const li = document.createElement('li');
       li.className = 'habit'
         + (opts.past ? ' event-past' : '')
         + (opts.crossed ? ' event-crossed' : '');
-      const mark = document.createElement('button');
-      mark.className = 'habit-mark event-dot event-toggle';
-      mark.textContent = '●';
-      mark.setAttribute('aria-label', opts.crossed ? 'Uncross event' : 'Cross event off');
       const cal = calSnap && (calSnap.calendars || []).find(c => c.id === ev.cal);
-      if (cal) mark.style.color = cal.color;
+      const mark = document.createElement('button');
+      mark.className = 'event-pill event-toggle';
+      mark.textContent = calLabel(ev, cal);
+      mark.setAttribute('aria-label', opts.crossed ? 'Uncross event' : 'Cross event off');
+      mark.style.background = cal ? cal.color : '#888';
       mark.addEventListener('click', () => toggleEvent(ev, opts.today));
       const text = document.createElement('span');
       text.className = 'todo-text';
