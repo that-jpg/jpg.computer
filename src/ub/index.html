@@ -362,30 +362,19 @@
 
     li.habit-stale { opacity: 0.5; }
 
-    button.event-pill {
-      border: none;
+    .event-pill {
       border-radius: 999px;
       padding: 2px 9px;
       font-size: 0.62em;
-      font-family: inherit;
       line-height: 1.6;
       color: black;
-      cursor: pointer;
       white-space: nowrap;
       flex-shrink: 0;
-      transition: opacity 0.15s;
     }
-
-    button.event-pill:hover { opacity: 0.75; }
 
     li.event-past { opacity: 0.45; }
 
-    li.event-crossed .todo-text {
-      color: #666;
-      text-decoration: line-through;
-    }
-
-    li.event-crossed .event-pill { opacity: 0.35; }
+    li.done .event-pill { opacity: 0.35; }
 
     .event-time {
       color: #666;
@@ -1003,25 +992,24 @@
       return [ev.cal, ev.start, ev.title].join('|');
     }
 
-    function isCrossed(ev, today) {
-      return (calDone[today] || []).includes(eventKey(ev));
+    function eventState(ev, today) {
+      return (calDone[today] || {})[eventKey(ev)] || 'todo';
     }
 
-    function toggleEvent(ev, today) {
+    function setEventState(ev, today, state) {
       const key = eventKey(ev);
-      const set = new Set(calDone[today] || []);
-      const done = !set.has(key);
-      if (done) set.add(key);
-      else set.delete(key);
-      calDone[today] = [...set];
+      const day = calDone[today] || {};
+      if (state === 'todo') delete day[key];
+      else day[key] = state;
+      calDone[today] = day;
       render();
       api('calendar-done', {
         method: 'POST',
-        body: JSON.stringify({ date: today, key, done }),
+        body: JSON.stringify({ date: today, key, state }),
       }).then(r => {
         if (!r.ok) throw new Error();
         setStatus('saved');
-      }).catch(() => setStatus('sync failed - event cross not saved', true));
+      }).catch(() => setStatus('sync failed - event state not saved', true));
     }
 
     function calLabel(ev, cal) {
@@ -1031,27 +1019,36 @@
     }
 
     function buildEvent(ev, opts) {
+      const state = eventState(ev, opts.today);
+      const nextState = state === 'todo' ? 'doing' : state === 'doing' ? 'done' : 'todo';
       const li = document.createElement('li');
-      li.className = 'habit'
-        + (opts.past ? ' event-past' : '')
-        + (opts.crossed ? ' event-crossed' : '');
-      const cal = calSnap && (calSnap.calendars || []).find(c => c.id === ev.cal);
-      const mark = document.createElement('button');
-      mark.className = 'event-pill event-toggle';
-      mark.textContent = calLabel(ev, cal);
-      mark.setAttribute('aria-label', opts.crossed ? 'Uncross event' : 'Cross event off');
-      mark.style.background = cal ? cal.color : '#888';
-      mark.addEventListener('click', () => toggleEvent(ev, opts.today));
+      li.classList.toggle('done', state === 'done');
+      li.classList.toggle('doing', state === 'doing');
+      li.classList.toggle('event-past', Boolean(opts.past));
+
+      const toggle = document.createElement('button');
+      toggle.className = 'todo-toggle';
+      toggle.setAttribute('aria-label', `Mark as ${nextState}`);
+      toggle.addEventListener('click', () => setEventState(ev, opts.today, nextState));
+
       const text = document.createElement('span');
       text.className = 'todo-text';
       text.textContent = ev.title;
-      li.append(mark, text);
+      li.append(toggle, text);
+
       if (!ev.allDay) {
         const time = document.createElement('span');
         time.className = 'event-time';
         time.textContent = `${ev.start.slice(11, 16)}–${ev.end.slice(11, 16)}`;
         li.append(time);
       }
+
+      const cal = calSnap && (calSnap.calendars || []).find(c => c.id === ev.cal);
+      const pill = document.createElement('span');
+      pill.className = 'event-pill';
+      pill.textContent = calLabel(ev, cal);
+      pill.style.background = cal ? cal.color : '#888';
+      li.append(pill);
       return li;
     }
 
@@ -1232,8 +1229,8 @@
       const now = new Date();
       const dayEvents = eventsToday(today);
       const isPast = ev => !ev.allDay && new Date(ev.end) <= now;
-      const eventsOpen = dayEvents.filter(ev => !isCrossed(ev, today) && !isPast(ev));
-      const eventsSunk = dayEvents.filter(ev => isCrossed(ev, today) || isPast(ev));
+      const eventsOpen = dayEvents.filter(ev => eventState(ev, today) !== 'done' && !isPast(ev));
+      const eventsSunk = dayEvents.filter(ev => eventState(ev, today) === 'done' || isPast(ev));
 
       for (const t of overdue) bandEls.overdue.appendChild(buildItem(t, { tag: !t.project }));
       for (const t of dueToday) bandEls.due.appendChild(buildItem(t, { tag: !t.project }));
@@ -1249,8 +1246,7 @@
       for (const ev of eventsSunk) {
         bandEls.doneToday.appendChild(buildEvent(ev, {
           today,
-          past: isPast(ev) && !isCrossed(ev, today),
-          crossed: isCrossed(ev, today),
+          past: isPast(ev) && eventState(ev, today) !== 'done',
         }));
       }
 

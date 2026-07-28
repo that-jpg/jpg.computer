@@ -53,6 +53,16 @@ async function authenticate(req) {
   return token;
 }
 
+function normalizeCalDone(map) {
+  const result = {};
+  for (const [date, value] of Object.entries(map)) {
+    result[date] = Array.isArray(value)
+      ? Object.fromEntries(value.map(key => [key, 'done']))
+      : value;
+  }
+  return result;
+}
+
 async function readTodos() {
   const raw = await redis('GET', 'ub-todos');
   return raw ? JSON.parse(raw) : [];
@@ -97,25 +107,30 @@ module.exports = async function handler(req, res) {
 
     if (action === 'calendar-done' && req.method === 'GET') {
       const raw = await redis('GET', 'ub-calendar-done');
-      return res.json({ done: raw ? JSON.parse(raw) : {} });
+      return res.json({ done: normalizeCalDone(raw ? JSON.parse(raw) : {}) });
     }
 
     if (action === 'calendar-done' && req.method === 'POST') {
-      const { date, key, done } = req.body || {};
-      if (!DATE_RE.test(String(date)) || typeof key !== 'string' || !key || key.length > 400) {
+      const body = req.body || {};
+      const { date, key } = body;
+      const state = body.state !== undefined ? body.state : (body.done ? 'done' : 'todo');
+      if (!DATE_RE.test(String(date)) || typeof key !== 'string' || !key || key.length > 400
+          || !['todo', 'doing', 'done'].includes(state)) {
         return res.status(400).json({ error: 'Invalid event' });
       }
       const raw = await redis('GET', 'ub-calendar-done');
-      const map = raw ? JSON.parse(raw) : {};
-      const set = new Set(map[date] || []);
-      if (done) set.add(key);
-      else set.delete(key);
-      if (set.size > 200) return res.status(400).json({ error: 'Too many crossed events' });
-      map[date] = [...set];
+      const map = normalizeCalDone(raw ? JSON.parse(raw) : {});
+      const day = map[date] || {};
+      if (state === 'todo') delete day[key];
+      else day[key] = state;
+      if (Object.keys(day).length > 200) {
+        return res.status(400).json({ error: 'Too many crossed events' });
+      }
+      map[date] = day;
       const cutoff = new Date(new Date(`${date}T12:00:00Z`).getTime() - 8 * 86400000)
         .toISOString().slice(0, 10);
-      for (const day of Object.keys(map)) {
-        if (day < cutoff || map[day].length === 0) delete map[day];
+      for (const dayKey of Object.keys(map)) {
+        if (dayKey < cutoff || Object.keys(map[dayKey]).length === 0) delete map[dayKey];
       }
       await redis('SET', 'ub-calendar-done', JSON.stringify(map));
       return res.json({ done: map });
