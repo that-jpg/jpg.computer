@@ -90,6 +90,11 @@ module.exports = async function handler(req, res) {
       return res.json({ goals: raw ? JSON.parse(raw) : null });
     }
 
+    if (action === 'calendar' && req.method === 'GET') {
+      const raw = await redis('GET', 'ub-calendar');
+      return res.json({ calendar: raw ? JSON.parse(raw) : null });
+    }
+
     if (action === 'todos' && req.method === 'GET') {
       return res.json({ todos: await readTodos() });
     }

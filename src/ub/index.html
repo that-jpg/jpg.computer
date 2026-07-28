@@ -92,6 +92,20 @@
       margin: 0;
     }
 
+    #header-nav {
+      display: flex;
+      align-items: baseline;
+      gap: 14px;
+    }
+
+    #header-nav a {
+      color: #666;
+      font-size: 0.8em;
+      text-decoration: none;
+    }
+
+    #header-nav a:hover { color: #7fffd4; }
+
     #logout {
       border: none;
       color: #666;
@@ -584,7 +598,10 @@
   <main>
     <header>
       <h1>ub <em>dashboard</em></h1>
-      <button id="logout" class="hidden">logout</button>
+      <nav id="header-nav">
+        <a href="/ub/calendar/">calendar</a>
+        <button id="logout" class="hidden">logout</button>
+      </nav>
     </header>
 
     <form id="login-view" class="hidden">

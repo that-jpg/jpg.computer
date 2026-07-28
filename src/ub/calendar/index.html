@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>ub calendar</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      background-color: black;
+      color: white;
+      font-family: 'Trebuchet MS', sans-serif;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+    }
+
+    main { width: 100%; max-width: 1100px; }
+
+    header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      border-bottom: 1px solid #333;
+      padding-bottom: 10px;
+      margin-bottom: 16px;
+    }
+
+    h1 { margin: 0; font-size: 1.4em; }
+
+    h1 em { color: #666; font-style: normal; font-size: 0.7em; }
+
+    header a { color: #666; font-size: 0.8em; text-decoration: none; }
+
+    header a:hover { color: #7fffd4; }
+
+    #toolbar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      background: none;
+      border: 1px solid #555;
+      color: white;
+      font-family: inherit;
+      font-size: 0.85em;
+      border-radius: 4px;
+      padding: 6px 12px;
+      cursor: pointer;
+      transition: border-color 0.15s, color 0.15s;
+    }
+
+    button:hover:enabled { border-color: #7fffd4; color: #7fffd4; }
+
+    button:disabled { opacity: 0.35; cursor: default; }
+
+    #range-label { font-size: 0.95em; color: #aaa; }
+
+    #as-of {
+      margin-left: auto;
+      color: #666;
+      font-size: 0.72em;
+      font-family: monospace;
+      text-align: right;
+    }
+
+    #as-of.stale { color: #fca5a5; }
+
+    #cal { display: grid; user-select: none; }
+
+    .head-cell {
+      text-align: center;
+      color: #888;
+      font-size: 0.75em;
+      padding: 4px 0 6px;
+      border-bottom: 1px solid #1a1a1a;
+    }
+
+    .head-cell strong {
+      display: block;
+      color: #ccc;
+      font-size: 1.25em;
+      font-weight: 600;
+    }
+
+    .head-cell.today, .head-cell.today strong { color: #7fffd4; }
+
+    .allday-cell {
+      border-bottom: 1px solid #1a1a1a;
+      border-left: 1px solid #111;
+      padding: 2px 2px 4px;
+      min-height: 8px;
+    }
+
+    .allday-chip {
+      font-size: 0.68em;
+      border-radius: 3px;
+      padding: 2px 5px;
+      margin: 2px 0;
+      color: black;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      cursor: pointer;
+    }
+
+    .axis { position: relative; }
+
+    .axis-label {
+      position: absolute;
+      right: 6px;
+      transform: translateY(-50%);
+      color: #555;
+      font-size: 0.65em;
+      font-family: monospace;
+    }
+
+    .day-col { position: relative; border-left: 1px solid #111; }
+
+    .day-col.today { background: rgba(127, 255, 212, 0.04); }
+
+    .hour-line {
+      position: absolute;
+      left: 0;
+      right: 0;
+      border-top: 1px solid #0d0d0d;
+    }
+
+    .event {
+      position: absolute;
+      border-radius: 4px;
+      padding: 2px 5px;
+      font-size: 0.7em;
+      line-height: 1.25;
+      overflow: hidden;
+      cursor: pointer;
+      color: black;
+    }
+
+    .event .ev-time {
+      display: block;
+      font-size: 0.9em;
+      opacity: 0.75;
+      font-family: monospace;
+    }
+
+    #now-line {
+      position: absolute;
+      left: 0;
+      right: 0;
+      border-top: 2px solid #fca5a5;
+      z-index: 4;
+      pointer-events: none;
+    }
+
+    #legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 16px;
+      margin-top: 14px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: #aaa;
+      font-size: 0.75em;
+      cursor: pointer;
+    }
+
+    .legend-item.off { opacity: 0.35; }
+
+    .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+    #status {
+      color: #666;
+      font-size: 0.75em;
+      font-family: monospace;
+      margin-top: 12px;
+      min-height: 1.2em;
+    }
+
+    #status.error { color: #fca5a5; }
+
+    #tooltip {
+      position: absolute;
+      background: #111;
+      border: 1px solid #333;
+      border-radius: 4px;
+      padding: 8px 10px;
+      font-size: 0.78em;
+      color: #e2e8f0;
+      display: none;
+      z-index: 9;
+      max-width: 280px;
+    }
+
+    #tooltip .tt-muted { color: #888; }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>ub <em>calendar</em></h1>
+      <a href="/ub/">dashboard</a>
+    </header>
+
+    <div id="toolbar">
+      <button id="prev" aria-label="Previous">&#8592;</button>
+      <button id="today-btn">today</button>
+      <button id="next" aria-label="Next">&#8594;</button>
+      <span id="range-label"></span>
+      <span id="as-of"></span>
+    </div>
+
+    <div id="cal"></div>
+    <div id="legend"></div>
+    <p id="status"></p>
+    <div id="tooltip"></div>
+  </main>
+
+  <script>
+    const API = '/api/ub';
+    const TOKEN_KEY = 'ub-token';
+    const HOUR_PX = 44;
+    const STALE_MS = 45 * 60 * 1000;
+
+    const calEl = document.getElementById('cal');
+    const legendEl = document.getElementById('legend');
+    const statusEl = document.getElementById('status');
+    const tooltipEl = document.getElementById('tooltip');
+    const rangeLabel = document.getElementById('range-label');
+    const asOfEl = document.getElementById('as-of');
+    const prevBtn = document.getElementById('prev');
+    const nextBtn = document.getElementById('next');
+    const todayBtn = document.getElementById('today-btn');
+
+    let snap = null;
+    let viewStart = null;
+    const hiddenCals = new Set();
+
+    function token() {
+      return localStorage.getItem(TOKEN_KEY);
+    }
+
+    function pd(iso) {
+      const [y, m, d] = iso.split('-').map(Number);
+      return new Date(y, m - 1, d);
+    }
+
+    function fd(date) {
+      return date.toLocaleDateString('en-CA');
+    }
+
+    function addDays(date, n) {
+      const copy = new Date(date);
+      copy.setDate(copy.getDate() + n);
+      return copy;
+    }
+
+    function mondayOf(date) {
+      return addDays(date, -((date.getDay() + 6) % 7));
+    }
+
+    function daysPerView() {
+      return window.innerWidth < 640 ? 3 : 7;
+    }
+
+    function pad(n) {
+      return String(n).padStart(2, '0');
+    }
+
+    function timeLabel(date) {
+      return `${pad(date.getHours())}:${pad(date.getMinutes())}`;
+    }
+
+    function calById(id) {
+      return (snap.calendars || []).find(c => c.id === id);
+    }
+
+    function visibleEvents() {
+      return (snap.events || []).filter(ev => !hiddenCals.has(ev.cal));
+    }
+
+    function initView() {
+      const today = pd(fd(new Date()));
+      viewStart = daysPerView() === 7 ? mondayOf(today) : today;
+    }
+
+    async function load() {
+      if (!token()) { location.href = '/ub/'; return; }
+      try {
+        const res = await fetch(`${API}?action=calendar`, {
+          headers: { Authorization: `Bearer ${token()}` },
+        });
+        if (res.status === 401) { location.href = '/ub/'; return; }
+        const data = await res.json();
+        snap = data.calendar;
+        if (viewStart === null) initView();
+        render();
+      } catch (e) {
+        statusEl.textContent = 'failed to load calendar';
+        statusEl.classList.add('error');
+      }
+    }
+
+    function setStatus() {
+      statusEl.classList.remove('error');
+      if (!snap) {
+        statusEl.textContent = 'no calendar snapshot yet — waiting for the first push from aiur';
+        return;
+      }
+      if (snap.errors && snap.errors.length) {
+        statusEl.textContent = `partial data: ${snap.errors.join(' | ')}`;
+        statusEl.classList.add('error');
+        return;
+      }
+      statusEl.textContent = '';
+    }
+
+    function setAsOf() {
+      if (!snap) { asOfEl.textContent = ''; return; }
+      const generated = new Date(snap.generated);
+      const stale = Date.now() - generated.getTime() > STALE_MS;
+      asOfEl.classList.toggle('stale', stale);
+      const when = `${generated.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toLowerCase()} ${timeLabel(generated)}`;
+      asOfEl.textContent = stale ? `stale — as of ${when}` : `as of ${when}`;
+    }
+
+    function viewDays() {
+      const n = daysPerView();
+      return Array.from({ length: n }, (_, i) => addDays(viewStart, i));
+    }
+
+    function setToolbar() {
+      if (!snap) { rangeLabel.textContent = ''; prevBtn.disabled = nextBtn.disabled = true; return; }
+      const days = viewDays();
+      const first = days[0];
+      const last = days[days.length - 1];
+      const fmt = d => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toLowerCase();
+      rangeLabel.textContent = `${fmt(first)} – ${fmt(last)}`;
+      prevBtn.disabled = fd(addDays(first, -1)) < snap.window.start;
+      nextBtn.disabled = fd(addDays(last, 1)) > snap.window.end;
+    }
+
+    function alldayFor(dayStr) {
+      return visibleEvents().filter(ev =>
+        ev.allDay && ev.start <= dayStr && (ev.end > dayStr || ev.end <= ev.start)
+      );
+    }
+
+    function timedFor(day) {
+      const dayStart = day.getTime();
+      const dayEnd = addDays(day, 1).getTime();
+      const items = [];
+      for (const ev of visibleEvents()) {
+        if (ev.allDay) continue;
+        const s = new Date(ev.start).getTime();
+        const e = Math.max(new Date(ev.end).getTime(), s + 1);
+        if (e <= dayStart || s >= dayEnd) continue;
+        items.push({ ev, s: Math.max(s, dayStart), e: Math.min(e, dayEnd) });
+      }
+      items.sort((a, b) => a.s - b.s || b.e - a.e);
+      return items;
+    }
+
+    function layout(items) {
+      let cluster = [];
+      let colEnds = [];
+      let clusterEnd = 0;
+      const flush = () => {
+        for (const item of cluster) item.ncols = colEnds.length;
+        cluster = [];
+        colEnds = [];
+      };
+      for (const item of items) {
+        if (cluster.length && item.s >= clusterEnd) flush();
+        let col = colEnds.findIndex(end => end <= item.s);
+        if (col === -1) { col = colEnds.length; colEnds.push(item.e); }
+        else colEnds[col] = item.e;
+        item.col = col;
+        cluster.push(item);
+        clusterEnd = Math.max(clusterEnd, item.e);
+      }
+      flush();
+      return items;
+    }
+
+    function hourRange(days) {
+      let min = 8;
+      let max = 21;
+      for (const day of days) {
+        for (const item of timedFor(day)) {
+          const start = new Date(item.s);
+          const end = new Date(item.e - 1);
+          min = Math.min(min, start.getHours());
+          max = Math.max(max, end.getHours() + 1);
+        }
+      }
+      return [min, max];
+    }
+
+    function showTooltip(anchor, ev) {
+      const cal = calById(ev.cal);
+      tooltipEl.textContent = '';
+      const title = document.createElement('div');
+      title.textContent = ev.title;
+      tooltipEl.appendChild(title);
+      const meta = document.createElement('div');
+      meta.className = 'tt-muted';
+      if (ev.allDay) {
+        meta.textContent = ev.start === ev.end || ev.end <= ev.start
+          ? ev.start
+          : `${ev.start} → ${fd(addDays(pd(ev.end), -1))}`;
+      } else {
+        const s = new Date(ev.start);
+        const e = new Date(ev.end);
+        meta.textContent = `${s.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }).toLowerCase()} ${timeLabel(s)}–${timeLabel(e)}`;
+      }
+      tooltipEl.appendChild(meta);
+      if (ev.location) {
+        const loc = document.createElement('div');
+        loc.className = 'tt-muted';
+        loc.textContent = ev.location;
+        tooltipEl.appendChild(loc);
+      }
+      if (cal) {
+        const src = document.createElement('div');
+        src.className = 'tt-muted';
+        src.textContent = cal.name;
+        tooltipEl.appendChild(src);
+      }
+      const main = document.querySelector('main');
+      const mainRect = main.getBoundingClientRect();
+      const rect = anchor.getBoundingClientRect();
+      tooltipEl.style.display = 'block';
+      let left = rect.left - mainRect.left;
+      let top = rect.bottom - mainRect.top + 6;
+      left = Math.min(left, mainRect.width - tooltipEl.offsetWidth - 4);
+      tooltipEl.style.left = `${Math.max(0, left)}px`;
+      tooltipEl.style.top = `${top}px`;
+    }
+
+    function hideTooltip() {
+      tooltipEl.style.display = 'none';
+    }
+
+    function eventBlock(item, minHour) {
+      const block = document.createElement('div');
+      block.className = 'event';
+      const cal = calById(item.ev.cal);
+      block.style.background = cal ? cal.color : '#888';
+      const startDate = new Date(item.s);
+      const hs = startDate.getHours() + startDate.getMinutes() / 60;
+      const durationH = (item.e - item.s) / 3600000;
+      block.style.top = `${(hs - minHour) * HOUR_PX}px`;
+      block.style.height = `${Math.max(16, durationH * HOUR_PX - 2)}px`;
+      block.style.left = `${(item.col / item.ncols) * 100}%`;
+      block.style.width = `calc(${100 / item.ncols}% - 2px)`;
+      const title = document.createElement('span');
+      title.textContent = item.ev.title;
+      const time = document.createElement('span');
+      time.className = 'ev-time';
+      time.textContent = timeLabel(new Date(item.ev.start));
+      block.appendChild(title);
+      if (durationH * HOUR_PX >= 34) block.appendChild(time);
+      block.addEventListener('click', e => {
+        e.stopPropagation();
+        showTooltip(block, item.ev);
+      });
+      return block;
+    }
+
+    function render() {
+      setStatus();
+      setAsOf();
+      setToolbar();
+      renderLegend();
+      calEl.textContent = '';
+      hideTooltip();
+      if (!snap) return;
+
+      const days = viewDays();
+      const todayStr = fd(new Date());
+      const [minHour, maxHour] = hourRange(days);
+      calEl.style.gridTemplateColumns = `48px repeat(${days.length}, 1fr)`;
+
+      calEl.appendChild(document.createElement('div'));
+      for (const day of days) {
+        const head = document.createElement('div');
+        head.className = 'head-cell';
+        head.classList.toggle('today', fd(day) === todayStr);
+        head.textContent = day.toLocaleDateString('en-US', { weekday: 'short' }).toLowerCase();
+        const num = document.createElement('strong');
+        num.textContent = day.getDate();
+        head.appendChild(num);
+        calEl.appendChild(head);
+      }
+
+      calEl.appendChild(document.createElement('div'));
+      for (const day of days) {
+        const cell = document.createElement('div');
+        cell.className = 'allday-cell';
+        for (const ev of alldayFor(fd(day))) {
+          const chip = document.createElement('div');
+          chip.className = 'allday-chip';
+          const cal = calById(ev.cal);
+          chip.style.background = cal ? cal.color : '#888';
+          chip.textContent = ev.title;
+          chip.addEventListener('click', e => {
+            e.stopPropagation();
+            showTooltip(chip, ev);
+          });
+          cell.appendChild(chip);
+        }
+        calEl.appendChild(cell);
+      }
+
+      const bodyHeight = (maxHour - minHour) * HOUR_PX;
+      const axis = document.createElement('div');
+      axis.className = 'axis';
+      axis.style.height = `${bodyHeight}px`;
+      for (let h = minHour; h <= maxHour; h++) {
+        const label = document.createElement('span');
+        label.className = 'axis-label';
+        label.style.top = `${(h - minHour) * HOUR_PX}px`;
+        label.textContent = `${pad(h)}:00`;
+        axis.appendChild(label);
+      }
+      calEl.appendChild(axis);
+
+      const now = new Date();
+      for (const day of days) {
+        const col = document.createElement('div');
+        col.className = 'day-col';
+        col.classList.toggle('today', fd(day) === todayStr);
+        col.style.height = `${bodyHeight}px`;
+        for (let h = minHour + 1; h < maxHour; h++) {
+          const line = document.createElement('div');
+          line.className = 'hour-line';
+          line.style.top = `${(h - minHour) * HOUR_PX}px`;
+          col.appendChild(line);
+        }
+        for (const item of layout(timedFor(day))) {
+          col.appendChild(eventBlock(item, minHour));
+        }
+        if (fd(day) === todayStr) {
+          const nowH = now.getHours() + now.getMinutes() / 60;
+          if (nowH >= minHour && nowH <= maxHour) {
+            const line = document.createElement('div');
+            line.id = 'now-line';
+            line.style.top = `${(nowH - minHour) * HOUR_PX}px`;
+            col.appendChild(line);
+          }
+        }
+        calEl.appendChild(col);
+      }
+    }
+
+    function renderLegend() {
+      legendEl.textContent = '';
+      if (!snap) return;
+      const cals = [...(snap.calendars || [])].sort((a, b) =>
+        (b.primary === true) - (a.primary === true) || a.name.localeCompare(b.name)
+      );
+      for (const cal of cals) {
+        const item = document.createElement('span');
+        item.className = 'legend-item';
+        item.classList.toggle('off', hiddenCals.has(cal.id));
+        const dot = document.createElement('span');
+        dot.className = 'legend-dot';
+        dot.style.background = cal.color;
+        const name = document.createElement('span');
+        name.textContent = cal.name;
+        item.appendChild(dot);
+        item.appendChild(name);
+        item.addEventListener('click', () => {
+          if (hiddenCals.has(cal.id)) hiddenCals.delete(cal.id);
+          else hiddenCals.add(cal.id);
+          render();
+        });
+        legendEl.appendChild(item);
+      }
+    }
+
+    prevBtn.addEventListener('click', () => {
+      viewStart = addDays(viewStart, -daysPerView());
+      render();
+    });
+
+    nextBtn.addEventListener('click', () => {
+      viewStart = addDays(viewStart, daysPerView());
+      render();
+    });
+
+    todayBtn.addEventListener('click', () => {
+      initView();
+      render();
+    });
+
+    document.addEventListener('click', hideTooltip);
+
+    let lastLayout = daysPerView();
+    window.addEventListener('resize', () => {
+      if (daysPerView() !== lastLayout) {
+        lastLayout = daysPerView();
+        initView();
+        render();
+      }
+    });
+
+    window.addEventListener('focus', load);
+    setInterval(load, 5 * 60 * 1000);
+    setInterval(() => { if (snap) render(); }, 60 * 1000);
+
+    load();
+  </script>
+</body>
+</html>
