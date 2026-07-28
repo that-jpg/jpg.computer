@@ -364,7 +364,22 @@
 
     .habit-mark.event-dot { font-size: 0.7em; }
 
+    button.event-toggle {
+      background: none;
+      border: none;
+      padding: 0;
+      cursor: pointer;
+      transition: none;
+    }
+
     li.event-past { opacity: 0.45; }
+
+    li.event-crossed .todo-text {
+      color: #666;
+      text-decoration: line-through;
+    }
+
+    li.event-crossed .event-dot { opacity: 0.4; }
 
     .event-time {
       color: #666;
@@ -770,6 +785,7 @@
     let todos = [];
     let goalsSnap = null;
     let calSnap = null;
+    let calDone = {};
     let selectedProject = null;
     let mutationSeq = 0;
     let lastMutatedAt = 0;
@@ -977,14 +993,43 @@
       );
     }
 
-    function buildEvent(ev, past) {
+    function eventKey(ev) {
+      return [ev.cal, ev.start, ev.title].join('|');
+    }
+
+    function isCrossed(ev, today) {
+      return (calDone[today] || []).includes(eventKey(ev));
+    }
+
+    function toggleEvent(ev, today) {
+      const key = eventKey(ev);
+      const set = new Set(calDone[today] || []);
+      const done = !set.has(key);
+      if (done) set.add(key);
+      else set.delete(key);
+      calDone[today] = [...set];
+      render();
+      api('calendar-done', {
+        method: 'POST',
+        body: JSON.stringify({ date: today, key, done }),
+      }).then(r => {
+        if (!r.ok) throw new Error();
+        setStatus('saved');
+      }).catch(() => setStatus('sync failed - event cross not saved', true));
+    }
+
+    function buildEvent(ev, opts) {
       const li = document.createElement('li');
-      li.className = 'habit' + (past ? ' event-past' : '');
-      const mark = document.createElement('span');
-      mark.className = 'habit-mark event-dot';
+      li.className = 'habit'
+        + (opts.past ? ' event-past' : '')
+        + (opts.crossed ? ' event-crossed' : '');
+      const mark = document.createElement('button');
+      mark.className = 'habit-mark event-dot event-toggle';
       mark.textContent = '●';
+      mark.setAttribute('aria-label', opts.crossed ? 'Uncross event' : 'Cross event off');
       const cal = calSnap && (calSnap.calendars || []).find(c => c.id === ev.cal);
       if (cal) mark.style.color = cal.color;
+      mark.addEventListener('click', () => toggleEvent(ev, opts.today));
       const text = document.createElement('span');
       text.className = 'todo-text';
       text.textContent = ev.title;
@@ -1174,12 +1219,13 @@
 
       const now = new Date();
       const dayEvents = eventsToday(today);
-      const eventsOpen = dayEvents.filter(ev => ev.allDay || new Date(ev.end) > now);
-      const eventsPast = dayEvents.filter(ev => !ev.allDay && new Date(ev.end) <= now);
+      const isPast = ev => !ev.allDay && new Date(ev.end) <= now;
+      const eventsOpen = dayEvents.filter(ev => !isCrossed(ev, today) && !isPast(ev));
+      const eventsSunk = dayEvents.filter(ev => isCrossed(ev, today) || isPast(ev));
 
       for (const t of overdue) bandEls.overdue.appendChild(buildItem(t, { tag: !t.project }));
       for (const t of dueToday) bandEls.due.appendChild(buildItem(t, { tag: !t.project }));
-      for (const ev of eventsOpen) bandEls.events.appendChild(buildEvent(ev, false));
+      for (const ev of eventsOpen) bandEls.events.appendChild(buildEvent(ev, { today }));
       for (const t of dailyOpen) bandEls.daily.appendChild(buildItem(t));
       for (const h of habitsOpen) bandEls.habits.appendChild(buildHabit(h, stale));
       for (const t of inbox) {
@@ -1188,9 +1234,15 @@
       for (const t of doneTodayTodos) bandEls.doneToday.appendChild(buildItem(t));
       for (const t of dailyDone) bandEls.doneToday.appendChild(buildItem(t));
       for (const h of habitsDone) bandEls.doneToday.appendChild(buildHabit(h, false));
-      for (const ev of eventsPast) bandEls.doneToday.appendChild(buildEvent(ev, true));
+      for (const ev of eventsSunk) {
+        bandEls.doneToday.appendChild(buildEvent(ev, {
+          today,
+          past: isPast(ev) && !isCrossed(ev, today),
+          crossed: isCrossed(ev, today),
+        }));
+      }
 
-      const left = overdue.length + dueToday.length + dailyOpen.length
+      const left = overdue.length + dueToday.length + eventsOpen.length + dailyOpen.length
         + (stale ? 0 : habitsOpen.length) + inbox.length;
       document.getElementById('today-count').textContent =
         left === 0 ? 'clear' : `${left} left`;
@@ -1507,9 +1559,10 @@
 
     async function loadCalendar() {
       try {
-        const r = await api('calendar');
-        if (!r.ok) throw new Error();
-        calSnap = (await r.json()).calendar;
+        const [calRes, doneRes] = await Promise.all([api('calendar'), api('calendar-done')]);
+        if (!calRes.ok || !doneRes.ok) throw new Error();
+        calSnap = (await calRes.json()).calendar;
+        calDone = (await doneRes.json()).done || {};
       } catch (e) {
         calSnap = null;
       }

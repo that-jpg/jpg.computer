@@ -95,6 +95,32 @@ module.exports = async function handler(req, res) {
       return res.json({ calendar: raw ? JSON.parse(raw) : null });
     }
 
+    if (action === 'calendar-done' && req.method === 'GET') {
+      const raw = await redis('GET', 'ub-calendar-done');
+      return res.json({ done: raw ? JSON.parse(raw) : {} });
+    }
+
+    if (action === 'calendar-done' && req.method === 'POST') {
+      const { date, key, done } = req.body || {};
+      if (!DATE_RE.test(String(date)) || typeof key !== 'string' || !key || key.length > 400) {
+        return res.status(400).json({ error: 'Invalid event' });
+      }
+      const raw = await redis('GET', 'ub-calendar-done');
+      const map = raw ? JSON.parse(raw) : {};
+      const set = new Set(map[date] || []);
+      if (done) set.add(key);
+      else set.delete(key);
+      if (set.size > 200) return res.status(400).json({ error: 'Too many crossed events' });
+      map[date] = [...set];
+      const cutoff = new Date(new Date(`${date}T12:00:00Z`).getTime() - 8 * 86400000)
+        .toISOString().slice(0, 10);
+      for (const day of Object.keys(map)) {
+        if (day < cutoff || map[day].length === 0) delete map[day];
+      }
+      await redis('SET', 'ub-calendar-done', JSON.stringify(map));
+      return res.json({ done: map });
+    }
+
     if (action === 'todos' && req.method === 'GET') {
       return res.json({ todos: await readTodos() });
     }
