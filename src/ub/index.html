@@ -682,6 +682,12 @@
       border-radius: 2px;
       margin-right: 5px;
     }
+
+    #finance-empty {
+      color: #666;
+      font-size: 0.8em;
+      margin: 0;
+    }
   </style>
 </head>
 <body>
@@ -801,6 +807,11 @@
 
       <details id="finance" class="hidden">
         <summary>finance</summary>
+        <p id="finance-empty" class="hidden">
+          No statements ingested yet — send a PDF or CSV export from XP, BTG,
+          or Nubank to Bune on Telegram and approve the preview.
+        </p>
+        <div id="finance-body" class="hidden">
         <div id="finance-stat-row">
           <div>
             <span class="stat-label">net worth</span>
@@ -833,6 +844,7 @@
             <div id="finance-alloc-bar"></div>
             <div class="fin-legend" id="finance-alloc-legend"></div>
           </div>
+        </div>
         </div>
       </details>
     </section>
@@ -1801,14 +1813,16 @@
 
     function renderFinance(f) {
       const panel = document.getElementById('finance');
-      const series = f && f.net_worth && Array.isArray(f.net_worth.series)
-        ? f.net_worth.series
-        : [];
-      if (series.length === 0) {
+      if (!f || !f.net_worth) {
         panel.classList.add('hidden');
         return;
       }
       panel.classList.remove('hidden');
+      const series = Array.isArray(f.net_worth.series) ? f.net_worth.series : [];
+      const hasData = series.length > 0;
+      document.getElementById('finance-empty').classList.toggle('hidden', hasData);
+      document.getElementById('finance-body').classList.toggle('hidden', !hasData);
+      if (!hasData) return;
       document.getElementById('networth-value').textContent =
         BRL_FMT.format(f.net_worth.total);
       const statementDates = Object.values(f.last_statements || {}).sort();
