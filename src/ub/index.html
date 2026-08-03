@@ -466,24 +466,24 @@
 
     #sync-status.error { color: #fca5a5; }
 
-    #fitness, #french {
+    #fitness, #french, #finance {
       border-top: 1px solid #333;
       padding-top: 16px;
       margin-top: 28px;
     }
 
-    #fitness > summary, #french > summary {
+    #fitness > summary, #french > summary, #finance > summary {
       color: #aaa;
       font-size: 0.9em;
       cursor: pointer;
       user-select: none;
     }
 
-    #fitness > summary:hover, #french > summary:hover { color: #7fffd4; }
+    #fitness > summary:hover, #french > summary:hover, #finance > summary:hover { color: #7fffd4; }
 
-    #fitness[open] > summary, #french[open] > summary { margin-bottom: 18px; }
+    #fitness[open] > summary, #french[open] > summary, #finance[open] > summary { margin-bottom: 18px; }
 
-    #stat-row, #french-stat-row {
+    #stat-row, #french-stat-row, #finance-stat-row {
       display: flex;
       gap: 40px;
       flex-wrap: wrap;
@@ -553,18 +553,18 @@
       font-size: 0.75em;
     }
 
-    #chart-wrap {
+    #chart-wrap, #finance-chart-wrap {
       position: relative;
       width: 100%;
     }
 
-    #chart-wrap svg {
+    #chart-wrap svg, #finance-chart-wrap svg {
       display: block;
       width: 100%;
       height: auto;
     }
 
-    #chart-tooltip {
+    #chart-tooltip, #finance-tooltip {
       position: absolute;
       background: #111;
       border: 1px solid #333;
@@ -578,9 +578,9 @@
       z-index: 5;
     }
 
-    #chart-tooltip .tt-muted { color: #888; }
+    #chart-tooltip .tt-muted, #finance-tooltip .tt-muted { color: #888; }
 
-    #chart-caption {
+    #chart-caption, #finance-chart-caption {
       color: #666;
       font-size: 0.72em;
       margin: 6px 0 0;
@@ -612,6 +612,75 @@
     #fitness th {
       color: #666;
       font-weight: normal;
+    }
+
+    #finance-sections {
+      display: flex;
+      gap: 40px;
+      flex-wrap: wrap;
+      margin-top: 18px;
+    }
+
+    #finance-sections > div {
+      flex: 1 1 190px;
+      min-width: 190px;
+    }
+
+    .fin-section-title {
+      color: #aaa;
+      font-size: 0.8em;
+      margin: 0 0 8px;
+    }
+
+    .fin-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      font-family: monospace;
+      font-size: 0.78em;
+      color: #aaa;
+      padding: 2px 0;
+    }
+
+    .fin-row span:last-child { color: #e2e8f0; }
+
+    .fin-bar-track {
+      height: 4px;
+      border-radius: 2px;
+      background: #0e332a;
+      margin: 1px 0 6px;
+    }
+
+    .fin-bar-fill {
+      height: 100%;
+      border-radius: 2px;
+      background: #14a37f;
+    }
+
+    #finance-alloc-bar {
+      display: flex;
+      height: 10px;
+      border-radius: 5px;
+      overflow: hidden;
+      background: #0e332a;
+      margin-bottom: 8px;
+    }
+
+    .fin-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px 14px;
+      font-size: 0.72em;
+      color: #aaa;
+      font-family: monospace;
+    }
+
+    .fin-legend .dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 2px;
+      margin-right: 5px;
     }
   </style>
 </head>
@@ -726,6 +795,43 @@
           </div>
           <div id="french-meter">
             <div id="french-meter-fill"></div>
+          </div>
+        </div>
+      </details>
+
+      <details id="finance" class="hidden">
+        <summary>finance</summary>
+        <div id="finance-stat-row">
+          <div>
+            <span class="stat-label">net worth</span>
+            <span class="stat-value" id="networth-value">—</span>
+            <span class="stat-sub" id="networth-sub"></span>
+          </div>
+          <div>
+            <span class="stat-label" id="finance-month-label">this month</span>
+            <span class="stat-value" id="finance-month-value">—</span>
+            <span class="stat-sub" id="finance-month-sub"></span>
+          </div>
+          <div>
+            <span class="stat-label">invested</span>
+            <span class="stat-value" id="invested-value">—</span>
+            <span class="stat-sub" id="invested-sub"></span>
+          </div>
+        </div>
+        <div id="finance-chart-wrap">
+          <svg id="finance-chart" viewBox="0 0 480 130" role="img" aria-label="Net worth per statement date"></svg>
+          <div id="finance-tooltip"></div>
+        </div>
+        <p id="finance-chart-caption"></p>
+        <div id="finance-sections">
+          <div>
+            <p class="fin-section-title" id="finance-spend-title">spending</p>
+            <div id="finance-cats"></div>
+          </div>
+          <div id="finance-allocation">
+            <p class="fin-section-title">allocation</p>
+            <div id="finance-alloc-bar"></div>
+            <div class="fin-legend" id="finance-alloc-legend"></div>
           </div>
         </div>
       </details>
@@ -1554,6 +1660,193 @@
       }
     }
 
+    const BRL_FMT = new Intl.NumberFormat('pt-BR', {
+      style: 'currency', currency: 'BRL', maximumFractionDigits: 0,
+    });
+    const ALLOC_COLORS = ['#14a37f', '#39c9a5', '#7fffd4', '#a8c5bd', '#7a8f89', '#5a6b66', '#a3a3a3', '#666'];
+    const FIN_CHART = { w: 480, h: 130, left: 10, right: 14, top: 16, bottom: 20 };
+
+    function renderNetWorthChart(series) {
+      const svg = document.getElementById('finance-chart');
+      const tooltip = document.getElementById('finance-tooltip');
+      svg.innerHTML = '';
+      const totals = series.map(p => p.total);
+      let min = Math.min(...totals);
+      let max = Math.max(...totals);
+      if (min === max) { min -= 1; max += 1; }
+      const pad = (max - min) * 0.18;
+      min -= pad;
+      max += pad;
+      const plotW = FIN_CHART.w - FIN_CHART.left - FIN_CHART.right;
+      const plotH = FIN_CHART.h - FIN_CHART.top - FIN_CHART.bottom;
+      const xOf = i => series.length === 1
+        ? FIN_CHART.left + plotW / 2
+        : FIN_CHART.left + plotW * i / (series.length - 1);
+      const yOf = v => FIN_CHART.top + plotH * (1 - (v - min) / (max - min));
+
+      if (series.length > 1) {
+        const d = series
+          .map((p, i) => `${i ? 'L' : 'M'}${xOf(i).toFixed(1)},${yOf(p.total).toFixed(1)}`)
+          .join(' ');
+        svg.append(svgEl('path', {
+          d, fill: 'none', stroke: '#14a37f', 'stroke-width': 2,
+          'stroke-linejoin': 'round', 'stroke-linecap': 'round',
+        }));
+      }
+      series.forEach((p, i) => {
+        svg.append(svgEl('circle', { cx: xOf(i), cy: yOf(p.total), r: 3, fill: '#14a37f' }));
+      });
+
+      const last = series[series.length - 1];
+      const cap = svgEl('text', {
+        x: FIN_CHART.w - FIN_CHART.right, y: Math.max(yOf(last.total) - 8, 10),
+        fill: '#e2e8f0', 'font-size': 10, 'text-anchor': 'end',
+        style: 'font-family: monospace',
+      });
+      cap.textContent = BRL_FMT.format(last.total);
+      svg.append(cap);
+
+      const firstLabel = svgEl('text', {
+        x: FIN_CHART.left, y: FIN_CHART.h - 6, fill: '#666',
+        'font-size': 10, 'text-anchor': 'start',
+      });
+      firstLabel.textContent = shortDate(series[0].date);
+      svg.append(firstLabel);
+      if (series.length > 1) {
+        const lastLabel = svgEl('text', {
+          x: FIN_CHART.w - FIN_CHART.right, y: FIN_CHART.h - 6, fill: '#666',
+          'font-size': 10, 'text-anchor': 'end',
+        });
+        lastLabel.textContent = shortDate(last.date);
+        svg.append(lastLabel);
+      }
+
+      series.forEach((p, i) => {
+        const bandLeft = i === 0 ? 0 : (xOf(i - 1) + xOf(i)) / 2;
+        const bandRight = i === series.length - 1 ? FIN_CHART.w : (xOf(i) + xOf(i + 1)) / 2;
+        const hit = svgEl('rect', {
+          x: bandLeft, y: 0, width: bandRight - bandLeft, height: FIN_CHART.h,
+          fill: 'transparent',
+        });
+        hit.addEventListener('mousemove', e => {
+          tooltip.innerHTML =
+            `${shortDate(p.date)}<br>${BRL_FMT.format(p.total)}`;
+          tooltip.style.display = 'block';
+          const wrap = tooltip.parentElement.getBoundingClientRect();
+          const ttW = tooltip.offsetWidth;
+          let px = e.clientX - wrap.left + 12;
+          if (px + ttW > wrap.width) px = e.clientX - wrap.left - ttW - 12;
+          tooltip.style.left = `${Math.max(0, px)}px`;
+          tooltip.style.top = `${e.clientY - wrap.top - 10}px`;
+        });
+        hit.addEventListener('mouseleave', () => { tooltip.style.display = 'none'; });
+        svg.append(hit);
+      });
+    }
+
+    function renderFinanceSpend(month) {
+      const wrap = document.getElementById('finance-cats');
+      wrap.innerHTML = '';
+      document.getElementById('finance-spend-title').textContent =
+        `spending ${month.month || ''}`.trim();
+      const entries = Object.entries(month.by_category || {});
+      if (entries.length === 0) {
+        const row = document.createElement('div');
+        row.className = 'fin-row';
+        row.textContent = 'nothing recorded yet';
+        wrap.appendChild(row);
+        return;
+      }
+      const maxValue = Math.max(...entries.map(([, value]) => value));
+      for (const [name, value] of entries) {
+        const row = document.createElement('div');
+        row.className = 'fin-row';
+        const label = document.createElement('span');
+        label.textContent = name;
+        const amount = document.createElement('span');
+        amount.textContent = BRL_FMT.format(value);
+        row.append(label, amount);
+        const track = document.createElement('div');
+        track.className = 'fin-bar-track';
+        const fill = document.createElement('div');
+        fill.className = 'fin-bar-fill';
+        fill.style.width = `${100 * value / maxValue}%`;
+        track.appendChild(fill);
+        wrap.append(row, track);
+      }
+    }
+
+    function renderFinanceAllocation(allocation) {
+      const bar = document.getElementById('finance-alloc-bar');
+      const legend = document.getElementById('finance-alloc-legend');
+      bar.innerHTML = '';
+      legend.innerHTML = '';
+      const entries = Object.entries(allocation || {});
+      document.getElementById('finance-allocation')
+        .classList.toggle('hidden', entries.length === 0);
+      entries.forEach(([name, entry], i) => {
+        const color = ALLOC_COLORS[i % ALLOC_COLORS.length];
+        const seg = document.createElement('div');
+        seg.style.width = `${entry.share}%`;
+        seg.style.background = color;
+        bar.appendChild(seg);
+        const chip = document.createElement('span');
+        const dot = document.createElement('span');
+        dot.className = 'dot';
+        dot.style.background = color;
+        chip.append(dot, `${name} ${Math.round(entry.share)}%`);
+        legend.appendChild(chip);
+      });
+    }
+
+    function renderFinance(f) {
+      const panel = document.getElementById('finance');
+      const series = f && f.net_worth && Array.isArray(f.net_worth.series)
+        ? f.net_worth.series
+        : [];
+      if (series.length === 0) {
+        panel.classList.add('hidden');
+        return;
+      }
+      panel.classList.remove('hidden');
+      document.getElementById('networth-value').textContent =
+        BRL_FMT.format(f.net_worth.total);
+      const statementDates = Object.values(f.last_statements || {}).sort();
+      document.getElementById('networth-sub').textContent = statementDates.length
+        ? `statements through ${shortDate(statementDates[statementDates.length - 1])}`
+        : '';
+      const month = f.month || {};
+      const net = month.net || 0;
+      document.getElementById('finance-month-label').textContent =
+        month.month || 'this month';
+      document.getElementById('finance-month-value').textContent =
+        `${net >= 0 ? '+' : '-'}${BRL_FMT.format(Math.abs(net))}`;
+      document.getElementById('finance-month-sub').textContent =
+        `in ${BRL_FMT.format(month.income || 0)} · out ${BRL_FMT.format(month.spend || 0)}`;
+      const invested = Object.values(f.net_worth.by_bank || {})
+        .reduce((sum, bank) => sum + (bank.invested || 0), 0);
+      document.getElementById('invested-value').textContent = BRL_FMT.format(invested);
+      const topAlloc = Object.entries(f.allocation || {})[0];
+      document.getElementById('invested-sub').textContent = topAlloc
+        ? `top: ${topAlloc[0]} ${Math.round(topAlloc[1].share)}%`
+        : '';
+      renderNetWorthChart(series);
+      renderFinanceSpend(month);
+      renderFinanceAllocation(f.allocation);
+      document.getElementById('finance-chart-caption').textContent =
+        `net worth per statement date${f.updated ? ` · updated ${f.updated.slice(0, 10)}` : ''}`;
+    }
+
+    async function loadFinance() {
+      try {
+        const r = await api('finance');
+        if (!r.ok) throw new Error();
+        renderFinance((await r.json()).finance);
+      } catch (e) {
+        document.getElementById('finance').classList.add('hidden');
+      }
+    }
+
     async function loadGoals() {
       try {
         const r = await api('goals');
@@ -1617,6 +1910,7 @@
         loadCalendar();
         loadFitness();
         loadFrench();
+        loadFinance();
       } catch (e) {
         loginError.textContent = 'Network error';
       }
@@ -1690,6 +1984,7 @@
       loadCalendar();
       loadFitness();
       loadFrench();
+      loadFinance();
     } else {
       showLogin();
     }
