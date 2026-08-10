@@ -1,7 +1,7 @@
 const crypto = require('crypto');
 
 const USER = 'root';
-const PASSWORD_SHA256 = '3ec9fa8689c345fdfd015053534e34077d820b40b4171aa1414bc614e2890a77';
+const PASSWORD_SHA256 = '53736ddf608f1cda5220bfff8c7d601988d707c0d7e80d7ec6caacc2f942d5ce';
 const SESSION_TTL_SECONDS = 60 * 60 * 24 * 30;
 const LOGIN_WINDOW_SECONDS = 60 * 15;
 const LOGIN_MAX_ATTEMPTS = 10;
