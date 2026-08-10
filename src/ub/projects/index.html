@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>ub projects</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      background-color: black;
+      color: white;
+      font-family: 'Trebuchet MS', sans-serif;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+    }
+
+    main {
+      width: 100%;
+      max-width: 520px;
+    }
+
+    header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      border-bottom: 1px solid #333;
+      padding-bottom: 10px;
+      margin-bottom: 24px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 1.4em;
+    }
+
+    h1 em {
+      color: #666;
+      font-style: normal;
+      font-size: 0.7em;
+    }
+
+    .hidden { display: none !important; }
+
+    #login-view {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 60px;
+    }
+
+    input, button {
+      font-family: inherit;
+      font-size: 1em;
+      border-radius: 4px;
+    }
+
+    input {
+      background: none;
+      border: 1px solid #444;
+      color: white;
+      padding: 10px 12px;
+      width: 100%;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: #7fffd4;
+    }
+
+    button {
+      background: none;
+      border: 1px solid #555;
+      color: white;
+      padding: 10px 20px;
+      cursor: pointer;
+      transition: border-color 0.15s, color 0.15s;
+    }
+
+    button:hover {
+      border-color: #7fffd4;
+      color: #7fffd4;
+    }
+
+    #login-error {
+      color: #fca5a5;
+      font-size: 0.85em;
+      min-height: 1.2em;
+      margin: 0;
+    }
+
+    #header-nav {
+      display: flex;
+      align-items: baseline;
+      gap: 14px;
+    }
+
+    #header-nav a {
+      color: #666;
+      font-size: 0.8em;
+      text-decoration: none;
+    }
+
+    #header-nav a:hover { color: #7fffd4; }
+
+    #header-nav a.here { color: #e2e8f0; }
+
+    #logout {
+      border: none;
+      color: #666;
+      padding: 0;
+      font-size: 0.8em;
+    }
+
+    #logout:hover { color: #fca5a5; }
+
+    .section-title {
+      display: flex;
+      justify-content: space-between;
+      color: #666;
+      font-size: 0.8em;
+      border-bottom: 1px solid #1a1a1a;
+      padding-bottom: 4px;
+      margin: 26px 0 10px;
+    }
+
+    .section-title a {
+      color: #666;
+      text-decoration: none;
+    }
+
+    .section-title a:hover { color: #7fffd4; }
+
+    #month-title { color: #aaa; }
+
+    #month-title .behind { color: #fca5a5; }
+
+    .item-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    .goal-card {
+      border: 1px solid #1a1a1a;
+      border-radius: 6px;
+      padding: 10px 12px 4px;
+      margin-bottom: 10px;
+    }
+
+    details.goal-card > summary {
+      list-style: none;
+      cursor: pointer;
+    }
+
+    details.goal-card > summary::-webkit-details-marker { display: none; }
+
+    .goal-card.paused { opacity: 0.55; }
+
+    .goal-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 10px;
+    }
+
+    .goal-name { color: #aaa; font-size: 0.85em; }
+
+    .goal-name .untracked { color: #555; font-size: 0.85em; }
+
+    .goal-count {
+      color: #666;
+      font-size: 0.75em;
+      font-family: monospace;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .goal-note {
+      color: #666;
+      font-size: 0.75em;
+      margin: 4px 0 0;
+    }
+
+    .goal-meter { margin: 8px 0 10px; }
+
+    .gm-head {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.75em;
+      color: #888;
+      margin-bottom: 3px;
+    }
+
+    .gm-text {
+      font-family: monospace;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .gm-bad .gm-text { color: #fca5a5; }
+
+    .gm-bar {
+      position: relative;
+      height: 6px;
+      border-radius: 3px;
+      background: #12211d;
+      overflow: visible;
+    }
+
+    .gm-fill {
+      height: 100%;
+      border-radius: 3px;
+      background: #14a37f;
+      min-width: 0;
+    }
+
+    .gm-bad .gm-bar { background: #2a1616; }
+
+    .gm-bad .gm-fill { background: #a35555; }
+
+    .gm-tick {
+      position: absolute;
+      top: -2px;
+      width: 2px;
+      height: 10px;
+      background: #a3a3a3;
+      border-radius: 1px;
+    }
+
+    .goal-card ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    .goal-card li {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 0;
+      border-top: 1px solid #141414;
+    }
+
+    .due-chip {
+      color: #666;
+      font-size: 0.72em;
+      font-family: monospace;
+      white-space: nowrap;
+    }
+
+    li.overdue .due-chip, li.overdue .todo-text { color: #fca5a5; }
+
+    .goal-card details { padding: 6px 0; border-top: 1px solid #141414; }
+
+    .goal-card details summary {
+      color: #555;
+      font-size: 0.75em;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .goal-card details summary:hover { color: #aaa; }
+
+    .card-add {
+      display: flex;
+      border-top: 1px solid #141414;
+      margin-top: 2px;
+    }
+
+    .card-add input {
+      border: none;
+      padding: 8px 0;
+      font-size: 0.85em;
+      color: #aaa;
+    }
+
+    .card-add input::placeholder { color: #444; }
+
+    .todo-tag {
+      border: none;
+      color: #444;
+      padding: 2px 6px;
+      font-size: 0.9em;
+      line-height: 1;
+    }
+
+    .todo-tag:hover { color: #7fffd4; }
+
+    .todo-today {
+      border: 1px solid #333;
+      color: #666;
+      padding: 2px 8px;
+      font-size: 0.7em;
+      border-radius: 10px;
+      white-space: nowrap;
+    }
+
+    .todo-today:hover {
+      color: #7fffd4;
+      border-color: #7fffd4;
+    }
+
+    .tag-select {
+      background: #111;
+      color: white;
+      border: 1px solid #444;
+      border-radius: 4px;
+      font-size: 0.85em;
+      padding: 2px 6px;
+    }
+
+    .item-list > li {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 4px;
+      border-bottom: 1px solid #1a1a1a;
+    }
+
+    .todo-handle {
+      border: none;
+      background: none;
+      color: #444;
+      padding: 2px 4px;
+      font-size: 1.05em;
+      cursor: grab;
+      touch-action: none;
+      user-select: none;
+    }
+
+    .todo-handle:hover { color: #aaa; }
+
+    .item-list li.dragging {
+      opacity: 0.55;
+      background: #111;
+    }
+
+    .todo-toggle {
+      width: 18px;
+      height: 18px;
+      min-width: 18px;
+      border: 1px solid #555;
+      border-radius: 50%;
+      background: none;
+      cursor: pointer;
+      padding: 0;
+    }
+
+    li.done .todo-toggle {
+      border-color: #7fffd4;
+      background: #7fffd4;
+    }
+
+    li.doing .todo-toggle {
+      border-color: #7fffd4;
+      background: linear-gradient(90deg, #7fffd4 50%, transparent 50%);
+    }
+
+    .todo-text {
+      flex: 1;
+      word-break: break-word;
+    }
+
+    li.done .todo-text {
+      color: #666;
+      text-decoration: line-through;
+    }
+
+    .todo-delete {
+      border: none;
+      color: #444;
+      padding: 2px 6px;
+      font-size: 1.1em;
+      line-height: 1;
+    }
+
+    .todo-delete:hover { color: #fca5a5; }
+
+    .empty-note {
+      color: #555;
+      font-size: 0.8em;
+      padding: 8px 0;
+    }
+
+    #month-updated {
+      color: #666;
+      font-size: 0.72em;
+      text-align: right;
+      margin: 8px 0 0;
+    }
+
+    #sync-status {
+      color: #666;
+      font-size: 0.75em;
+      text-align: right;
+      min-height: 1.2em;
+      margin-top: 14px;
+      font-family: monospace;
+    }
+
+    #sync-status.error { color: #fca5a5; }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>ub <em>projects</em></h1>
+      <nav id="header-nav">
+        <a href="/ub/">today</a>
+        <a href="/ub/projects/" class="here">projects</a>
+        <a href="/ub/metrics/">metrics</a>
+        <a href="/ub/calendar/">calendar</a>
+        <button id="logout" class="hidden">logout</button>
+      </nav>
+    </header>
+
+    <form id="login-view" class="hidden">
+      <input id="login-user" placeholder="user" autocomplete="username" required>
+      <input id="login-pass" type="password" placeholder="password" autocomplete="current-password" required>
+      <p id="login-error"></p>
+      <button type="submit">Enter</button>
+    </form>
+
+    <section id="app-view" class="hidden">
+      <div class="section-title">
+        <span id="month-title">month</span>
+        <a id="unsorted-link" href="#inbox" class="hidden"></a>
+      </div>
+      <div id="goal-cards"></div>
+      <p id="month-updated"></p>
+
+      <div class="section-title"><span>projects</span></div>
+      <div id="project-cards"></div>
+      <p id="projects-empty" class="empty-note hidden">
+        No side-projects declared — add entries to goals/projects.json in ubermensch.
+      </p>
+
+      <div class="section-title" id="inbox"><span>inbox</span><span id="inbox-count"></span></div>
+      <ul id="inbox-list" class="item-list"></ul>
+      <p id="inbox-empty" class="empty-note hidden">Inbox clear.</p>
+      <p id="sync-status"></p>
+    </section>
+  </main>
+
+  <script>
+    const API = '/api/ub';
+    const TOKEN_KEY = 'ub-token';
+
+    const loginView = document.getElementById('login-view');
+    const appView = document.getElementById('app-view');
+    const loginError = document.getElementById('login-error');
+    const logoutBtn = document.getElementById('logout');
+    const goalCardsEl = document.getElementById('goal-cards');
+    const projectCardsEl = document.getElementById('project-cards');
+    const inboxList = document.getElementById('inbox-list');
+    const syncStatus = document.getElementById('sync-status');
+
+    let todos = [];
+    let goalsSnap = null;
+    let projectsSnap = null;
+    let mutationSeq = 0;
+    let lastMutatedAt = 0;
+
+    function kindOf(todo) {
+      return todo.kind === 'daily' ? 'daily' : 'global';
+    }
+
+    function stateOf(todo) {
+      if (todo.state === 'doing' || todo.state === 'done') return todo.state;
+      return todo.done ? 'done' : 'todo';
+    }
+
+    function localDate() {
+      return new Date().toLocaleDateString('en-CA');
+    }
+
+    function isOverdue(todo) {
+      return Boolean(todo.due) && stateOf(todo) !== 'done' && todo.due < localDate();
+    }
+
+    function shortDue(iso) {
+      return new Date(iso + 'T12:00:00')
+        .toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+        .toLowerCase();
+    }
+
+    function knownProjects() {
+      const keys = [];
+      for (const g of (goalsSnap ? goalsSnap.goals : [])) keys.push(g.key);
+      for (const p of registryEntries()) {
+        if (!keys.includes(p.slug)) keys.push(p.slug);
+      }
+      for (const t of todos) {
+        if (t.project && !keys.includes(t.project)) keys.push(t.project);
+      }
+      return keys;
+    }
+
+    function registryEntries() {
+      return projectsSnap && Array.isArray(projectsSnap.projects)
+        ? projectsSnap.projects
+        : [];
+    }
+
+    function token() {
+      return localStorage.getItem(TOKEN_KEY);
+    }
+
+    function api(action, options = {}) {
+      return fetch(`${API}?action=${action}`, {
+        ...options,
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token() ? { Authorization: `Bearer ${token()}` } : {}),
+        },
+      });
+    }
+
+    function showLogin() {
+      localStorage.removeItem(TOKEN_KEY);
+      appView.classList.add('hidden');
+      logoutBtn.classList.add('hidden');
+      loginView.classList.remove('hidden');
+      document.getElementById('login-user').focus();
+    }
+
+    function showApp() {
+      loginView.classList.add('hidden');
+      appView.classList.remove('hidden');
+      logoutBtn.classList.remove('hidden');
+    }
+
+    function setStatus(text, isError) {
+      syncStatus.textContent = text;
+      syncStatus.classList.toggle('error', Boolean(isError));
+    }
+
+    async function mutate(query, init) {
+      const seq = ++mutationSeq;
+      lastMutatedAt = Date.now();
+      setStatus('saving...');
+      try {
+        const r = await api(query, init);
+        if (r.status === 401) return showLogin();
+        if (!r.ok) throw new Error();
+        const data = await r.json();
+        lastMutatedAt = Date.now();
+        if (seq === mutationSeq) {
+          todos = data.todos;
+          render();
+          setStatus('saved');
+        }
+      } catch (e) {
+        setStatus('sync failed - refresh to see the saved list', true);
+      }
+    }
+
+    function attachDrag(handle, li, container) {
+      handle.addEventListener('pointerdown', e => {
+        e.preventDefault();
+        li.classList.add('dragging');
+
+        const move = ev => {
+          ev.preventDefault();
+          const after = [...container.children]
+            .filter(x => x !== li)
+            .find(x => {
+              const r = x.getBoundingClientRect();
+              return ev.clientY < r.top + r.height / 2;
+            });
+          if (after) container.insertBefore(li, after);
+          else container.appendChild(li);
+        };
+
+        const up = () => {
+          li.classList.remove('dragging');
+          document.removeEventListener('pointermove', move);
+          document.removeEventListener('pointerup', up);
+          document.removeEventListener('pointercancel', up);
+          const order = [...container.children].map(x => x.dataset.id);
+          const byId = id => todos.find(t => t.id === id);
+          todos = [
+            ...todos.filter(t => !order.includes(t.id)),
+            ...order.map(byId).filter(Boolean),
+          ];
+          mutate('todos', { method: 'PUT', body: JSON.stringify({ order }) });
+        };
+
+        document.addEventListener('pointermove', move);
+        document.addEventListener('pointerup', up);
+        document.addEventListener('pointercancel', up);
+      });
+    }
+
+    function attachTag(todo) {
+      const btn = document.createElement('button');
+      btn.className = 'todo-tag';
+      btn.textContent = '#';
+      btn.setAttribute('aria-label', 'Assign to project');
+      btn.addEventListener('click', () => {
+        const select = document.createElement('select');
+        select.className = 'tag-select';
+        const first = document.createElement('option');
+        first.value = '';
+        first.textContent = 'project…';
+        select.appendChild(first);
+        for (const p of knownProjects()) {
+          const opt = document.createElement('option');
+          opt.value = p;
+          opt.textContent = p;
+          select.appendChild(opt);
+        }
+        btn.replaceWith(select);
+        select.focus();
+        select.addEventListener('change', () => {
+          if (!select.value) return;
+          todo.project = select.value;
+          render();
+          mutate('todos', {
+            method: 'PATCH',
+            body: JSON.stringify({ id: todo.id, project: todo.project }),
+          });
+        });
+        select.addEventListener('blur', () => render());
+      });
+      return btn;
+    }
+
+    function attachToday(todo) {
+      const btn = document.createElement('button');
+      btn.className = 'todo-today';
+      btn.textContent = 'today';
+      btn.setAttribute('aria-label', 'Due today');
+      btn.addEventListener('click', () => {
+        todo.due = localDate();
+        render();
+        mutate('todos', {
+          method: 'PATCH',
+          body: JSON.stringify({ id: todo.id, due: todo.due }),
+        });
+      });
+      return btn;
+    }
+
+    function buildItem(todo, opts = {}) {
+      const state = stateOf(todo);
+      const nextState = state === 'todo' ? 'doing' : state === 'doing' ? 'done' : 'todo';
+      const li = document.createElement('li');
+      li.classList.toggle('done', state === 'done');
+      li.classList.toggle('doing', state === 'doing');
+      li.classList.toggle('overdue', isOverdue(todo));
+      li.dataset.id = todo.id;
+
+      const toggle = document.createElement('button');
+      toggle.className = 'todo-toggle';
+      toggle.setAttribute('aria-label', `Mark as ${nextState}`);
+      toggle.addEventListener('click', () => {
+        todo.state = nextState;
+        todo.done = nextState === 'done';
+        todo.doneOn = nextState === 'done' ? localDate() : null;
+        render();
+        mutate('todos', {
+          method: 'PATCH',
+          body: JSON.stringify({ id: todo.id, state: nextState, doneOn: todo.doneOn }),
+        });
+      });
+
+      const text = document.createElement('span');
+      text.className = 'todo-text';
+      text.textContent = todo.text;
+
+      const del = document.createElement('button');
+      del.className = 'todo-delete';
+      del.textContent = '×';
+      del.setAttribute('aria-label', 'Delete todo');
+      del.addEventListener('click', () => {
+        todos = todos.filter(t => t.id !== todo.id);
+        render();
+        mutate(`todos&id=${encodeURIComponent(todo.id)}`, { method: 'DELETE' });
+      });
+
+      if (opts.drag) {
+        const handle = document.createElement('button');
+        handle.className = 'todo-handle';
+        handle.textContent = '≡';
+        handle.setAttribute('aria-label', 'Reorder todo');
+        attachDrag(handle, li, opts.container);
+        li.append(handle);
+      }
+
+      li.append(toggle, text);
+      if (todo.due) {
+        const chip = document.createElement('span');
+        chip.className = 'due-chip';
+        chip.textContent = shortDue(todo.due);
+        li.append(chip);
+      }
+      if (opts.today) li.append(attachToday(todo));
+      if (opts.tag) li.append(attachTag(todo));
+      li.append(del);
+      return li;
+    }
+
+    function buildMeter(m) {
+      const wrap = document.createElement('div');
+      wrap.className = 'goal-meter' + (m.ok === false ? ' gm-bad' : '');
+      const head = document.createElement('div');
+      head.className = 'gm-head';
+      const label = document.createElement('span');
+      label.textContent = m.label;
+      const text = document.createElement('span');
+      text.className = 'gm-text';
+      text.textContent = m.text;
+      head.append(label, text);
+      const bar = document.createElement('div');
+      bar.className = 'gm-bar';
+      const fill = document.createElement('div');
+      fill.className = 'gm-fill';
+      fill.style.width = `${Math.max(0, Math.min(100, m.pct || 0))}%`;
+      bar.appendChild(fill);
+      if (m.pace_pct != null && m.pace_pct > 0) {
+        const tick = document.createElement('div');
+        tick.className = 'gm-tick';
+        tick.style.left = `calc(${Math.min(m.pace_pct, 100)}% - 1px)`;
+        bar.appendChild(tick);
+      }
+      wrap.append(head, bar);
+      return wrap;
+    }
+
+    function foldList(label, items) {
+      const fold = document.createElement('details');
+      const summary = document.createElement('summary');
+      summary.textContent = label;
+      fold.appendChild(summary);
+      const ul = document.createElement('ul');
+      for (const t of items) ul.appendChild(buildItem(t));
+      fold.appendChild(ul);
+      return fold;
+    }
+
+    function cardAdd(slug) {
+      const form = document.createElement('form');
+      form.className = 'card-add';
+      const input = document.createElement('input');
+      input.placeholder = '+ add';
+      input.maxLength = 500;
+      input.autocomplete = 'off';
+      form.appendChild(input);
+      form.addEventListener('submit', e => {
+        e.preventDefault();
+        const text = input.value.trim();
+        if (!text) return;
+        todos.unshift({
+          id: `pending-${Date.now()}`,
+          text,
+          state: 'todo',
+          done: false,
+          created: Date.now(),
+          kind: 'global',
+          doneOn: null,
+          project: slug,
+        });
+        input.value = '';
+        render();
+        mutate('todos', {
+          method: 'POST',
+          body: JSON.stringify({ text, kind: 'global', project: slug }),
+        });
+      });
+      return form;
+    }
+
+    function cardBody(wrap, card) {
+      for (const m of card.meters) wrap.appendChild(buildMeter(m));
+
+      const open = card.items.filter(t => stateOf(t) !== 'done');
+      const doneItems = card.items.filter(t => stateOf(t) === 'done');
+      const byDue = (a, b) => (a.due < b.due ? -1 : 1);
+      const overdue = open.filter(isOverdue).sort(byDue);
+      const upcoming = open.filter(t => t.due && !isOverdue(t)).sort(byDue);
+      const undated = open.filter(t => !t.due);
+      const scheduled = upcoming.slice(1);
+
+      const list = document.createElement('ul');
+      for (const t of [...overdue, ...upcoming.slice(0, 1), ...undated]) {
+        list.appendChild(buildItem(t, { today: !t.due }));
+      }
+      if (list.children.length) wrap.appendChild(list);
+      if (scheduled.length) wrap.appendChild(foldList(`+${scheduled.length} scheduled`, scheduled));
+      if (doneItems.length) wrap.appendChild(foldList(`${doneItems.length} done`, doneItems));
+      wrap.appendChild(cardAdd(card.key));
+    }
+
+    function cardHead(card) {
+      const head = document.createElement('div');
+      head.className = 'goal-head';
+      const name = document.createElement('span');
+      name.className = 'goal-name';
+      name.textContent = card.title;
+      if (card.untracked) {
+        const mark = document.createElement('span');
+        mark.className = 'untracked';
+        mark.textContent = ' · untracked';
+        name.appendChild(mark);
+      }
+      head.appendChild(name);
+      const openCount = card.items.filter(t => stateOf(t) !== 'done').length;
+      if (card.items.length) {
+        const count = document.createElement('span');
+        count.className = 'goal-count';
+        count.textContent = `${card.items.length - openCount}/${card.items.length}`;
+        head.appendChild(count);
+      }
+      return head;
+    }
+
+    function buildGoalCard(card) {
+      const wrap = document.createElement('div');
+      wrap.className = 'goal-card';
+      wrap.appendChild(cardHead(card));
+      cardBody(wrap, card);
+      return wrap;
+    }
+
+    function buildProjectCard(card) {
+      const paused = card.status === 'paused';
+      const wrap = document.createElement(paused ? 'details' : 'div');
+      wrap.className = 'goal-card' + (paused ? ' paused' : '');
+      if (paused) {
+        const summary = document.createElement('summary');
+        summary.appendChild(cardHead(card));
+        wrap.appendChild(summary);
+      } else {
+        wrap.appendChild(cardHead(card));
+      }
+      if (card.note) {
+        const note = document.createElement('p');
+        note.className = 'goal-note';
+        note.textContent = card.note;
+        wrap.appendChild(note);
+      }
+      cardBody(wrap, card);
+      return wrap;
+    }
+
+    function itemsByProject() {
+      const map = {};
+      for (const t of todos) {
+        if (t.project && kindOf(t) === 'global') {
+          (map[t.project] = map[t.project] || []).push(t);
+        }
+      }
+      return map;
+    }
+
+    function renderMonth(byProject) {
+      goalCardsEl.innerHTML = '';
+      const snapGoals = goalsSnap ? goalsSnap.goals : [];
+      const cards = snapGoals
+        .map(g => ({
+          key: g.key,
+          title: g.title,
+          meters: g.meters,
+          items: byProject[g.key] || [],
+        }))
+        .filter(c => c.meters.length > 0 || c.items.length > 0);
+      for (const c of cards) goalCardsEl.appendChild(buildGoalCard(c));
+
+      const meters = snapGoals.flatMap(g => g.meters);
+      const behind = meters.filter(m => m.ok === false).length;
+      const title = goalsSnap ? goalsSnap.title : 'month';
+      const titleEl = document.getElementById('month-title');
+      titleEl.innerHTML = '';
+      titleEl.append(title + ' — ');
+      const pace = document.createElement('span');
+      pace.textContent = behind > 0 ? `${behind} behind pace` : 'on pace';
+      if (behind > 0) pace.className = 'behind';
+      titleEl.appendChild(pace);
+      document.getElementById('month-updated').textContent =
+        goalsSnap && goalsSnap.updated ? `as of ${goalsSnap.updated.slice(11, 16)}` : '';
+    }
+
+    function renderProjects(byProject) {
+      projectCardsEl.innerHTML = '';
+      const goalKeys = (goalsSnap ? goalsSnap.goals : []).map(g => g.key);
+      const registry = registryEntries().filter(p => !goalKeys.includes(p.slug));
+      const registrySlugs = registry.map(p => p.slug);
+      const untracked = Object.keys(byProject)
+        .filter(slug => !goalKeys.includes(slug) && !registrySlugs.includes(slug))
+        .map(slug => ({ slug, title: slug, status: 'active', note: null, untracked: true }));
+
+      const entries = [
+        ...registry.filter(p => p.status !== 'paused'),
+        ...untracked,
+        ...registry.filter(p => p.status === 'paused'),
+      ];
+      for (const p of entries) {
+        projectCardsEl.appendChild(buildProjectCard({
+          key: p.slug,
+          title: p.title,
+          status: p.status,
+          note: p.note,
+          untracked: Boolean(p.untracked),
+          meters: [],
+          items: byProject[p.slug] || [],
+        }));
+      }
+      document.getElementById('projects-empty')
+        .classList.toggle('hidden', entries.length > 0);
+    }
+
+    function renderInbox() {
+      inboxList.innerHTML = '';
+      const today = localDate();
+      const inbox = todos.filter(t => kindOf(t) === 'global'
+        && stateOf(t) !== 'done'
+        && !t.project
+        && (!t.due || t.due > today));
+      for (const t of inbox) {
+        inboxList.appendChild(buildItem(t, {
+          drag: true, container: inboxList, tag: true, today: true,
+        }));
+      }
+      document.getElementById('inbox-count').textContent =
+        inbox.length ? `${inbox.length} unsorted` : '';
+      document.getElementById('inbox-empty')
+        .classList.toggle('hidden', inbox.length > 0);
+      const link = document.getElementById('unsorted-link');
+      link.textContent = inbox.length ? `${inbox.length} unsorted ↓` : '';
+      link.classList.toggle('hidden', inbox.length === 0);
+    }
+
+    function render() {
+      const byProject = itemsByProject();
+      renderMonth(byProject);
+      renderProjects(byProject);
+      renderInbox();
+    }
+
+    async function loadTodos() {
+      try {
+        const r = await api('todos');
+        if (r.status === 401) return showLogin();
+        if (!r.ok) throw new Error();
+        todos = (await r.json()).todos;
+        showApp();
+        render();
+        setStatus('');
+      } catch (e) {
+        showApp();
+        render();
+        setStatus('failed to load todos', true);
+      }
+    }
+
+    async function loadGoals() {
+      try {
+        const r = await api('goals');
+        if (!r.ok) throw new Error();
+        goalsSnap = (await r.json()).goals;
+      } catch (e) {
+        goalsSnap = null;
+      }
+      render();
+    }
+
+    async function loadProjects() {
+      try {
+        const r = await api('projects');
+        if (!r.ok) throw new Error();
+        projectsSnap = (await r.json()).projects;
+      } catch (e) {
+        projectsSnap = null;
+      }
+      render();
+    }
+
+    loginView.addEventListener('submit', async e => {
+      e.preventDefault();
+      loginError.textContent = '';
+      try {
+        const r = await fetch(`${API}?action=login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            username: document.getElementById('login-user').value,
+            password: document.getElementById('login-pass').value,
+          }),
+        });
+        const data = await r.json();
+        if (!r.ok) {
+          loginError.textContent = data.error || 'Login failed';
+          return;
+        }
+        localStorage.setItem(TOKEN_KEY, data.token);
+        document.getElementById('login-pass').value = '';
+        loadTodos();
+        loadGoals();
+        loadProjects();
+      } catch (e) {
+        loginError.textContent = 'Network error';
+      }
+    });
+
+    logoutBtn.addEventListener('click', async () => {
+      try { await api('logout', { method: 'POST' }); } catch (e) {}
+      todos = [];
+      showLogin();
+    });
+
+    function refresh() {
+      if (document.hidden || !token() || appView.classList.contains('hidden')) return;
+      if (Date.now() - lastMutatedAt < 5000) return;
+      loadTodos();
+      loadGoals();
+      loadProjects();
+    }
+
+    document.addEventListener('visibilitychange', refresh);
+    setInterval(refresh, 60000);
+
+    if (token()) {
+      loadTodos();
+      loadGoals();
+      loadProjects();
+    } else {
+      showLogin();
+    }
+  </script>
+</body>
+</html>

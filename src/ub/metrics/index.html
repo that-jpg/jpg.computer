@@ -1,0 +1,1210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>ub metrics</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      background-color: black;
+      color: white;
+      font-family: 'Trebuchet MS', sans-serif;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+    }
+
+    main {
+      width: 100%;
+      max-width: 520px;
+    }
+
+    header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      border-bottom: 1px solid #333;
+      padding-bottom: 10px;
+      margin-bottom: 24px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 1.4em;
+    }
+
+    h1 em {
+      color: #666;
+      font-style: normal;
+      font-size: 0.7em;
+    }
+
+    .hidden { display: none !important; }
+
+    #login-view {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 60px;
+    }
+
+    input, button {
+      font-family: inherit;
+      font-size: 1em;
+      border-radius: 4px;
+    }
+
+    input {
+      background: none;
+      border: 1px solid #444;
+      color: white;
+      padding: 10px 12px;
+      width: 100%;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: #7fffd4;
+    }
+
+    button {
+      background: none;
+      border: 1px solid #555;
+      color: white;
+      padding: 10px 20px;
+      cursor: pointer;
+      transition: border-color 0.15s, color 0.15s;
+    }
+
+    button:hover {
+      border-color: #7fffd4;
+      color: #7fffd4;
+    }
+
+    #login-error {
+      color: #fca5a5;
+      font-size: 0.85em;
+      min-height: 1.2em;
+      margin: 0;
+    }
+
+    #header-nav {
+      display: flex;
+      align-items: baseline;
+      gap: 14px;
+    }
+
+    #header-nav a {
+      color: #666;
+      font-size: 0.8em;
+      text-decoration: none;
+    }
+
+    #header-nav a:hover { color: #7fffd4; }
+
+    #header-nav a.here { color: #e2e8f0; }
+
+    #logout {
+      border: none;
+      color: #666;
+      padding: 0;
+      font-size: 0.8em;
+    }
+
+    #logout:hover { color: #fca5a5; }
+
+    .domain {
+      border-top: 1px solid #333;
+      padding-top: 14px;
+      margin-top: 30px;
+    }
+
+    .domain:first-of-type {
+      border-top: none;
+      padding-top: 0;
+      margin-top: 0;
+    }
+
+    .domain-title {
+      color: #aaa;
+      font-size: 0.9em;
+      margin: 0 0 14px;
+    }
+
+    .chart-block { margin-bottom: 26px; }
+
+    .chart-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      color: #888;
+      font-size: 0.78em;
+      margin-bottom: 6px;
+    }
+
+    .chart-head .chart-note {
+      color: #555;
+      font-family: monospace;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .chart-wrap {
+      position: relative;
+      width: 100%;
+    }
+
+    .chart-wrap svg {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    .chart-tooltip {
+      position: absolute;
+      background: #111;
+      border: 1px solid #333;
+      border-radius: 4px;
+      padding: 6px 9px;
+      font-size: 0.75em;
+      color: #e2e8f0;
+      pointer-events: none;
+      white-space: nowrap;
+      display: none;
+      z-index: 5;
+    }
+
+    .chart-tooltip .tt-muted { color: #888; }
+
+    .chart-caption {
+      color: #666;
+      font-size: 0.72em;
+      margin: 6px 0 0;
+    }
+
+    .stat-row {
+      display: flex;
+      gap: 40px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+
+    .stat-label {
+      display: block;
+      color: #aaa;
+      font-size: 0.8em;
+    }
+
+    .stat-value {
+      display: block;
+      color: white;
+      font-size: 1.7em;
+      font-weight: 600;
+      margin: 2px 0;
+    }
+
+    .stat-sub {
+      display: block;
+      color: #666;
+      font-size: 0.75em;
+    }
+
+    .stat-delta-good { color: #14a37f; }
+    .stat-delta-bad { color: #fca5a5; }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px 14px;
+      font-size: 0.72em;
+      color: #aaa;
+      font-family: monospace;
+      margin: 8px 0 0;
+    }
+
+    .legend .dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 2px;
+      margin-right: 5px;
+    }
+
+    .empty-note {
+      color: #666;
+      font-size: 0.8em;
+      margin: 4px 0 0;
+    }
+
+    .domain details { margin-top: 8px; }
+
+    .domain details summary {
+      color: #666;
+      font-size: 0.75em;
+      cursor: pointer;
+    }
+
+    .domain table {
+      border-collapse: collapse;
+      font-family: monospace;
+      font-size: 0.78em;
+      color: #aaa;
+      margin-top: 6px;
+    }
+
+    .domain td, .domain th {
+      padding: 2px 12px 2px 0;
+      text-align: right;
+    }
+
+    .domain td:first-child, .domain th:first-child { text-align: left; }
+
+    .domain th {
+      color: #666;
+      font-weight: normal;
+    }
+
+    #alloc-bar {
+      display: flex;
+      height: 10px;
+      border-radius: 5px;
+      overflow: hidden;
+      background: #0e332a;
+      margin: 4px 0 8px;
+    }
+
+    #alloc-bar > div { border-right: 2px solid black; }
+
+    #alloc-bar > div:last-child { border-right: none; }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>ub <em>metrics</em></h1>
+      <nav id="header-nav">
+        <a href="/ub/">today</a>
+        <a href="/ub/projects/">projects</a>
+        <a href="/ub/metrics/" class="here">metrics</a>
+        <a href="/ub/calendar/">calendar</a>
+        <button id="logout" class="hidden">logout</button>
+      </nav>
+    </header>
+
+    <form id="login-view" class="hidden">
+      <input id="login-user" placeholder="user" autocomplete="username" required>
+      <input id="login-pass" type="password" placeholder="password" autocomplete="current-password" required>
+      <p id="login-error"></p>
+      <button type="submit">Enter</button>
+    </form>
+
+    <section id="app-view" class="hidden">
+      <section class="domain" id="fitness-domain">
+        <h2 class="domain-title">fitness</h2>
+        <div class="chart-block" id="weight-block">
+          <div class="chart-head"><span>weight vs cut plan</span><span class="chart-note" id="weight-note"></span></div>
+          <div class="chart-wrap">
+            <svg id="weight-chart" viewBox="0 0 480 200" role="img" aria-label="Bodyweight over time against the cut plan"></svg>
+            <div class="chart-tooltip"></div>
+          </div>
+          <p class="chart-caption" id="weight-caption"></p>
+        </div>
+        <div class="chart-block" id="kcal-block">
+          <div class="chart-head"><span>calories in, last 30 days</span><span class="chart-note" id="kcal-note"></span></div>
+          <div class="chart-wrap">
+            <svg id="kcal-chart" viewBox="0 0 480 160" role="img" aria-label="Calories per day over the last 30 days"></svg>
+            <div class="chart-tooltip"></div>
+          </div>
+          <p class="chart-caption">bars: calories in · gray tick: day target · missing bar: unlogged day</p>
+          <details>
+            <summary>data</summary>
+            <table id="kcal-table"></table>
+          </details>
+        </div>
+        <div class="chart-block" id="training-block">
+          <div class="chart-head"><span>training sessions per week</span><span class="chart-note" id="training-note"></span></div>
+          <div class="chart-wrap">
+            <svg id="training-chart" viewBox="0 0 480 150" role="img" aria-label="Training sessions per week"></svg>
+            <div class="chart-tooltip"></div>
+          </div>
+          <p class="chart-caption">gray line: 7 sessions/week goal</p>
+        </div>
+        <p class="empty-note hidden" id="fitness-empty">No fitness snapshot yet.</p>
+      </section>
+
+      <section class="domain" id="french-domain">
+        <h2 class="domain-title">french</h2>
+        <div class="stat-row" id="vocab-tiles">
+          <div>
+            <span class="stat-label">words known</span>
+            <span class="stat-value" id="vocab-known">—</span>
+            <span class="stat-sub" id="vocab-sub"></span>
+          </div>
+          <div>
+            <span class="stat-label">today</span>
+            <span class="stat-value" id="french-today">—</span>
+            <span class="stat-sub" id="french-today-sub"></span>
+          </div>
+        </div>
+        <div class="chart-block" id="accuracy-block">
+          <div class="chart-head"><span>review accuracy, 7-day rolling</span><span class="chart-note" id="accuracy-note"></span></div>
+          <div class="chart-wrap">
+            <svg id="accuracy-chart" viewBox="0 0 480 150" role="img" aria-label="7-day rolling review accuracy"></svg>
+            <div class="chart-tooltip"></div>
+          </div>
+          <p class="chart-caption">gray line: 80% month-end goal</p>
+        </div>
+        <div class="chart-block" id="reviews-block">
+          <div class="chart-head"><span>reviews per day</span><span class="chart-note" id="reviews-note"></span></div>
+          <div class="chart-wrap">
+            <svg id="reviews-chart" viewBox="0 0 480 140" role="img" aria-label="Anki reviews per day"></svg>
+            <div class="chart-tooltip"></div>
+          </div>
+          <p class="chart-caption" id="reviews-caption"></p>
+        </div>
+        <div class="chart-block hidden" id="vocab-series-block">
+          <div class="chart-head"><span>words known over time</span><span class="chart-note" id="vocab-series-note"></span></div>
+          <div class="chart-wrap">
+            <svg id="vocab-chart" viewBox="0 0 480 140" role="img" aria-label="Vocabulary known over time"></svg>
+            <div class="chart-tooltip"></div>
+          </div>
+        </div>
+        <p class="empty-note hidden" id="vocab-series-empty"></p>
+        <p class="empty-note hidden" id="french-empty">No french snapshot yet.</p>
+      </section>
+
+      <section class="domain" id="finance-domain">
+        <h2 class="domain-title">finance</h2>
+        <p class="empty-note hidden" id="finance-empty">
+          No statements ingested yet — send a PDF or CSV export from XP, BTG,
+          or Nubank to Bune on Telegram and approve the preview.
+        </p>
+        <div id="finance-body" class="hidden">
+          <div class="chart-block">
+            <div class="chart-head"><span>net worth per statement date</span><span class="chart-note" id="networth-note"></span></div>
+            <div class="chart-wrap">
+              <svg id="networth-chart" viewBox="0 0 480 140" role="img" aria-label="Net worth per statement date"></svg>
+              <div class="chart-tooltip"></div>
+            </div>
+          </div>
+          <div class="chart-block">
+            <div class="chart-head"><span>monthly spending by category</span><span class="chart-note" id="spend-note"></span></div>
+            <div class="chart-wrap">
+              <svg id="spend-chart" viewBox="0 0 480 170" role="img" aria-label="Monthly spending stacked by category"></svg>
+              <div class="chart-tooltip"></div>
+            </div>
+            <div class="legend" id="spend-legend"></div>
+          </div>
+          <div class="chart-block" id="alloc-block">
+            <div class="chart-head"><span>allocation</span></div>
+            <div id="alloc-bar"></div>
+            <div class="legend" id="alloc-legend"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="domain" id="ventures-domain">
+        <h2 class="domain-title">ventures</h2>
+        <div class="chart-block" id="followers-block">
+          <div class="chart-head"><span>stolas followers vs pace</span><span class="chart-note" id="followers-note"></span></div>
+          <div class="chart-wrap">
+            <svg id="followers-chart" viewBox="0 0 480 150" role="img" aria-label="Instagram followers against the growth pace"></svg>
+            <div class="chart-tooltip"></div>
+          </div>
+          <p class="chart-caption" id="followers-caption"></p>
+        </div>
+        <div class="chart-block" id="iwa-block">
+          <div class="chart-head"><span>iwa pieces thrown</span><span class="chart-note" id="iwa-note"></span></div>
+          <div class="chart-wrap">
+            <svg id="iwa-chart" viewBox="0 0 480 140" role="img" aria-label="Cumulative pieces thrown against the plan"></svg>
+            <div class="chart-tooltip"></div>
+          </div>
+          <p class="chart-caption" id="iwa-caption"></p>
+        </div>
+        <p class="empty-note hidden" id="iwa-empty">production.csv not started — the chart begins with the first throw day.</p>
+        <p class="empty-note hidden" id="ventures-empty">No ventures snapshot yet.</p>
+      </section>
+    </section>
+  </main>
+
+  <script>
+    const API = '/api/ub';
+    const TOKEN_KEY = 'ub-token';
+    const SVG_NS = 'http://www.w3.org/2000/svg';
+    const SERIES = '#14a37f';
+    const REF = '#a3a3a3';
+    const SPEND_COLORS = ['#14a37f', '#3987e5', '#c98500', '#d55181', '#9085e9'];
+    const OTHER_COLOR = '#8a8a85';
+    const BRL_FMT = new Intl.NumberFormat('pt-BR', {
+      style: 'currency', currency: 'BRL', maximumFractionDigits: 0,
+    });
+
+    const loginView = document.getElementById('login-view');
+    const appView = document.getElementById('app-view');
+    const loginError = document.getElementById('login-error');
+    const logoutBtn = document.getElementById('logout');
+
+    function token() {
+      return localStorage.getItem(TOKEN_KEY);
+    }
+
+    function api(action, options = {}) {
+      return fetch(`${API}?action=${action}`, {
+        ...options,
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token() ? { Authorization: `Bearer ${token()}` } : {}),
+        },
+      });
+    }
+
+    function showLogin() {
+      localStorage.removeItem(TOKEN_KEY);
+      appView.classList.add('hidden');
+      logoutBtn.classList.add('hidden');
+      loginView.classList.remove('hidden');
+      document.getElementById('login-user').focus();
+    }
+
+    function showApp() {
+      loginView.classList.add('hidden');
+      appView.classList.remove('hidden');
+      logoutBtn.classList.remove('hidden');
+    }
+
+    function svgEl(name, attrs) {
+      const el = document.createElementNS(SVG_NS, name);
+      for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
+      return el;
+    }
+
+    function fmt(n) {
+      return n == null ? '—' : Math.round(n).toLocaleString('en-US');
+    }
+
+    function shortDate(iso) {
+      return new Date(iso + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    }
+
+    function dayNum(iso) {
+      return Date.parse(iso + 'T12:00:00') / 86400000;
+    }
+
+    function isoAddDays(iso, days) {
+      const d = new Date(iso + 'T12:00:00');
+      d.setDate(d.getDate() + days);
+      return d.toLocaleDateString('en-CA');
+    }
+
+    function attachTooltip(svg, hit, html) {
+      const tooltip = svg.parentElement.querySelector('.chart-tooltip');
+      hit.addEventListener('mousemove', e => {
+        tooltip.innerHTML = html();
+        tooltip.style.display = 'block';
+        const wrap = tooltip.parentElement.getBoundingClientRect();
+        const ttW = tooltip.offsetWidth;
+        let px = e.clientX - wrap.left + 12;
+        if (px + ttW > wrap.width) px = e.clientX - wrap.left - ttW - 12;
+        tooltip.style.left = `${Math.max(0, px)}px`;
+        tooltip.style.top = `${e.clientY - wrap.top - 10}px`;
+      });
+      hit.addEventListener('mouseleave', () => { tooltip.style.display = 'none'; });
+    }
+
+    function axisText(svg, x, y, text, anchor, color) {
+      const el = svgEl('text', {
+        x, y, fill: color || '#666', 'font-size': 9, 'text-anchor': anchor || 'middle',
+        style: 'font-family: monospace; font-variant-numeric: tabular-nums',
+      });
+      el.textContent = text;
+      svg.append(el);
+    }
+
+    function barPath(x, y, w, baseY) {
+      if (baseY - y < 1) return `M${x},${baseY} L${x},${y} L${x + w},${y} L${x + w},${baseY} Z`;
+      const r = Math.min(4, (baseY - y) / 2, w / 2);
+      return `M${x},${baseY} L${x},${y + r} Q${x},${y} ${x + r},${y} L${x + w - r},${y} Q${x + w},${y} ${x + w},${y + r} L${x + w},${baseY} Z`;
+    }
+
+    function linePath(points) {
+      return points
+        .map((p, i) => `${i ? 'L' : 'M'}${p[0].toFixed(1)},${p[1].toFixed(1)}`)
+        .join(' ');
+    }
+
+    function timeChart(svg, opts) {
+      svg.innerHTML = '';
+      const box = { w: 480, h: Number(svg.getAttribute('viewBox').split(' ')[3]), left: 34, right: 10, top: 14, bottom: 20 };
+      const plotW = box.w - box.left - box.right;
+      const plotH = box.h - box.top - box.bottom;
+      const x0 = dayNum(opts.xMin);
+      const x1 = dayNum(opts.xMax);
+      const xOf = iso => box.left + plotW * (x1 === x0 ? 0.5 : (dayNum(iso) - x0) / (x1 - x0));
+      const yOf = v => box.top + plotH * (1 - (v - opts.yMin) / (opts.yMax - opts.yMin));
+      for (const g of opts.yGrid || []) {
+        svg.append(svgEl('line', {
+          x1: box.left, x2: box.w - box.right, y1: yOf(g), y2: yOf(g),
+          stroke: '#1a1a1a', 'stroke-width': 1,
+        }));
+        axisText(svg, box.left - 5, yOf(g) + 3, opts.yFmt ? opts.yFmt(g) : g, 'end');
+      }
+      svg.append(svgEl('line', {
+        x1: box.left, x2: box.w - box.right, y1: box.top + plotH, y2: box.top + plotH,
+        stroke: '#333', 'stroke-width': 1,
+      }));
+      axisText(svg, box.left, box.h - 6, shortDate(opts.xMin), 'start');
+      axisText(svg, box.w - box.right, box.h - 6, shortDate(opts.xMax), 'end');
+      return { box, xOf, yOf, plotW, plotH, baseY: box.top + plotH };
+    }
+
+    function refLine(svg, c, points, label) {
+      svg.append(svgEl('path', {
+        d: linePath(points), fill: 'none', stroke: REF, 'stroke-width': 1.5,
+        'stroke-dasharray': '5 4', 'stroke-linecap': 'round',
+      }));
+      if (label) {
+        axisText(svg, points[points.length - 1][0], points[points.length - 1][1] - 5, label, 'end', '#888');
+      }
+    }
+
+    function seriesLine(svg, points, opts = {}) {
+      if (points.length > 1) {
+        svg.append(svgEl('path', {
+          d: linePath(points), fill: 'none', stroke: SERIES, 'stroke-width': 2,
+          'stroke-linejoin': 'round', 'stroke-linecap': 'round',
+        }));
+      }
+      if (opts.markers !== false) {
+        for (const p of points) {
+          svg.append(svgEl('circle', { cx: p[0], cy: p[1], r: points.length > 40 ? 1.5 : 2.5, fill: SERIES, stroke: 'black', 'stroke-width': 1 }));
+        }
+      }
+    }
+
+    function hoverBands(svg, c, entries, html) {
+      entries.forEach((entry, i) => {
+        const xs = entries.map(e => e.x);
+        const left = i === 0 ? 0 : (xs[i - 1] + xs[i]) / 2;
+        const right = i === entries.length - 1 ? 480 : (xs[i] + xs[i + 1]) / 2;
+        const hit = svgEl('rect', {
+          x: left, y: 0, width: right - left, height: c.box.h, fill: 'transparent',
+        });
+        attachTooltip(svg, hit, () => html(entry));
+        svg.append(hit);
+      });
+    }
+
+    function renderWeightChart(f) {
+      const svg = document.getElementById('weight-chart');
+      const w = f.weight;
+      const series = f.weight_series || [];
+      if (!w || series.length === 0) return;
+      const xMin = series[0].date < w.cut_start_date ? series[0].date : w.cut_start_date;
+      const xMax = w.cut_end_date;
+      const kgs = series.map(p => p.kg).concat([w.cut_start, w.cut_target]);
+      const yMin = Math.floor(Math.min(...kgs) - 0.5);
+      const yMax = Math.ceil(Math.max(...kgs) + 0.5);
+      const grid = [];
+      for (let v = yMin; v <= yMax; v += 1) grid.push(v);
+      const c = timeChart(svg, { xMin, xMax, yMin, yMax, yGrid: grid, yFmt: v => v.toFixed(0) });
+      refLine(svg, c,
+        [[c.xOf(w.cut_start_date), c.yOf(w.cut_start)], [c.xOf(w.cut_end_date), c.yOf(w.cut_target)]],
+        `plan ${w.cut_target.toFixed(1)}`);
+      const pts = series.map(p => [c.xOf(p.date), c.yOf(p.kg)]);
+      seriesLine(svg, pts);
+      const last = series[series.length - 1];
+      axisText(svg, c.xOf(last.date), c.yOf(last.kg) - 8, last.kg.toFixed(1), 'middle', '#e2e8f0');
+      hoverBands(svg, c, series.map(p => ({ x: c.xOf(p.date), p })), e =>
+        `${shortDate(e.p.date)}<br>${e.p.kg.toFixed(1)} kg`);
+      document.getElementById('weight-note').textContent =
+        `${w.current.toFixed(1)} kg · plan ${w.cut_target.toFixed(1)} by ${shortDate(w.cut_end_date)}`;
+      document.getElementById('weight-caption').textContent =
+        'dashed: straight-line plan (pace meter on the projects page is trip-aware)';
+    }
+
+    function renderKcalChart(f) {
+      const svg = document.getElementById('kcal-chart');
+      const series = f.kcal_series || [];
+      if (series.length === 0) return;
+      svg.innerHTML = '';
+      const box = { w: 480, h: 160, left: 34, right: 6, top: 14, bottom: 20 };
+      const plotW = box.w - box.left - box.right;
+      const plotH = box.h - box.top - box.bottom;
+      const baseY = box.top + plotH;
+      const band = plotW / series.length;
+      const barW = Math.min(10, band * 0.62);
+      const maxVal = Math.max(2500, ...series.flatMap(d => [d.in || 0, d.target || 0]));
+      const yMax = Math.ceil(maxVal / 500) * 500;
+      const yOf = v => box.top + plotH * (1 - v / yMax);
+      for (let v = 1000; v <= yMax; v += 1000) {
+        svg.append(svgEl('line', {
+          x1: box.left, x2: box.w - box.right, y1: yOf(v), y2: yOf(v),
+          stroke: '#1a1a1a', 'stroke-width': 1,
+        }));
+        axisText(svg, box.left - 5, yOf(v) + 3, fmt(v), 'end');
+      }
+      svg.append(svgEl('line', {
+        x1: box.left, x2: box.w - box.right, y1: baseY, y2: baseY, stroke: '#333', 'stroke-width': 1,
+      }));
+      series.forEach((d, i) => {
+        const cx = box.left + band * i + band / 2;
+        if (d.in != null) {
+          svg.append(svgEl('path', {
+            d: barPath(cx - barW / 2, yOf(d.in), barW, baseY),
+            fill: SERIES, stroke: 'black', 'stroke-width': 1,
+          }));
+        }
+        if (d.target != null) {
+          svg.append(svgEl('line', {
+            x1: cx - band / 2 + 1, x2: cx + band / 2 - 1, y1: yOf(d.target), y2: yOf(d.target),
+            stroke: REF, 'stroke-width': 1.5, 'stroke-linecap': 'round',
+          }));
+        }
+        const hit = svgEl('rect', {
+          x: box.left + band * i, y: box.top, width: band, height: plotH, fill: 'transparent',
+        });
+        attachTooltip(svg, hit, () =>
+          `${shortDate(d.date)}<br>in ${fmt(d.in)} <span class="tt-muted">·</span> target ${fmt(d.target)}`);
+        svg.append(hit);
+      });
+      axisText(svg, box.left, box.h - 6, shortDate(series[0].date), 'start');
+      axisText(svg, box.w - box.right, box.h - 6, shortDate(series[series.length - 1].date), 'end');
+      const logged = series.filter(d => d.in != null).length;
+      document.getElementById('kcal-note').textContent = `${logged}/${series.length} days logged`;
+      const table = document.getElementById('kcal-table');
+      table.innerHTML = '';
+      const head = document.createElement('tr');
+      for (const h of ['date', 'in', 'target']) {
+        const th = document.createElement('th');
+        th.textContent = h;
+        head.appendChild(th);
+      }
+      table.appendChild(head);
+      for (const d of series) {
+        const tr = document.createElement('tr');
+        for (const cell of [d.date, fmt(d.in), fmt(d.target)]) {
+          const td = document.createElement('td');
+          td.textContent = cell;
+          tr.appendChild(td);
+        }
+        table.appendChild(tr);
+      }
+    }
+
+    function renderTrainingChart(f) {
+      const svg = document.getElementById('training-chart');
+      const weeks = f.training_weeks || [];
+      if (weeks.length === 0) return;
+      svg.innerHTML = '';
+      const box = { w: 480, h: 150, left: 24, right: 6, top: 14, bottom: 20 };
+      const plotW = box.w - box.left - box.right;
+      const plotH = box.h - box.top - box.bottom;
+      const baseY = box.top + plotH;
+      const band = plotW / weeks.length;
+      const barW = Math.min(34, band * 0.6);
+      const target = 7;
+      const yMax = Math.max(target + 2, ...weeks.map(w => w.sessions)) + 1;
+      const yOf = v => box.top + plotH * (1 - v / yMax);
+      for (const v of [5, 10]) {
+        if (v >= yMax) continue;
+        svg.append(svgEl('line', {
+          x1: box.left, x2: box.w - box.right, y1: yOf(v), y2: yOf(v),
+          stroke: '#1a1a1a', 'stroke-width': 1,
+        }));
+        axisText(svg, box.left - 5, yOf(v) + 3, v, 'end');
+      }
+      svg.append(svgEl('line', {
+        x1: box.left, x2: box.w - box.right, y1: baseY, y2: baseY, stroke: '#333', 'stroke-width': 1,
+      }));
+      svg.append(svgEl('line', {
+        x1: box.left, x2: box.w - box.right, y1: yOf(target), y2: yOf(target),
+        stroke: REF, 'stroke-width': 1.5, 'stroke-dasharray': '5 4',
+      }));
+      axisText(svg, box.w - box.right, yOf(target) - 4, '7/wk', 'end', '#888');
+      weeks.forEach((wk, i) => {
+        const cx = box.left + band * i + band / 2;
+        if (wk.sessions > 0) {
+          svg.append(svgEl('path', {
+            d: barPath(cx - barW / 2, yOf(wk.sessions), barW, baseY),
+            fill: SERIES, stroke: 'black', 'stroke-width': 1,
+          }));
+        }
+        const step = Math.ceil(weeks.length / 8);
+        if (i % step === 0 || i === weeks.length - 1) {
+          axisText(svg, cx, box.h - 6, wk.week.slice(5), 'middle');
+        }
+        const hit = svgEl('rect', {
+          x: box.left + band * i, y: box.top, width: band, height: plotH, fill: 'transparent',
+        });
+        attachTooltip(svg, hit, () => `${wk.week}<br>${wk.sessions} session${wk.sessions === 1 ? '' : 's'}`);
+        svg.append(hit);
+      });
+      const current = weeks[weeks.length - 1];
+      document.getElementById('training-note').textContent =
+        `this week ${current.sessions}`;
+    }
+
+    function renderFitness(f) {
+      const empty = !f || !(f.weight_series || []).length && !(f.kcal_series || []).length;
+      document.getElementById('fitness-empty').classList.toggle('hidden', !empty);
+      for (const id of ['weight-block', 'kcal-block', 'training-block']) {
+        document.getElementById(id).classList.toggle('hidden', empty);
+      }
+      if (empty) return;
+      renderWeightChart(f);
+      renderKcalChart(f);
+      renderTrainingChart(f);
+    }
+
+    function rollingAccuracy(series) {
+      if (series.length === 0) return [];
+      const byDate = Object.fromEntries(series.map(p => [p.date, p]));
+      const first = series[0].date;
+      const last = series[series.length - 1].date;
+      const points = [];
+      for (let d = first; d <= last; d = isoAddDays(d, 1)) {
+        let reviews = 0;
+        let correct = 0;
+        for (let k = 0; k < 7; k++) {
+          const p = byDate[isoAddDays(d, -k)];
+          if (p) { reviews += p.reviews; correct += p.correct; }
+        }
+        points.push({ date: d, reviews, pct: reviews ? 100 * correct / reviews : null });
+      }
+      return points;
+    }
+
+    function renderAccuracyChart(f) {
+      const svg = document.getElementById('accuracy-chart');
+      const rolling = rollingAccuracy(f.accuracy_series || []);
+      const withData = rolling.filter(p => p.pct != null);
+      if (withData.length === 0) return;
+      const c = timeChart(svg, {
+        xMin: rolling[0].date, xMax: rolling[rolling.length - 1].date,
+        yMin: 0, yMax: 100, yGrid: [50, 80, 100], yFmt: v => `${v}%`,
+      });
+      svg.append(svgEl('line', {
+        x1: c.box.left, x2: 480 - c.box.right, y1: c.yOf(80), y2: c.yOf(80),
+        stroke: REF, 'stroke-width': 1.5, 'stroke-dasharray': '5 4',
+      }));
+      let segment = [];
+      for (const p of rolling) {
+        if (p.pct == null) {
+          if (segment.length) seriesLine(svg, segment, { markers: false });
+          segment = [];
+        } else {
+          segment.push([c.xOf(p.date), c.yOf(p.pct)]);
+        }
+      }
+      if (segment.length) seriesLine(svg, segment, { markers: false });
+      const lastPt = withData[withData.length - 1];
+      axisText(svg, c.xOf(lastPt.date), c.yOf(lastPt.pct) - 6, `${Math.round(lastPt.pct)}%`, 'end', '#e2e8f0');
+      hoverBands(svg, c, rolling.map(p => ({ x: c.xOf(p.date), p })), e =>
+        e.p.pct == null
+          ? `${shortDate(e.p.date)}<br><span class="tt-muted">no reviews in window</span>`
+          : `${shortDate(e.p.date)}<br>${Math.round(e.p.pct)}% over ${e.p.reviews} reviews`);
+      document.getElementById('accuracy-note').textContent =
+        `now ${Math.round(lastPt.pct)}%`;
+    }
+
+    function renderReviewsChart(f) {
+      const svg = document.getElementById('reviews-chart');
+      const series = f.accuracy_series || [];
+      if (series.length === 0) return;
+      svg.innerHTML = '';
+      const quota = f.today && f.today.quota ? f.today.quota : 10;
+      const first = series[0].date;
+      const last = series[series.length - 1].date;
+      const byDate = Object.fromEntries(series.map(p => [p.date, p]));
+      const days = [];
+      for (let d = first; d <= last; d = isoAddDays(d, 1)) {
+        days.push(byDate[d] || { date: d, reviews: 0, correct: 0 });
+      }
+      const box = { w: 480, h: 140, left: 24, right: 6, top: 14, bottom: 20 };
+      const plotW = box.w - box.left - box.right;
+      const plotH = box.h - box.top - box.bottom;
+      const baseY = box.top + plotH;
+      const band = plotW / days.length;
+      const barW = Math.min(12, band * 0.62);
+      const yMax = Math.max(quota + 4, ...days.map(d => d.reviews)) + 2;
+      const yOf = v => box.top + plotH * (1 - v / yMax);
+      svg.append(svgEl('line', {
+        x1: box.left, x2: box.w - box.right, y1: baseY, y2: baseY, stroke: '#333', 'stroke-width': 1,
+      }));
+      svg.append(svgEl('line', {
+        x1: box.left, x2: box.w - box.right, y1: yOf(quota), y2: yOf(quota),
+        stroke: REF, 'stroke-width': 1.5, 'stroke-dasharray': '5 4',
+      }));
+      axisText(svg, box.w - box.right, yOf(quota) - 4, `quota ${quota}`, 'end', '#888');
+      days.forEach((d, i) => {
+        const cx = box.left + band * i + band / 2;
+        if (d.reviews > 0) {
+          svg.append(svgEl('path', {
+            d: barPath(cx - barW / 2, yOf(d.reviews), barW, baseY),
+            fill: SERIES, stroke: 'black', 'stroke-width': 1,
+          }));
+        }
+        const hit = svgEl('rect', {
+          x: box.left + band * i, y: box.top, width: band, height: plotH, fill: 'transparent',
+        });
+        attachTooltip(svg, hit, () => {
+          const pct = d.reviews ? ` · ${Math.round(100 * d.correct / d.reviews)}% correct` : '';
+          return `${shortDate(d.date)}<br>${d.reviews} review${d.reviews === 1 ? '' : 's'}${pct}`;
+        });
+        svg.append(hit);
+      });
+      axisText(svg, box.left, box.h - 6, shortDate(first), 'start');
+      axisText(svg, box.w - box.right, box.h - 6, shortDate(last), 'end');
+      document.getElementById('reviews-caption').textContent =
+        `gray line: daily new-card quota (${quota})`;
+    }
+
+    function renderVocabSeries(f) {
+      const block = document.getElementById('vocab-series-block');
+      const emptyNote = document.getElementById('vocab-series-empty');
+      const series = f.vocab_series || [];
+      if (series.length < 2) {
+        block.classList.add('hidden');
+        emptyNote.classList.remove('hidden');
+        emptyNote.textContent = series.length === 1
+          ? `words-known series started ${shortDate(series[0].date)} — the line appears with the second daily point.`
+          : 'words-known series starts with the first producer push.';
+        return;
+      }
+      emptyNote.classList.add('hidden');
+      block.classList.remove('hidden');
+      const svg = document.getElementById('vocab-chart');
+      const yMax = Math.max(...series.map(p => p.introduced)) + 5;
+      const c = timeChart(svg, {
+        xMin: series[0].date, xMax: series[series.length - 1].date,
+        yMin: 0, yMax, yGrid: [Math.round(yMax / 2)],
+      });
+      refLine(svg, c, series.map(p => [c.xOf(p.date), c.yOf(p.introduced)]), 'introduced');
+      seriesLine(svg, series.map(p => [c.xOf(p.date), c.yOf(p.known)]), { markers: false });
+      hoverBands(svg, c, series.map(p => ({ x: c.xOf(p.date), p })), e =>
+        `${shortDate(e.p.date)}<br>${e.p.known} known <span class="tt-muted">·</span> ${e.p.introduced} introduced`);
+      document.getElementById('vocab-series-note').textContent =
+        `${series[series.length - 1].known} known`;
+    }
+
+    function renderFrench(f) {
+      const empty = !f || !f.vocab;
+      document.getElementById('french-empty').classList.toggle('hidden', !empty);
+      for (const id of ['vocab-tiles', 'accuracy-block', 'reviews-block']) {
+        document.getElementById(id).classList.toggle('hidden', empty);
+      }
+      if (empty) {
+        document.getElementById('vocab-series-block').classList.add('hidden');
+        document.getElementById('vocab-series-empty').classList.add('hidden');
+        return;
+      }
+      document.getElementById('vocab-known').textContent =
+        `${f.vocab.known} / ${f.vocab.total}`;
+      document.getElementById('vocab-sub').textContent =
+        `${f.vocab.introduced} introduced`;
+      document.getElementById('french-today').textContent =
+        `${f.today.reviews}`;
+      document.getElementById('french-today-sub').textContent =
+        `reviews today · quota ${f.today.quota} new`;
+      renderAccuracyChart(f);
+      renderReviewsChart(f);
+      renderVocabSeries(f);
+    }
+
+    function renderNetWorthChart(f) {
+      const svg = document.getElementById('networth-chart');
+      const series = f.net_worth.series;
+      const totals = series.map(p => p.total);
+      let yMin = Math.min(...totals);
+      let yMax = Math.max(...totals);
+      if (yMin === yMax) { yMin -= 1; yMax += 1; }
+      const pad = (yMax - yMin) * 0.18;
+      const c = timeChart(svg, {
+        xMin: series[0].date, xMax: series[series.length - 1].date,
+        yMin: yMin - pad, yMax: yMax + pad, yGrid: [],
+      });
+      seriesLine(svg, series.map(p => [c.xOf(p.date), c.yOf(p.total)]));
+      const last = series[series.length - 1];
+      axisText(svg, 480 - c.box.right, Math.max(c.yOf(last.total) - 8, 10), BRL_FMT.format(last.total), 'end', '#e2e8f0');
+      hoverBands(svg, c, series.map(p => ({ x: c.xOf(p.date), p })), e =>
+        `${shortDate(e.p.date)}<br>${BRL_FMT.format(e.p.total)}`);
+      document.getElementById('networth-note').textContent = BRL_FMT.format(f.net_worth.total);
+    }
+
+    function spendCategories(months) {
+      const totals = {};
+      for (const m of months) {
+        for (const [name, value] of Object.entries(m.by_category || {})) {
+          totals[name] = (totals[name] || 0) + value;
+        }
+      }
+      return Object.entries(totals)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, SPEND_COLORS.length)
+        .map(([name]) => name);
+    }
+
+    function renderSpendChart(f) {
+      const svg = document.getElementById('spend-chart');
+      const legend = document.getElementById('spend-legend');
+      svg.innerHTML = '';
+      legend.innerHTML = '';
+      const months = (f.months || []).filter(m => m.spend > 0 || m.income > 0);
+      if (months.length === 0) {
+        document.getElementById('spend-note').textContent = 'no transactions yet';
+        return;
+      }
+      const cats = spendCategories(months);
+      const colorOf = name => {
+        const i = cats.indexOf(name);
+        return i === -1 ? OTHER_COLOR : SPEND_COLORS[i];
+      };
+      const box = { w: 480, h: 170, left: 40, right: 6, top: 14, bottom: 20 };
+      const plotW = box.w - box.left - box.right;
+      const plotH = box.h - box.top - box.bottom;
+      const baseY = box.top + plotH;
+      const band = plotW / months.length;
+      const barW = Math.min(46, band * 0.55);
+      const yMax = Math.max(...months.map(m => m.spend)) * 1.12;
+      const yOf = v => box.top + plotH * (1 - v / yMax);
+      svg.append(svgEl('line', {
+        x1: box.left, x2: box.w - box.right, y1: baseY, y2: baseY, stroke: '#333', 'stroke-width': 1,
+      }));
+      months.forEach((m, i) => {
+        const cx = box.left + band * i + band / 2;
+        const entries = Object.entries(m.by_category || {});
+        const named = entries.filter(([name]) => cats.includes(name));
+        const otherSum = entries.filter(([name]) => !cats.includes(name))
+          .reduce((sum, [, v]) => sum + v, 0);
+        const segments = [...named, ...(otherSum > 0 ? [['other', otherSum]] : [])];
+        let acc = 0;
+        for (const [name, value] of segments) {
+          const y0 = yOf(acc);
+          const y1 = yOf(acc + value);
+          svg.append(svgEl('rect', {
+            x: cx - barW / 2, y: y1, width: barW, height: Math.max(y0 - y1, 0.5),
+            fill: name === 'other' ? OTHER_COLOR : colorOf(name),
+            stroke: 'black', 'stroke-width': 1,
+          }));
+          acc += value;
+        }
+        axisText(svg, cx, yOf(m.spend) - 5, BRL_FMT.format(m.spend), 'middle', '#e2e8f0');
+        axisText(svg, cx, box.h - 6, m.month.slice(2), 'middle');
+        const hit = svgEl('rect', {
+          x: box.left + band * i, y: 0, width: band, height: box.h, fill: 'transparent',
+        });
+        attachTooltip(svg, hit, () => {
+          const rows = segments
+            .map(([name, value]) => `${name} <span class="tt-muted">${BRL_FMT.format(value)}</span>`)
+            .join('<br>');
+          return `${m.month} · spend ${BRL_FMT.format(m.spend)}<br>${rows}`;
+        });
+        svg.append(hit);
+      });
+      for (let v = 5000; v < yMax; v += 5000) {
+        axisText(svg, box.left - 5, yOf(v) + 3, `${Math.round(v / 1000)}k`, 'end');
+      }
+      for (const name of cats) {
+        const chip = document.createElement('span');
+        const dot = document.createElement('span');
+        dot.className = 'dot';
+        dot.style.background = colorOf(name);
+        chip.append(dot, name);
+        legend.appendChild(chip);
+      }
+      const other = document.createElement('span');
+      const dot = document.createElement('span');
+      dot.className = 'dot';
+      dot.style.background = OTHER_COLOR;
+      other.append(dot, 'other');
+      legend.appendChild(other);
+      document.getElementById('spend-note').textContent =
+        `${months.length} month${months.length === 1 ? '' : 's'}`;
+    }
+
+    function renderAllocation(f) {
+      const bar = document.getElementById('alloc-bar');
+      const legend = document.getElementById('alloc-legend');
+      bar.innerHTML = '';
+      legend.innerHTML = '';
+      const entries = Object.entries(f.allocation || {});
+      document.getElementById('alloc-block').classList.toggle('hidden', entries.length === 0);
+      entries.forEach(([name, entry], i) => {
+        const color = i < SPEND_COLORS.length ? SPEND_COLORS[i] : OTHER_COLOR;
+        const seg = document.createElement('div');
+        seg.style.width = `${entry.share}%`;
+        seg.style.background = color;
+        bar.appendChild(seg);
+        const chip = document.createElement('span');
+        const dot = document.createElement('span');
+        dot.className = 'dot';
+        dot.style.background = color;
+        chip.append(dot, `${name} ${Math.round(entry.share)}%`);
+        legend.appendChild(chip);
+      });
+    }
+
+    function renderFinance(f) {
+      const hasData = f && f.net_worth
+        && ((f.net_worth.series || []).length > 0
+          || (f.months || []).some(m => m.spend > 0 || m.income > 0));
+      document.getElementById('finance-empty').classList.toggle('hidden', Boolean(hasData));
+      document.getElementById('finance-body').classList.toggle('hidden', !hasData);
+      if (!hasData) return;
+      if ((f.net_worth.series || []).length > 0) {
+        renderNetWorthChart(f);
+      } else {
+        document.getElementById('networth-note').textContent = 'no balance statements yet';
+      }
+      renderSpendChart(f);
+      renderAllocation(f);
+    }
+
+    function renderFollowersChart(v) {
+      const s = v.stolas;
+      const svg = document.getElementById('followers-chart');
+      const series = s.followers || [];
+      if (series.length === 0) {
+        document.getElementById('followers-caption').textContent = 'no follower snapshots yet';
+        return;
+      }
+      const yMax = Math.ceil(Math.max(s.target, ...series.map(p => p.count)) * 1.05 / 50) * 50;
+      const c = timeChart(svg, {
+        xMin: s.start_date, xMax: s.target_date,
+        yMin: 0, yMax, yGrid: [100, 200], yFmt: fmt,
+      });
+      refLine(svg, c,
+        [[c.xOf(s.start_date), c.yOf(s.start)], [c.xOf(s.target_date), c.yOf(s.target)]],
+        `pace to ${s.target}`);
+      seriesLine(svg, series.map(p => [c.xOf(p.date), c.yOf(p.count)]));
+      const last = series[series.length - 1];
+      axisText(svg, c.xOf(last.date) + 4, c.yOf(last.count) - 7, fmt(last.count), 'start', '#e2e8f0');
+      hoverBands(svg, c, series.map(p => ({ x: c.xOf(p.date), p })), e =>
+        `${shortDate(e.p.date)}<br>${e.p.count} followers`);
+      const gap = last.count - s.pace_today;
+      document.getElementById('followers-note').textContent =
+        `${last.count} now · pace ${s.pace_today}`;
+      const cls = gap >= 0 ? 'stat-delta-good' : 'stat-delta-bad';
+      document.getElementById('followers-caption').innerHTML =
+        `target ${s.target} by ${shortDate(s.target_date)} · ` +
+        `<span class="${cls}">${gap >= 0 ? '+' : ''}${gap} vs pace</span>`;
+    }
+
+    function renderIwaChart(v) {
+      const svg = document.getElementById('iwa-chart');
+      const block = document.getElementById('iwa-block');
+      const empty = document.getElementById('iwa-empty');
+      const pieces = v.iwa.pieces || [];
+      if (pieces.length === 0) {
+        block.classList.add('hidden');
+        empty.classList.remove('hidden');
+        return;
+      }
+      block.classList.remove('hidden');
+      empty.classList.add('hidden');
+      let acc = 0;
+      const cumulative = pieces.map(p => ({ date: p.date, total: (acc += p.thrown), thrown: p.thrown }));
+      const yMax = Math.max(v.iwa.target, acc) + 3;
+      const c = timeChart(svg, {
+        xMin: pieces[0].date, xMax: pieces[pieces.length - 1].date,
+        yMin: 0, yMax, yGrid: [v.iwa.target],
+      });
+      svg.append(svgEl('line', {
+        x1: c.box.left, x2: 480 - c.box.right, y1: c.yOf(v.iwa.target), y2: c.yOf(v.iwa.target),
+        stroke: REF, 'stroke-width': 1.5, 'stroke-dasharray': '5 4',
+      }));
+      axisText(svg, 480 - c.box.right, c.yOf(v.iwa.target) - 4, `plan ${v.iwa.target}`, 'end', '#888');
+      seriesLine(svg, cumulative.map(p => [c.xOf(p.date), c.yOf(p.total)]));
+      hoverBands(svg, c, cumulative.map(p => ({ x: c.xOf(p.date), p })), e =>
+        `${shortDate(e.p.date)}<br>+${e.p.thrown} thrown · ${e.p.total} total`);
+      document.getElementById('iwa-note').textContent = `${acc}/${v.iwa.target}`;
+      document.getElementById('iwa-caption').textContent = 'cumulative pieces thrown this cycle';
+    }
+
+    function renderVentures(v) {
+      const empty = !v || !v.stolas;
+      document.getElementById('ventures-empty').classList.toggle('hidden', !empty);
+      document.getElementById('followers-block').classList.toggle('hidden', empty);
+      if (empty) {
+        document.getElementById('iwa-block').classList.add('hidden');
+        document.getElementById('iwa-empty').classList.add('hidden');
+        return;
+      }
+      renderFollowersChart(v);
+      renderIwaChart(v);
+    }
+
+    async function loadAll() {
+      const first = await api('fitness');
+      if (first.status === 401) return showLogin();
+      showApp();
+      try {
+        renderFitness((await first.json()).fitness);
+      } catch (e) {
+        renderFitness(null);
+      }
+      const loads = [
+        ['french', renderFrench],
+        ['finance', renderFinance],
+        ['ventures', renderVentures],
+      ];
+      for (const [action, renderer] of loads) {
+        try {
+          const r = await api(action);
+          if (!r.ok) throw new Error();
+          renderer((await r.json())[action]);
+        } catch (e) {
+          renderer(null);
+        }
+      }
+    }
+
+    loginView.addEventListener('submit', async e => {
+      e.preventDefault();
+      loginError.textContent = '';
+      try {
+        const r = await fetch(`${API}?action=login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            username: document.getElementById('login-user').value,
+            password: document.getElementById('login-pass').value,
+          }),
+        });
+        const data = await r.json();
+        if (!r.ok) {
+          loginError.textContent = data.error || 'Login failed';
+          return;
+        }
+        localStorage.setItem(TOKEN_KEY, data.token);
+        document.getElementById('login-pass').value = '';
+        loadAll();
+      } catch (e) {
+        loginError.textContent = 'Network error';
+      }
+    });
+
+    logoutBtn.addEventListener('click', async () => {
+      try { await api('logout', { method: 'POST' }); } catch (e) {}
+      showLogin();
+    });
+
+    function refresh() {
+      if (document.hidden || !token() || appView.classList.contains('hidden')) return;
+      loadAll();
+    }
+
+    document.addEventListener('visibilitychange', refresh);
+    setInterval(refresh, 300000);
+
+    if (token()) {
+      loadAll();
+    } else {
+      showLogin();
+    }
+  </script>
+</body>
+</html>

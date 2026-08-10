@@ -10,7 +10,7 @@ import re
 
 PATH = "./src"
 TEMPLATE_FORMAT = "jwm"
-IGNORED_FILES = [".DS_Store"]
+IGNORED_FILES = [".DS_Store", "PLAN.md"]
 OUTPUT_PATH = "./build"
 
 _template_cache = {}
