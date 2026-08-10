@@ -132,6 +132,90 @@
       margin: 0;
     }
 
+    #week-strip {
+      border-bottom: 1px solid #1a1a1a;
+      padding-bottom: 10px;
+      margin-bottom: 20px;
+      font-size: 0.85em;
+    }
+
+    #week-strip-head {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+    }
+
+    #week-label {
+      color: #666;
+      font-size: 0.85em;
+      font-family: monospace;
+    }
+
+    #week-stale-note {
+      color: #666;
+      font-size: 0.8em;
+    }
+
+    #week-start {
+      border: none;
+      color: #7fffd4;
+      padding: 0;
+      font-size: 0.85em;
+    }
+
+    #week-add {
+      border: none;
+      color: #444;
+      padding: 0 4px;
+      font-size: 1em;
+      line-height: 1;
+      margin-left: auto;
+    }
+
+    #week-add:hover { color: #7fffd4; }
+
+    #week-goal-list li {
+      border-bottom: none;
+      padding: 4px;
+      gap: 10px;
+    }
+
+    #week-strip.stale #week-goal-list { opacity: 0.55; }
+
+    .week-toggle {
+      width: 13px;
+      height: 13px;
+      min-width: 13px;
+      border: 1px solid #555;
+      border-radius: 2px;
+      background: none;
+      cursor: pointer;
+      padding: 0;
+    }
+
+    li.done .week-toggle {
+      border-color: #7fffd4;
+      background: #7fffd4;
+    }
+
+    #week-empty {
+      color: #555;
+      margin: 6px 0 0;
+      padding-left: 4px;
+    }
+
+    #week-add-form { margin: 4px 0 0; }
+
+    #week-add-form input, .week-edit {
+      border: none;
+      border-bottom: 1px solid #333;
+      border-radius: 0;
+      padding: 2px 4px;
+      font-size: 1em;
+    }
+
+    .week-edit { flex: 1; }
+
     #add-form {
       display: flex;
       gap: 8px;
@@ -365,6 +449,19 @@
         <span class="stat-label">since became a God</span>
         <span class="stat-value" id="timer-value">—</span>
       </div>
+      <div id="week-strip" class="hidden">
+        <div id="week-strip-head">
+          <span id="week-label"></span>
+          <span id="week-stale-note" class="hidden">last week — keep or delete, then</span>
+          <button id="week-start" class="hidden"></button>
+          <button id="week-add" aria-label="Add weekly goal">+</button>
+        </div>
+        <ul id="week-goal-list" class="item-list"></ul>
+        <p id="week-empty" class="hidden">no goals this week</p>
+        <form id="week-add-form" class="hidden">
+          <input id="week-add-input" maxlength="200" placeholder="goal for the week" autocomplete="off">
+        </form>
+      </div>
       <form id="add-form">
         <input id="add-input" placeholder="New todo" maxlength="500" autocomplete="off">
         <button type="button" id="kind-toggle" aria-pressed="false">daily</button>
@@ -431,8 +528,29 @@
     let goalsSnap = null;
     let calSnap = null;
     let calDone = {};
+    let weekGoals = null;
     let mutationSeq = 0;
+    let weekSeq = 0;
     let lastMutatedAt = 0;
+
+    function isoWeekOf(d) {
+      const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+      const day = date.getUTCDay() || 7;
+      date.setUTCDate(date.getUTCDate() + 4 - day);
+      const year = date.getUTCFullYear();
+      const week = Math.ceil(((date - Date.UTC(year, 0, 1)) / 86400000 + 1) / 7);
+      return `${year}-W${String(week).padStart(2, '0')}`;
+    }
+
+    function currentWeek() {
+      return isoWeekOf(new Date());
+    }
+
+    function stampWeek() {
+      const d = new Date();
+      if (d.getDay() === 0) d.setDate(d.getDate() + 1);
+      return isoWeekOf(d);
+    }
 
     function isOverdue(todo) {
       return Boolean(todo.due) && stateOf(todo) !== 'done' && todo.due < localDate();
@@ -671,6 +789,133 @@
       return li;
     }
 
+    async function mutateWeek(query, init) {
+      const seq = ++weekSeq;
+      lastMutatedAt = Date.now();
+      setStatus('saving...');
+      try {
+        const r = await api(query, init);
+        if (r.status === 401) return showLogin();
+        if (!r.ok) throw new Error();
+        const data = await r.json();
+        lastMutatedAt = Date.now();
+        if (seq === weekSeq) {
+          weekGoals = data.weekGoals;
+          renderWeek();
+          setStatus('saved');
+        }
+      } catch (e) {
+        setStatus('sync failed - refresh to see the saved list', true);
+      }
+    }
+
+    function buildWeekGoal(g) {
+      const li = document.createElement('li');
+      li.classList.toggle('done', Boolean(g.done));
+
+      const toggle = document.createElement('button');
+      toggle.className = 'week-toggle';
+      toggle.setAttribute('aria-label', g.done ? 'Mark goal open' : 'Mark goal done');
+      toggle.addEventListener('click', () => {
+        g.done = !g.done;
+        renderWeek();
+        mutateWeek('week-goals', {
+          method: 'PATCH',
+          body: JSON.stringify({ id: g.id, done: g.done }),
+        });
+      });
+
+      const text = document.createElement('span');
+      text.className = 'todo-text';
+      text.textContent = g.text;
+      text.addEventListener('click', () => {
+        const input = document.createElement('input');
+        input.className = 'week-edit';
+        input.value = g.text;
+        input.maxLength = 200;
+        text.replaceWith(input);
+        input.focus();
+        const commit = () => {
+          const clean = input.value.replace(/\s+/g, ' ').trim();
+          if (!clean || clean === g.text) return renderWeek();
+          g.text = clean;
+          renderWeek();
+          mutateWeek('week-goals', {
+            method: 'PATCH',
+            body: JSON.stringify({ id: g.id, text: clean }),
+          });
+        };
+        input.addEventListener('blur', commit);
+        input.addEventListener('keydown', e => {
+          if (e.key === 'Enter') { e.preventDefault(); input.blur(); }
+          if (e.key === 'Escape') {
+            input.removeEventListener('blur', commit);
+            renderWeek();
+          }
+        });
+      });
+
+      const del = document.createElement('button');
+      del.className = 'todo-delete';
+      del.textContent = '×';
+      del.setAttribute('aria-label', 'Delete goal');
+      del.addEventListener('click', () => {
+        weekGoals.goals = weekGoals.goals.filter(x => x.id !== g.id);
+        renderWeek();
+        mutateWeek(`week-goals&id=${encodeURIComponent(g.id)}`, { method: 'DELETE' });
+      });
+
+      li.append(toggle, text, del);
+      return li;
+    }
+
+    function shortWeek(week) {
+      return week.slice(5).toLowerCase();
+    }
+
+    function renderWeek() {
+      const strip = document.getElementById('week-strip');
+      const list = document.getElementById('week-goal-list');
+      const label = document.getElementById('week-label');
+      const staleNote = document.getElementById('week-stale-note');
+      const startBtn = document.getElementById('week-start');
+      const addBtn = document.getElementById('week-add');
+      const empty = document.getElementById('week-empty');
+      list.innerHTML = '';
+      strip.classList.remove('hidden');
+      startBtn.textContent = `start ${shortWeek(stampWeek())}`;
+
+      if (!weekGoals || !weekGoals.week) {
+        label.textContent = 'week';
+        strip.classList.remove('stale');
+        staleNote.classList.add('hidden');
+        startBtn.classList.remove('hidden');
+        addBtn.classList.add('hidden');
+        empty.classList.add('hidden');
+        return;
+      }
+
+      const stale = weekGoals.week < currentWeek();
+      strip.classList.toggle('stale', stale);
+      label.textContent = shortWeek(weekGoals.week);
+      staleNote.classList.toggle('hidden', !stale);
+      startBtn.classList.toggle('hidden', !stale);
+      addBtn.classList.toggle('hidden', stale);
+      for (const g of weekGoals.goals) list.appendChild(buildWeekGoal(g));
+      empty.classList.toggle('hidden', stale || weekGoals.goals.length > 0);
+    }
+
+    async function loadWeekGoals() {
+      try {
+        const r = await api('week-goals');
+        if (!r.ok) throw new Error();
+        weekGoals = (await r.json()).weekGoals;
+      } catch (e) {
+        weekGoals = null;
+      }
+      renderWeek();
+    }
+
     function render() {
       for (const el of Object.values(bandEls)) el.innerHTML = '';
       doneListEl.innerHTML = '';
@@ -817,6 +1062,7 @@
         document.getElementById('login-pass').value = '';
         loadTodos();
         loadGoals();
+        loadWeekGoals();
         loadCalendar();
       } catch (e) {
         loginError.textContent = 'Network error';
@@ -838,6 +1084,36 @@
 
     renderTimer();
     setInterval(renderTimer, 1000);
+
+    const weekAddForm = document.getElementById('week-add-form');
+    const weekAddInput = document.getElementById('week-add-input');
+
+    document.getElementById('week-start').addEventListener('click', () => {
+      const week = stampWeek();
+      if (weekGoals) {
+        weekGoals.week = week;
+        weekGoals.goals = weekGoals.goals.filter(g => !g.done);
+      } else {
+        weekGoals = { week, goals: [] };
+      }
+      renderWeek();
+      mutateWeek('week-goals', { method: 'PUT', body: JSON.stringify({ week }) });
+    });
+
+    document.getElementById('week-add').addEventListener('click', () => {
+      weekAddForm.classList.toggle('hidden');
+      if (!weekAddForm.classList.contains('hidden')) weekAddInput.focus();
+    });
+
+    weekAddForm.addEventListener('submit', e => {
+      e.preventDefault();
+      const text = weekAddInput.value.replace(/\s+/g, ' ').trim();
+      if (!text || !weekGoals) return;
+      weekGoals.goals.push({ id: `pending-${Date.now()}`, text, done: false });
+      weekAddInput.value = '';
+      renderWeek();
+      mutateWeek('week-goals', { method: 'POST', body: JSON.stringify({ text }) });
+    });
 
     kindToggle.addEventListener('click', () => {
       const active = kindToggle.classList.toggle('active');
@@ -875,6 +1151,7 @@
       if (Date.now() - lastMutatedAt < 5000) return;
       loadTodos();
       loadGoals();
+      loadWeekGoals();
       loadCalendar();
     }
 
@@ -884,6 +1161,7 @@
     if (token()) {
       loadTodos();
       loadGoals();
+      loadWeekGoals();
       loadCalendar();
     } else {
       showLogin();

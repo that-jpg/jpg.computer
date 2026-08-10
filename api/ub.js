@@ -6,8 +6,10 @@ const SESSION_TTL_SECONDS = 60 * 60 * 24 * 30;
 const LOGIN_WINDOW_SECONDS = 60 * 15;
 const LOGIN_MAX_ATTEMPTS = 10;
 const MAX_TODOS = 500;
+const MAX_WEEK_GOALS = 10;
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 const PROJECT_RE = /^[a-z][a-z0-9-]{0,23}$/;
+const WEEK_RE = /^\d{4}-W\d{2}$/;
 
 function redis(...command) {
   const { UPSTASH_REDIS_REST_URL, UPSTASH_REDIS_REST_TOKEN } = process.env;
@@ -70,6 +72,19 @@ async function readTodos() {
 
 function writeTodos(todos) {
   return redis('SET', 'ub-todos', JSON.stringify(todos));
+}
+
+async function readWeekGoals() {
+  const raw = await redis('GET', 'ub-week-goals');
+  return raw ? JSON.parse(raw) : null;
+}
+
+function writeWeekGoals(weekGoals) {
+  return redis('SET', 'ub-week-goals', JSON.stringify(weekGoals));
+}
+
+function cleanGoalText(text) {
+  return typeof text === 'string' ? text.replace(/\s+/g, ' ').trim().slice(0, 200) : '';
 }
 
 module.exports = async function handler(req, res) {
@@ -149,6 +164,61 @@ module.exports = async function handler(req, res) {
       }
       await redis('SET', 'ub-calendar-done', JSON.stringify(map));
       return res.json({ done: map });
+    }
+
+    if (action === 'week-goals' && req.method === 'GET') {
+      return res.json({ weekGoals: await readWeekGoals() });
+    }
+
+    if (action === 'week-goals' && req.method === 'PUT') {
+      const week = String((req.body || {}).week || '');
+      if (!WEEK_RE.test(week)) return res.status(400).json({ error: 'Invalid week' });
+      const weekGoals = (await readWeekGoals()) || { goals: [] };
+      weekGoals.week = week;
+      weekGoals.goals = weekGoals.goals.filter(g => !g.done);
+      await writeWeekGoals(weekGoals);
+      return res.json({ weekGoals });
+    }
+
+    if (action === 'week-goals' && req.method === 'POST') {
+      const text = cleanGoalText((req.body || {}).text);
+      if (!text) return res.status(400).json({ error: 'Invalid goal' });
+      const weekGoals = await readWeekGoals();
+      if (!weekGoals || !weekGoals.week) return res.status(400).json({ error: 'No week started' });
+      if (weekGoals.goals.length >= MAX_WEEK_GOALS) {
+        return res.status(400).json({ error: 'Too many goals' });
+      }
+      weekGoals.goals.push({ id: crypto.randomUUID(), text, done: false });
+      await writeWeekGoals(weekGoals);
+      return res.json({ weekGoals });
+    }
+
+    if (action === 'week-goals' && req.method === 'PATCH') {
+      const { id, done, text } = req.body || {};
+      const weekGoals = await readWeekGoals();
+      const goal = weekGoals && weekGoals.goals.find(g => g.id === id);
+      if (!goal) return res.status(404).json({ error: 'Not found' });
+      if (done !== undefined) goal.done = Boolean(done);
+      if (text !== undefined) {
+        const clean = cleanGoalText(text);
+        if (!clean) return res.status(400).json({ error: 'Invalid goal' });
+        goal.text = clean;
+      }
+      await writeWeekGoals(weekGoals);
+      return res.json({ weekGoals });
+    }
+
+    if (action === 'week-goals' && req.method === 'DELETE') {
+      const id = String(req.query.id || '');
+      const weekGoals = await readWeekGoals();
+      if (!weekGoals) return res.status(404).json({ error: 'Not found' });
+      const remaining = weekGoals.goals.filter(g => g.id !== id);
+      if (remaining.length === weekGoals.goals.length) {
+        return res.status(404).json({ error: 'Not found' });
+      }
+      weekGoals.goals = remaining;
+      await writeWeekGoals(weekGoals);
+      return res.json({ weekGoals });
     }
 
     if (action === 'todos' && req.method === 'GET') {

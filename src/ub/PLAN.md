@@ -21,10 +21,26 @@ the ubermensch repo.
 
 ## Today (`/ub`) — [#3](https://github.com/that-jpg/ubermensch/issues/3)
 
-Bands, top to bottom: **overdue todos → due-today todos → today's calendar
-events → dailies → habit diamonds**, completed items sunk into the done band.
-Interaction model (state cycle, folds, styling) unchanged.
+Bands, top to bottom: **weekly-goals strip → overdue todos → due-today todos →
+today's calendar events → dailies → habit diamonds**, completed items sunk into
+the done band. Interaction model (state cycle, folds, styling) unchanged.
 
+- **Weekly-goals strip** (amendment, 2026-08-09 grilling — a narrow exception
+  to "strictly nothing ambient": a hand-chosen commitment list, not computed
+  telemetry). The week's 3–5 free-text intentions, checkable, written at the
+  Sunday review. Its own entity: no due dates, no project tags — a goal that
+  wants either is a todo and belongs in the inbox. Compact: week label +
+  single-line goals, small type, **no card chrome** (borders/meters/counts =
+  demotion). Checked goals strike through in place — the strip stays a
+  complete picture of the week; goals never enter the done band and never
+  count toward "N left". CRUD: check/uncheck, add, edit text, delete; no
+  reorder. Lifecycle: the list carries an ISO week stamp; on mismatch the
+  strip renders stale-grey ("last week") until a deliberate **start-new-week**
+  action — clears checked goals, presents unchecked ones for an explicit
+  keep-or-delete pass, restamps (on a Sunday it stamps the *coming* week).
+  Nothing auto-clears; an empty stamped week is valid ("no goals this week" —
+  covers trip weeks). The journal weekly-review section is the only archive,
+  by hand; no automated bridge.
 - The undated inbox **leaves this page** (display and triage move to
   Projects). The add-form stays and still captures into the inbox; drag-reorder
   moves with the inbox.
@@ -94,12 +110,14 @@ Unchanged: `ub-todos`, `ub-calendar`, `ub-calendar-done`, `ub-goals`
 | `ub-finance` | `journal/bot/bune/bune_dashboard.py` | `month` block → per-month `months[]` (`{month,income,spend,net,by_category}`) |
 | `ub-projects` (new) | `goals/push.py` | `{updated, projects:[{slug,title,status,note}]}` from `goals/projects.json` |
 | `ub-ventures` (new) | `goals/push.py` | `{updated, stolas:{followers[], target, target_date, pace anchors}, iwa:{pieces[], target}}` |
+| `ub-week-goals` (new) | — none; `api/ub.js` is the sole writer | `{week: "2026-W33", goals:[{id,text,done}]}` — dashboard-mutated only (add/edit/check/delete + start-new-week restamp); must be its own key since `goals/push.py` SETs `ub-goals` wholesale |
 
 - New local snapshot file `journal/bot/agares/agares_vocab_history.jsonl`
   (gitignored): one `{date,known,introduced}` line appended on the first push
   of each day.
-- `api/ub.js`: two new GET actions, `projects` and `ventures`. No new
-  mutations — `#` chip, due stamping, add, delete all exist.
+- `api/ub.js`: two new GET actions, `projects` and `ventures`, plus the
+  `ub-week-goals` read + mutations (the only new mutations in the rework;
+  everything else — `#` chip, due stamping, add, delete — exists).
 - Cadence: the 15-min `dashboard-push.timer` plus existing event pushes
   (french after Anki replies, finance after ingests). No retention rules —
   series are small; full history pushed.
