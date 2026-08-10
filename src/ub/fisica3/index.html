@@ -33,6 +33,12 @@
 
     h1 em { color: #666; font-style: normal; font-size: 0.7em; }
 
+    h1 #pct {
+      color: #7fffd4;
+      font-size: 0.7em;
+      font-variant-numeric: tabular-nums;
+    }
+
     header a { color: #666; font-size: 0.8em; text-decoration: none; margin-left: 12px; }
 
     header a:hover { color: #7fffd4; }
@@ -191,7 +197,7 @@
 <body>
   <main>
     <header>
-      <h1>ub <em>física 3</em></h1>
+      <h1>ub <em>física 3</em> <span id="pct"></span></h1>
       <nav>
         <a href="/ub/">dashboard</a>
         <a href="/ub/calendar/">calendar</a>
@@ -229,6 +235,7 @@
     };
 
     const totalEl = document.getElementById('total');
+    const pctEl = document.getElementById('pct');
     const asOfEl = document.getElementById('as-of');
     const nextUpEl = document.getElementById('next-up');
     const noDatesEl = document.getElementById('no-dates');
@@ -328,6 +335,9 @@
       const total = snap.chapters.reduce((sum, ch) => sum + ch.max, 0);
       const solved = snap.chapters.reduce((sum, ch) => sum + ch.solved.length, 0);
       totalEl.innerHTML = `<strong>${solved}</strong> / ${total} solved`;
+      const pct = total ? (100 * solved / total).toFixed(1) : '0.0';
+      pctEl.textContent = `${pct}%`;
+      document.title = `ub física 3 · ${pct}%`;
       if (snap.next_up != null) {
         const ch = snap.chapters.find(c => c.ch === snap.next_up);
         nextUpEl.hidden = false;
