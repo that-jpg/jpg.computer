@@ -117,6 +117,24 @@
 
     #logout:hover { color: #fca5a5; }
 
+    #notes-widget {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    #notes-value {
+      font-family: monospace;
+      font-variant-numeric: tabular-nums;
+      margin: 0;
+    }
+
+    #notes-value em {
+      font-style: normal;
+      color: #666;
+    }
+
     #timer-widget {
       display: flex;
       align-items: baseline;
@@ -445,6 +463,10 @@
     </form>
 
     <section id="app-view" class="hidden">
+      <div id="notes-widget">
+        <span class="stat-label">notes</span>
+        <span id="notes-value">—</span>
+      </div>
       <div id="timer-widget">
         <span class="stat-label">since became a God</span>
         <span class="stat-value" id="timer-value">—</span>
@@ -931,6 +953,11 @@
       const doneHistory = doneGlobals.filter(t => t.doneOn !== today);
       const dailyOpen = daily.filter(t => !isDoneToday(t));
       const dailyDone = daily.filter(isDoneToday);
+
+      const notes = goalsSnap && goalsSnap.notes ? goalsSnap.notes : null;
+      document.getElementById('notes-value').innerHTML = notes
+        ? `${notes.total} <em>total</em> · ${notes.week_daily_avg} <em>/day last week</em>`
+        : '—';
 
       const todayBlock = goalsSnap && goalsSnap.today ? goalsSnap.today : null;
       const stale = todayBlock ? todayBlock.date !== today : false;
