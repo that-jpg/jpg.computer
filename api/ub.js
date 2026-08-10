@@ -135,6 +135,11 @@ module.exports = async function handler(req, res) {
       return res.json({ calendar: raw ? JSON.parse(raw) : null });
     }
 
+    if (action === 'fisica3' && req.method === 'GET') {
+      const raw = await redis('GET', 'ub-fisica3');
+      return res.json({ fisica3: raw ? JSON.parse(raw) : null });
+    }
+
     if (action === 'calendar-done' && req.method === 'GET') {
       const raw = await redis('GET', 'ub-calendar-done');
       return res.json({ done: normalizeCalDone(raw ? JSON.parse(raw) : {}) });
