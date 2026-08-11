@@ -1,5 +1,9 @@
 # /ub rework — Today / Ongoing Projects / Metrics & Trends
 
+> Stack note (2026-08-11): the five /ub pages now live as a React
+> (Vite + TypeScript) multi-entry app in `ub-app/`; this directory keeps
+> only this decision record. Behavior below is unchanged by the port.
+
 Decision record assembled 2026-08-09 from the wayfinder map
 [that-jpg/ubermensch#1](https://github.com/that-jpg/ubermensch/issues/1)
 (tickets #2–#7). Settled; build against this. Detail beyond a line here lives
