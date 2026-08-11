@@ -13,6 +13,7 @@ export default defineConfig({
         fisica3: fileURLToPath(new URL('./fisica3/index.html', import.meta.url)),
         calendar: fileURLToPath(new URL('./calendar/index.html', import.meta.url)),
         projects: fileURLToPath(new URL('./projects/index.html', import.meta.url)),
+        metrics: fileURLToPath(new URL('./metrics/index.html', import.meta.url)),
       },
     },
   },
