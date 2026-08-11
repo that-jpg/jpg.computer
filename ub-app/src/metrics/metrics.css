@@ -1,0 +1,164 @@
+main { max-width: 520px; }
+
+.domain {
+  border-top: 1px solid #333;
+  padding-top: 14px;
+  margin-top: 30px;
+}
+
+.domain:first-of-type {
+  border-top: none;
+  padding-top: 0;
+  margin-top: 0;
+}
+
+.domain-title {
+  color: #aaa;
+  font-size: 0.9em;
+  margin: 0 0 14px;
+}
+
+.chart-block { margin-bottom: 26px; }
+
+.chart-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  color: #888;
+  font-size: 0.78em;
+  margin-bottom: 6px;
+}
+
+.chart-head .chart-note {
+  color: #555;
+  font-family: monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+.chart-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.chart-wrap svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.chart-tooltip {
+  position: absolute;
+  background: #111;
+  border: 1px solid #333;
+  border-radius: 4px;
+  padding: 6px 9px;
+  font-size: 0.75em;
+  color: #e2e8f0;
+  pointer-events: none;
+  white-space: nowrap;
+  display: none;
+  z-index: 5;
+}
+
+.chart-tooltip .tt-muted { color: #888; }
+
+.chart-caption {
+  color: #666;
+  font-size: 0.72em;
+  margin: 6px 0 0;
+}
+
+.stat-row {
+  display: flex;
+  gap: 40px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.stat-label {
+  display: block;
+  color: #aaa;
+  font-size: 0.8em;
+}
+
+.stat-value {
+  display: block;
+  color: white;
+  font-size: 1.7em;
+  font-weight: 600;
+  margin: 2px 0;
+}
+
+.stat-sub {
+  display: block;
+  color: #666;
+  font-size: 0.75em;
+}
+
+.stat-delta-good { color: #14a37f; }
+.stat-delta-bad { color: #fca5a5; }
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  font-size: 0.72em;
+  color: #aaa;
+  font-family: monospace;
+  margin: 8px 0 0;
+}
+
+.legend .dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  margin-right: 5px;
+}
+
+.empty-note {
+  color: #666;
+  font-size: 0.8em;
+  margin: 4px 0 0;
+}
+
+.domain details { margin-top: 8px; }
+
+.domain details summary {
+  color: #666;
+  font-size: 0.75em;
+  cursor: pointer;
+}
+
+.domain table {
+  border-collapse: collapse;
+  font-family: monospace;
+  font-size: 0.78em;
+  color: #aaa;
+  margin-top: 6px;
+}
+
+.domain td, .domain th {
+  padding: 2px 12px 2px 0;
+  text-align: right;
+}
+
+.domain td:first-child, .domain th:first-child { text-align: left; }
+
+.domain th {
+  color: #666;
+  font-weight: normal;
+}
+
+#alloc-bar {
+  display: flex;
+  height: 10px;
+  border-radius: 5px;
+  overflow: hidden;
+  background: #0e332a;
+  margin: 4px 0 8px;
+}
+
+#alloc-bar > div { border-right: 2px solid black; }
+
+#alloc-bar > div:last-child { border-right: none; }

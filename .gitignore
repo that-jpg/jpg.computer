@@ -53,3 +53,7 @@ testem.log
 .DS_Store
 Thumbs.db
 .vercel
+
+# ub-app
+/ub-app/node_modules
+/ub-app/src/**/*.fixture.json

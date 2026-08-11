@@ -1,0 +1,137 @@
+main { max-width: 520px; }
+
+#month-title { color: #aaa; }
+
+#month-title .behind { color: #fca5a5; }
+
+.goal-card {
+  border: 1px solid #1a1a1a;
+  border-radius: 6px;
+  padding: 10px 12px 4px;
+  margin-bottom: 10px;
+}
+
+details.goal-card > summary {
+  list-style: none;
+  cursor: pointer;
+}
+
+details.goal-card > summary::-webkit-details-marker { display: none; }
+
+.goal-card.paused { opacity: 0.55; }
+
+.goal-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.goal-name { color: #aaa; font-size: 0.85em; }
+
+.goal-name .untracked { color: #555; font-size: 0.85em; }
+
+.goal-count {
+  color: #666;
+  font-size: 0.75em;
+  font-family: monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+.goal-note {
+  color: #666;
+  font-size: 0.75em;
+  margin: 4px 0 0;
+}
+
+.goal-meter { margin: 8px 0 10px; }
+
+.gm-head {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75em;
+  color: #888;
+  margin-bottom: 3px;
+}
+
+.gm-text {
+  font-family: monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+.gm-bad .gm-text { color: #fca5a5; }
+
+.gm-bar {
+  position: relative;
+  height: 6px;
+  border-radius: 3px;
+  background: #12211d;
+  overflow: visible;
+}
+
+.gm-fill {
+  height: 100%;
+  border-radius: 3px;
+  background: #14a37f;
+  min-width: 0;
+}
+
+.gm-bad .gm-bar { background: #2a1616; }
+
+.gm-bad .gm-fill { background: #a35555; }
+
+.gm-tick {
+  position: absolute;
+  top: -2px;
+  width: 2px;
+  height: 10px;
+  background: #a3a3a3;
+  border-radius: 1px;
+}
+
+.goal-card ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.goal-card li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+  border-top: 1px solid #141414;
+}
+
+.goal-card details { padding: 6px 0; border-top: 1px solid #141414; }
+
+.goal-card details summary {
+  color: #555;
+  font-size: 0.75em;
+  cursor: pointer;
+  user-select: none;
+}
+
+.goal-card details summary:hover { color: #aaa; }
+
+.card-add {
+  display: flex;
+  border-top: 1px solid #141414;
+  margin-top: 2px;
+}
+
+.card-add input {
+  border: none;
+  padding: 8px 0;
+  font-size: 0.85em;
+  color: #aaa;
+}
+
+.card-add input::placeholder { color: #444; }
+
+#month-updated {
+  color: #666;
+  font-size: 0.72em;
+  text-align: right;
+  margin: 8px 0 0;
+}
