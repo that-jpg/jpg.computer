@@ -93,7 +93,9 @@ no history, so every series is pushed by its producer from local files
   ingested.
 - **Ventures**: Stolas followers vs the 250-by-Sept-30 pace line; iwa
   cumulative pieces thrown vs the 27-piece plan (empty state until
-  `production.csv` begins). Brand-of-gods: no chart until the ledger has real
+  `production.csv` begins). Brand-of-gods: ledger stat panel (net cash,
+  per-SKU stock, contribution per sold unit vs plan, per-unit + per-channel
+  detail tables) — added 2026-08-11; still no chart until the ledger has real
   rhythm.
 
 ## Data contract — [#6](https://github.com/that-jpg/ubermensch/issues/6)
@@ -109,7 +111,7 @@ Unchanged: `ub-todos`, `ub-calendar`, `ub-calendar-done`, `ub-goals`
 | `ub-french` | `journal/bot/agares/agares_dashboard.py` | + `accuracy_series` (daily `{date,reviews,correct}`; 7-day rolling computed site-side), `vocab_series` (`{date,known,introduced}`) |
 | `ub-finance` | `journal/bot/bune/bune_dashboard.py` | `month` block → per-month `months[]` (`{month,income,spend,net,by_category}`) |
 | `ub-projects` (new) | `goals/push.py` | `{updated, projects:[{slug,title,status,note}]}` from `goals/projects.json` |
-| `ub-ventures` (new) | `goals/push.py` | `{updated, stolas:{followers[], target, target_date, pace anchors}, iwa:{pieces[], target}}` |
+| `ub-ventures` (new) | `goals/push.py` | `{updated, stolas:{followers[], target, target_date, pace anchors}, iwa:{pieces[], target}, brand_of_gods:{rows, last_date, cash, units, unit_econ, channels}}` (brand_of_gods added 2026-08-11 from `dreams/brand-of-gods/ledger.jsonl`; `{error}` when the ledger fails validation) |
 | `ub-week-goals` (new) | — none; `api/ub.js` is the sole writer | `{week: "2026-W33", goals:[{id,text,done}]}` — dashboard-mutated only (add/edit/check/delete + start-new-week restamp); must be its own key since `goals/push.py` SETs `ub-goals` wholesale |
 
 - New local snapshot file `journal/bot/agares/agares_vocab_history.jsonl`

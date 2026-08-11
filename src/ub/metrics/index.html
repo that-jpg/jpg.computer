@@ -424,7 +424,17 @@
           </div>
           <p class="chart-caption" id="iwa-caption"></p>
         </div>
+        <div class="chart-block hidden" id="bog-block">
+          <div class="chart-head"><span>brand of gods ledger</span><span class="chart-note" id="bog-note"></span></div>
+          <div class="stat-row" id="bog-tiles"></div>
+          <details>
+            <summary>per sold unit + channels</summary>
+            <table id="bog-econ-table"></table>
+            <table id="bog-channel-table"></table>
+          </details>
+        </div>
         <p class="empty-note hidden" id="iwa-empty">production.csv not started — the chart begins with the first throw day.</p>
+        <p class="empty-note hidden" id="bog-empty"></p>
         <p class="empty-note hidden" id="ventures-empty">No ventures snapshot yet.</p>
       </section>
     </section>
@@ -440,6 +450,9 @@
     const OTHER_COLOR = '#8a8a85';
     const BRL_FMT = new Intl.NumberFormat('pt-BR', {
       style: 'currency', currency: 'BRL', maximumFractionDigits: 0,
+    });
+    const BRL_CENTS = new Intl.NumberFormat('pt-BR', {
+      style: 'currency', currency: 'BRL',
     });
 
     const loginView = document.getElementById('login-view');
@@ -1124,6 +1137,98 @@
       document.getElementById('iwa-caption').textContent = 'cumulative pieces thrown this cycle';
     }
 
+    function statTile(label, value, sub, cls) {
+      const wrap = document.createElement('div');
+      const labelEl = document.createElement('span');
+      labelEl.className = 'stat-label';
+      labelEl.textContent = label;
+      const valueEl = document.createElement('span');
+      valueEl.className = 'stat-value' + (cls ? ' ' + cls : '');
+      valueEl.textContent = value;
+      const subEl = document.createElement('span');
+      subEl.className = 'stat-sub';
+      subEl.textContent = sub;
+      wrap.append(labelEl, valueEl, subEl);
+      return wrap;
+    }
+
+    function fillTable(table, headers, rows) {
+      table.innerHTML = '';
+      if (rows.length === 0) return;
+      const head = document.createElement('tr');
+      for (const h of headers) {
+        const th = document.createElement('th');
+        th.textContent = h;
+        head.appendChild(th);
+      }
+      table.appendChild(head);
+      for (const cells of rows) {
+        const tr = document.createElement('tr');
+        for (const cell of cells) {
+          const td = document.createElement('td');
+          td.textContent = cell;
+          tr.appendChild(td);
+        }
+        table.appendChild(tr);
+      }
+    }
+
+    function renderBogPanel(v) {
+      const block = document.getElementById('bog-block');
+      const empty = document.getElementById('bog-empty');
+      const b = v.brand_of_gods;
+      if (!b) {
+        block.classList.add('hidden');
+        empty.classList.add('hidden');
+        return;
+      }
+      if (b.error || !b.rows) {
+        block.classList.add('hidden');
+        empty.textContent = b.error
+          ? `brand of gods ledger invalid: ${b.error}`
+          : 'brand of gods ledger.jsonl is empty.';
+        empty.classList.remove('hidden');
+        return;
+      }
+      block.classList.remove('hidden');
+      empty.classList.add('hidden');
+      document.getElementById('bog-note').textContent =
+        `${b.rows} rows · last ${shortDate(b.last_date)}`;
+      const tiles = document.getElementById('bog-tiles');
+      tiles.innerHTML = '';
+      tiles.appendChild(statTile('net cash', BRL_CENTS.format(b.cash.net),
+        `in ${BRL_CENTS.format(b.cash.in)} · out ${BRL_CENTS.format(b.cash.out)}`,
+        b.cash.net >= 0 ? 'stat-delta-good' : 'stat-delta-bad'));
+      for (const [sku, u] of Object.entries(b.units || {})) {
+        const parts = [`${u.bought} bought`, `${u.sold} sold`];
+        if (u.seeded) parts.push(`${u.seeded} seeded`);
+        if (u.returned) parts.push(`${u.returned} returned`);
+        tiles.appendChild(statTile(`${sku} on hand`, u.on_hand, parts.join(' · ')));
+      }
+      for (const [sku, e] of Object.entries(b.unit_econ || {})) {
+        if (e.contribution == null) continue;
+        const behindPlan = e.plan_contribution != null && e.contribution < e.plan_contribution;
+        const sub = e.plan_contribution != null
+          ? `plan ${BRL_CENTS.format(e.plan_contribution)} · landed ${BRL_CENTS.format(e.landed)}`
+          : `landed ${BRL_CENTS.format(e.landed)}`;
+        tiles.appendChild(statTile(`contribution / ${sku}`,
+          BRL_CENTS.format(e.contribution), sub,
+          behindPlan ? 'stat-delta-bad' : 'stat-delta-good'));
+      }
+      const money = n => n == null ? '—' : BRL_CENTS.format(n);
+      fillTable(document.getElementById('bog-econ-table'),
+        ['per sold unit', 'gross', 'fees', 'shipping', 'net', 'landed', 'contribution'],
+        Object.entries(b.unit_econ || {}).map(([sku, e]) => [
+          sku, money(e.gross),
+          `${money(e.fees)} (${(e.fee_share * 100).toFixed(1)}%)`,
+          money(e.shipping), money(e.net), money(e.landed), money(e.contribution),
+        ]));
+      fillTable(document.getElementById('bog-channel-table'),
+        ['channel', 'sold', 'net'],
+        Object.entries(b.channels || {}).sort()
+          .map(([channel, c]) => [channel, c.sold, money(c.net)]));
+    }
+
     function renderVentures(v) {
       const empty = !v || !v.stolas;
       document.getElementById('ventures-empty').classList.toggle('hidden', !empty);
@@ -1131,10 +1236,13 @@
       if (empty) {
         document.getElementById('iwa-block').classList.add('hidden');
         document.getElementById('iwa-empty').classList.add('hidden');
+        document.getElementById('bog-block').classList.add('hidden');
+        document.getElementById('bog-empty').classList.add('hidden');
         return;
       }
       renderFollowersChart(v);
       renderIwaChart(v);
+      renderBogPanel(v);
     }
 
     async function loadAll() {
