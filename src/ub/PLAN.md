@@ -1,5 +1,11 @@
 # /ub rework — Today / Ongoing Projects / Metrics & Trends
 
+> Superseded in part (2026-08-17): the **Today** and **Ongoing Projects**
+> sections below are replaced by the task board specced in
+> [BOARD.md](./BOARD.md) (wayfinder map that-jpg/ubermensch#8). Shell/nav,
+> Metrics (which gains a Month section) and the data contract stand as
+> amended there.
+>
 > Stack note (2026-08-11): the five /ub pages now live as a React
 > (Vite + TypeScript) multi-entry app in `ub-app/`; this directory keeps
 > only this decision record. Behavior below is unchanged by the port.
