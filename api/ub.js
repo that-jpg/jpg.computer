@@ -562,6 +562,7 @@ async function handleCards(req, res, board) {
     if (!checklist.ok) return res.status(400).json({ error: 'Invalid checklist' });
     if (checklist.value !== undefined) card.checklist = checklist.value;
     if (body.expires !== undefined) card.expires = Boolean(body.expires);
+    if (body.journaled !== undefined) card.journaled = Boolean(body.journaled);
     if (body.order !== undefined) {
       if (typeof body.order !== 'number') return res.status(400).json({ error: 'Invalid order' });
       card.order = body.order;
