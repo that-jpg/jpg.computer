@@ -305,3 +305,31 @@ bots. Registry / archive / signals keys can stay.
 External trackers; sprints; new bot syntax; a narrow-screen board layout;
 Metrics beyond the Month section, `/ub/calendar`, `/ub/fisica3`; building
 the board (this is the spec); WIP limits / stale-Doing surfacing.
+
+## As built (2026-08-17)
+
+Cut over the same day the map closed: API `a953b2b`/`6d2b600`, pages
+`df05e1a`/`77056b9`, ubermensch `7a660ba`, migration applied with a local
+backup (`journal/bot/.ub-backup-2026-08-17T1647.json`). Refinements made
+while building, all otherwise per the sections above:
+
+- **Routine and auto-routine cards leave the board at the next rollover** —
+  archived as done or as a dated miss — instead of sitting in Later × Done for
+  seven days; ten spawned cards a day would have drowned the Done column. The
+  seven-day rule applies to tasks.
+- **Calendar cards are projected in the client** from the `all` payload
+  (`calendar` + `calendarDone`), which is equivalent to the API projecting them
+  and reuses the existing event logic; nothing is written.
+- **`ub-todos` keeps its key name** as the cards array; the legacy `todos`
+  action stays as the bot's numbered view; `state`/`done`/`due` are served as
+  mirrors of `column`/`date` in that view only.
+- **First read after the API deploy rolled the live data over** before the
+  migration script ran (88 done items archived by the API); `board/migrate.py`
+  therefore also handles already-normalized cards (retags goal slugs, mints
+  keys, turns dateless legacy routines into templates) and is safe to re-run.
+- Tests: `node --test tests/api/ub.test.js` (API, in-memory Redis) and
+  `cd ub-app && npm test` (57 vitest cases incl. page smoke tests against a
+  synthetic `all` payload); ubermensch `python3 -m unittest discover -s
+  board/tests` and the bot/goals suites.
+- Timers on aiur: `dashboard-push` gained `board/signals.py`;
+  `journal-done.timer` 23:30; `board-rollover.timer` 00:05.
