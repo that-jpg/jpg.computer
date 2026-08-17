@@ -4,10 +4,11 @@ export interface NavLink {
 }
 
 export const NAV_LINKS: NavLink[] = [
-  { href: '/ub/', label: 'today' },
-  { href: '/ub/projects/', label: 'projects' },
+  { href: '/ub/', label: 'all' },
+  { href: '/ub/boards/', label: 'boards' },
   { href: '/ub/metrics/', label: 'metrics' },
   { href: '/ub/calendar/', label: 'calendar' },
+  { href: '/ub/fisica3/', label: 'física 3' },
 ]
 
 export function HeaderNav({

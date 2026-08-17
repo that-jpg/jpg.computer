@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { apiGet, getToken, redirectToLogin, UnauthorizedError } from '../shared/api'
+import { HeaderNav } from '../shared/HeaderNav'
 import type { Fisica3Chapter, Fisica3Snapshot } from '../shared/types'
 import { badgeText, blockGroups, blockTallies, courseTotals, formatAsOf, pctOf } from './logic'
 
@@ -93,18 +94,13 @@ export function Fisica3Page() {
 
   return (
     <main>
-      <header>
-        <h1>ub <em>física 3</em> {pct != null && <span id="pct">{pct}%</span>}</h1>
-        <nav>
-          <a href="/ub/">dashboard</a>
-          <a href="/ub/calendar/">calendar</a>
-        </nav>
-      </header>
+      <HeaderNav title="física 3" current="física 3" showLogout={false} onLogout={() => {}} />
 
       <div id="topbar">
         <span id="total">
           {totals && <><strong>{totals.solved}</strong> / {totals.total} solved</>}
         </span>
+        {pct != null && <span id="pct">{pct}%</span>}
         <span id="as-of" className={asOf?.stale ? 'stale' : undefined}>{asOf?.text ?? ''}</span>
       </div>
       {snap && (

@@ -2,14 +2,16 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { apiFetch, clearToken, getToken, UnauthorizedError } from '../shared/api'
 import { HeaderNav } from '../shared/HeaderNav'
 import { LoginForm } from '../shared/LoginForm'
-import type { FinanceSnapshot, FitnessSnapshot, FrenchSnapshot, VenturesSnapshot } from '../shared/types'
+import type { FinanceSnapshot, FitnessSnapshot, FrenchSnapshot, GoalsSnapshot, VenturesSnapshot } from '../shared/types'
 import { FinanceDomain } from './FinanceDomain'
 import { FitnessDomain } from './FitnessDomain'
 import { FrenchDomain } from './FrenchDomain'
+import { MonthSection } from './MonthSection'
 import { VenturesDomain } from './VenturesDomain'
 
 export function MetricsPage() {
   const [view, setView] = useState<'boot' | 'login' | 'app'>(getToken() ? 'boot' : 'login')
+  const [goals, setGoals] = useState<GoalsSnapshot | null | undefined>(undefined)
   const [fitness, setFitness] = useState<FitnessSnapshot | null | undefined>(undefined)
   const [french, setFrench] = useState<FrenchSnapshot | null | undefined>(undefined)
   const [finance, setFinance] = useState<FinanceSnapshot | null | undefined>(undefined)
@@ -48,6 +50,11 @@ export function MetricsPage() {
     } catch {
       setVentures(null)
     }
+    try {
+      setGoals((await apiFetch<{ goals: GoalsSnapshot | null }>('goals')).goals)
+    } catch {
+      setGoals(null)
+    }
   }, [showLogin])
 
   const viewRef = useRef(view)
@@ -85,6 +92,7 @@ export function MetricsPage() {
 
       {view === 'app' && (
         <section id="app-view">
+          <MonthSection goals={goals} />
           <FitnessDomain f={fitness} />
           <FrenchDomain f={french} />
           <FinanceDomain f={finance} />

@@ -2,7 +2,7 @@ main { max-width: 980px; }
 
 header { margin-bottom: 16px; }
 
-h1 #pct {
+#topbar #pct {
   color: #7fffd4;
   font-size: 0.7em;
   font-variant-numeric: tabular-nums;

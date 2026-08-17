@@ -1,5 +1,57 @@
 main { max-width: 520px; }
 
+#month-section {
+  padding-bottom: 20px;
+  margin-bottom: 30px;
+  border-bottom: 1px solid #333;
+}
+
+#month-title {
+  color: #aaa;
+  font-size: 0.9em;
+  margin: 0 0 14px;
+}
+
+#month-title .behind { color: #fca5a5; }
+
+.month-empty {
+  color: #666;
+  font-size: 0.8em;
+  margin: 4px 0 0;
+}
+
+.month-goal {
+  display: flex;
+  gap: 12px;
+  align-items: start;
+  margin: 0 0 6px;
+}
+
+.mg-title {
+  flex: 0 0 120px;
+  color: #aaa;
+  font-size: 0.85em;
+  padding-top: 3px;
+}
+
+.mg-meters {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 2px 18px;
+}
+
+@media (max-width: 520px) {
+  .mg-meters { grid-template-columns: minmax(0, 1fr); }
+}
+
+#month-updated {
+  color: #666;
+  font-size: 0.72em;
+  text-align: right;
+  margin: 10px 0 0;
+}
+
 .domain {
   border-top: 1px solid #333;
   padding-top: 14px;

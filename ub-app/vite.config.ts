@@ -10,10 +10,11 @@ export default defineConfig({
     emptyOutDir: false,
     rollupOptions: {
       input: {
-        today: fileURLToPath(new URL('./index.html', import.meta.url)),
+        all: fileURLToPath(new URL('./index.html', import.meta.url)),
+        board: fileURLToPath(new URL('./board/index.html', import.meta.url)),
+        boards: fileURLToPath(new URL('./boards/index.html', import.meta.url)),
         fisica3: fileURLToPath(new URL('./fisica3/index.html', import.meta.url)),
         calendar: fileURLToPath(new URL('./calendar/index.html', import.meta.url)),
-        projects: fileURLToPath(new URL('./projects/index.html', import.meta.url)),
         metrics: fileURLToPath(new URL('./metrics/index.html', import.meta.url)),
       },
     },

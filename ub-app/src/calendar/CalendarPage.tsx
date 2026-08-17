@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { apiGet, getToken, redirectToLogin, UnauthorizedError } from '../shared/api'
 import { formatAsOf, pad, shortDate, timeLabel } from '../shared/format'
+import { HeaderNav } from '../shared/HeaderNav'
 import type { Calendar, CalendarEvent, CalendarSnapshot } from '../shared/types'
 import { addDays, alldayFor, fd, hourRange, layout, mondayOf, pd, timedFor, visibleEvents } from './logic'
 
@@ -150,15 +151,7 @@ export function CalendarPage() {
 
   return (
     <main ref={mainRef}>
-      <header>
-        <h1>ub <em>calendar</em></h1>
-        <nav>
-          <a href="/ub/">today</a>
-          <a href="/ub/projects/">projects</a>
-          <a href="/ub/metrics/">metrics</a>
-          <a href="/ub/calendar/" className="here">calendar</a>
-        </nav>
-      </header>
+      <HeaderNav title="calendar" current="calendar" showLogout={false} onLogout={() => {}} />
 
       <div id="toolbar">
         <button
