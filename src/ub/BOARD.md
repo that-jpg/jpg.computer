@@ -333,3 +333,11 @@ while building, all otherwise per the sections above:
   board/tests` and the bot/goals suites.
 - Timers on aiur: `dashboard-push` gained `board/signals.py`;
   `journal-done.timer` 23:30; `board-rollover.timer` 00:05.
+- **Amendment (2026-08-17, after first use): an undated open task is "todo
+  now"** — it sits in the Today swimlane's Todo cell; only a future date parks
+  it in Later × Todo, and Backlog is the one column that never shows in Today.
+  Consequently the board add-form, the all-view add-form and Inbox triage land
+  cards in **Todo** (Backlog only by dragging or from the panel), superseding
+  §2's date-only Today membership and §6's "add lands in Backlog" for undated
+  cards. The all-view also lists active boards with nothing in Today as
+  "quiet today" links so a new board is visible at once.
