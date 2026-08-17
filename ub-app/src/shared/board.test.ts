@@ -99,6 +99,7 @@ describe('inbox and registry helpers', () => {
       card({ id: 'b', project: null, order: 2 }),
       card({ id: 'a', project: null, order: 1 }),
       card({ id: 'r', project: null, kind: 'routine' }),
+      card({ id: 'd', project: null, column: 'done', doneOn: TODAY }),
       card({ id: 'p' }),
     ]
     expect(inboxCards(cards).map(c => c.id)).toEqual(['a', 'b'])

@@ -40,11 +40,17 @@ export function CardItem({ card, today, stale, dragging, onDragStart, onCycle, o
         />
       )}
       {glyph && !auto && <span className="card-glyph">{glyph}</span>}
-      {card.key && <span className="card-key">{card.key}</span>}
-      <span className="todo-text" onClick={() => onOpen(card)}>{card.text}</span>
-      {card.checklist.length > 0 && <span className="card-check">{checked}/{card.checklist.length}</span>}
-      {card.kind === 'task' && card.date && !done && <span className="due-chip">{shortDate(card.date)}</span>}
-      {card.kind === 'task' && card.expires && !done && <span className="due-chip exp">exp</span>}
+      <div className="card-body" onClick={() => onOpen(card)}>
+        <span className="todo-text">{card.text}</span>
+        {(card.key || card.checklist.length > 0 || (card.kind === 'task' && card.date && !done)) && (
+          <span className="card-meta">
+            {card.key && <span className="card-key">{card.key}</span>}
+            {card.kind === 'task' && card.date && !done && <span className="due-chip">{shortDate(card.date)}</span>}
+            {card.kind === 'task' && card.expires && !done && <span className="due-chip exp">exp</span>}
+            {card.checklist.length > 0 && <span className="card-check">{checked}/{card.checklist.length}</span>}
+          </span>
+        )}
+      </div>
     </li>
   )
 }

@@ -212,7 +212,7 @@ export function boardCards(cards: Card[], slug: string): Card[] {
 }
 
 export function inboxCards(cards: Card[]): Card[] {
-  return sortLater(cards.filter(c => c.project === null && c.kind === 'task'))
+  return sortLater(cards.filter(c => c.project === null && c.kind === 'task' && c.column !== 'done'))
 }
 
 export function openCount(cards: Card[]): number {
