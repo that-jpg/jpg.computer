@@ -93,6 +93,7 @@ export function AllPage() {
       }
     })
     .filter(row => TODAY_COLUMNS.some(c => row.cells[c].length > 0))
+  const quiet = projects.filter(p => !rows.some(row => row.id === p.slug))
 
   const drag = useCardDrag(result => actions.drop(result, rows))
 
@@ -221,6 +222,14 @@ export function AllPage() {
             />
           )}
           {!narrow && rows.length === 0 && calToday.length === 0 && <p id="empty-state">Nothing to do.</p>}
+          {quiet.length > 0 && (
+            <p id="quiet-boards">
+              <span>quiet today</span>
+              {quiet.map(p => (
+                <a key={p.slug} href={`/ub/board/${p.slug}/`}>{p.title}</a>
+              ))}
+            </p>
+          )}
 
           {stale && data.cards.some(c => c.kind === 'auto-routine' && inToday(c, today)) && (
             <p id="habit-note">

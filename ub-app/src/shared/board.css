@@ -246,6 +246,24 @@ li.kind-routine .todo-text { color: #ccc; }
 
 .calendar-row .grid-row-label { color: #8b7ae8; }
 
+#quiet-boards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  align-items: baseline;
+  margin: 14px 0 0;
+  font-size: 0.8em;
+}
+
+#quiet-boards span { color: #444; }
+
+#quiet-boards a {
+  color: #666;
+  text-decoration: none;
+}
+
+#quiet-boards a:hover { color: #7fffd4; }
+
 #habit-note {
   color: #666;
   font-size: 0.72em;

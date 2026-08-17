@@ -110,6 +110,18 @@ it('all-view renders strip, inbox, one lane per active board with cards, and the
   expect(container.querySelector('[data-cell="fitness::done"] .habit-mark')!.textContent).toBe('◆')
   expect(container.querySelector('[data-cell="defiant::doing"]')!.textContent).toContain('outreach draft')
   expect(container.querySelector('.calendar-row')!.textContent).toContain('standup')
+  const quiet = [...container.querySelectorAll('#quiet-boards a')].map(a => a.textContent)
+  expect(quiet).toEqual([])
+})
+
+it('all-view lists active boards without Today cards under the grid', async () => {
+  const data = payload()
+  data.registry.projects.push({ slug: 'work', title: 'work', prefix: 'WORK', note: '', status: 'active', order: -1, counter: 0, templates: [] })
+  vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, status: 200, json: async () => data })))
+  const container = await mount(<AllPage />)
+  const quiet = [...container.querySelectorAll('#quiet-boards a')].map(a => a.textContent)
+  expect(quiet).toEqual(['work'])
+  expect([...container.querySelectorAll('.grid-row-label')].map(el => el.textContent)).not.toContain('work')
 })
 
 it('all-view opens the card panel and patches on column click', async () => {
