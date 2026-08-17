@@ -174,28 +174,59 @@ li.done .week-toggle {
   background: #0b1512;
 }
 
-.board-grid .cell > li {
-  padding: 6px 4px;
-  gap: 8px;
+.cell.item-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 4px;
+}
+
+.item-list > li.card {
+  display: block;
+  background: #0d0d0d;
+  border: 1px solid #1f1f1f;
+  border-radius: 6px;
+  padding: 8px 10px;
   font-size: 0.92em;
-  border-bottom: 1px solid #141414;
+  user-select: none;
+  transition: border-color 0.12s, background 0.12s;
+}
+
+.item-list > li.card:hover { border-color: #3a3a3a; }
+
+.item-list > li.card.draggable { cursor: grab; }
+
+.item-list > li.card.tappable { cursor: pointer; }
+
+.item-list > li.card.dragging {
+  opacity: 0.55;
+  background: #111;
+  cursor: grabbing;
+}
+
+.item-list > li.card.doing { border-left: 3px solid #7fffd4; }
+
+.item-list > li.card.done { opacity: 0.55; }
+
+.item-list > li.card.done .todo-text { color: #666; text-decoration: line-through; }
+
+.item-list > li.card.overdue { border-color: #5a2a2a; }
+
+.item-list > li.card.kind-event { border-color: #1c1a2a; }
+
+.item-list > li.card:focus-visible { outline: 1px solid #7fffd4; }
+
+#inbox-list { display: flex; flex-direction: column; gap: 6px; }
+
+#inbox-list > li.card { border-bottom: 1px solid #1f1f1f; }
+
+.card-line {
+  display: flex;
+  gap: 8px;
   align-items: flex-start;
 }
 
-.board-grid .cell > li .todo-toggle, .board-grid .cell > li .todo-handle, .board-grid .cell > li .card-glyph, .board-grid .cell > li .habit-mark { margin-top: 2px; }
-
-.board-grid .cell > li .todo-handle { padding: 0 2px; }
-
-.card-body {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  cursor: pointer;
-}
-
-.card-body .todo-text { flex: none; }
+.card-line .todo-text { flex: 1; min-width: 0; }
 
 .card-meta {
   display: flex;
@@ -203,6 +234,13 @@ li.done .week-toggle {
   align-items: baseline;
   flex-wrap: wrap;
   line-height: 1.2;
+  margin-top: 4px;
+}
+
+.event-state {
+  color: #555;
+  font-size: 0.7em;
+  font-family: monospace;
 }
 
 .card-key {
@@ -217,6 +255,8 @@ li.done .week-toggle {
   font-size: 0.85em;
   width: 12px;
   text-align: center;
+  flex: none;
+  margin-top: 1px;
 }
 
 .card-check {
@@ -686,8 +726,8 @@ li.done .event-pill { opacity: 0.35; }
 }
 
 .habit-mark {
-  width: 18px;
-  min-width: 18px;
+  width: 12px;
+  min-width: 12px;
   text-align: center;
   color: #555;
   font-size: 0.85em;

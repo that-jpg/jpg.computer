@@ -1,7 +1,7 @@
-import { useCallback } from 'react'
+import { useCallback, useRef } from 'react'
 import { apiFetch, UnauthorizedError } from './api'
-import { inToday, nextColumn, type CalCard, type Card, type Column } from './board'
-import { parseCellKey, type GridRow } from './BoardGrid'
+import { inToday, type CalCard, type Card, type Column } from './board'
+import { CAL_ID_PREFIX, calDragId, parseCellKey, type GridRow } from './BoardGrid'
 import type { CardPatch } from './CardPanel'
 import type { DropResult } from './useCardDrag'
 import type { useBoard } from './useBoard'
@@ -37,6 +37,7 @@ function optimisticPatch(card: Card, patch: CardPatch, today: string): Card {
 
 export function useBoardActions(board: Board, today: string, onUnauthorized: () => void) {
   const { mutateCards, setCalendarDone, setStatus, markMutated } = board
+  const cycleCalRef = useRef<(card: CalCard, next: 'todo' | 'doing' | 'done') => Promise<void>>(async () => {})
 
   const patch = useCallback(
     (card: Card, fields: CardPatch) =>
@@ -46,14 +47,6 @@ export function useBoardActions(board: Board, today: string, onUnauthorized: () 
         prev => prev.map(c => (c.id === card.id ? optimisticPatch(c, fields, today) : c)),
       ),
     [mutateCards, today],
-  )
-
-  const cycle = useCallback(
-    (card: Card) => {
-      if (card.kind === 'auto-routine') return
-      patch(card, { column: nextColumn(card.column) })
-    },
-    [patch],
   )
 
   const remove = useCallback(
@@ -102,8 +95,20 @@ export function useBoardActions(board: Board, today: string, onUnauthorized: () 
     [mutateCards],
   )
 
+  const dropCal = useCallback(
+    async (result: DropResult, calCards: CalCard[]) => {
+      const target = parseCellKey(result.cellKey)
+      if (!target || target.column === 'backlog') return
+      const card = calCards.find(c => calDragId(c) === result.id)
+      if (!card || card.state === target.column) return
+      await cycleCalRef.current(card, target.column)
+    },
+    [],
+  )
+
   const drop = useCallback(
-    async (result: DropResult, rows: GridRow[]) => {
+    async (result: DropResult, rows: GridRow[], calCards: CalCard[] = []) => {
+      if (result.id.startsWith(CAL_ID_PREFIX)) return dropCal(result, calCards)
       const target = parseCellKey(result.cellKey)
       if (!target || !board.data) return
       const row = rows.find(r => r.id === target.rowId)
@@ -133,7 +138,7 @@ export function useBoardActions(board: Board, today: string, onUnauthorized: () 
         )
       }
     },
-    [board.data, mutateCards, patch, today],
+    [board.data, dropCal, mutateCards, patch, today],
   )
 
   const cycleCal = useCallback(
@@ -159,6 +164,7 @@ export function useBoardActions(board: Board, today: string, onUnauthorized: () 
     },
     [markMutated, onUnauthorized, setCalendarDone, setStatus],
   )
+  cycleCalRef.current = cycleCal
 
-  return { patch, cycle, remove, add, drop, cycleCal }
+  return { patch, remove, add, drop, cycleCal }
 }

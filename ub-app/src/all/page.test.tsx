@@ -110,6 +110,7 @@ it('all-view renders strip, inbox, one lane per active board with cards, and the
   expect(iwaTodo.textContent).toContain('IWA-1')
   expect(container.querySelector('[data-cell="iwa::done"]')!.textContent).toContain('done thing')
   expect(container.querySelector('[data-cell="fitness::done"] .habit-mark')!.textContent).toBe('◆')
+  expect(container.querySelector('.todo-toggle')).toBeNull()
   expect(container.querySelector('[data-cell="defiant::doing"]')!.textContent).toContain('outreach draft')
   expect(container.querySelector('.calendar-row')!.textContent).toContain('standup')
   const quiet = [...container.querySelectorAll('#quiet-boards a')].map(a => a.textContent)
@@ -128,8 +129,8 @@ it('all-view lists active boards without Today cards under the grid', async () =
 
 it('all-view opens the card panel and patches on column click', async () => {
   const container = await mount(<AllPage />)
-  const title = [...container.querySelectorAll('[data-cell="iwa::todo"] .todo-text')].find(el => el.textContent === 'kiln pickup') as HTMLElement
-  await act(async () => { title.click() })
+  const li = [...container.querySelectorAll('[data-cell="iwa::todo"] li.card')].find(el => el.textContent!.includes('kiln pickup')) as HTMLElement
+  await act(async () => { li.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true })) })
   const panel = container.querySelector('#card-panel')!
   expect((panel.querySelector('.panel-title') as HTMLInputElement).value).toBe('kiln pickup')
   const doneButton = [...panel.querySelectorAll('.panel-columns button')].find(b => b.textContent === 'done') as HTMLButtonElement

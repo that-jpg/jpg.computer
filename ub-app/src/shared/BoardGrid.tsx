@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { COLUMNS, type CalCard, type Card, type Column, type Lane } from './board'
 import { CardItem } from './CardItem'
+import { usePressDrag } from './usePressDrag'
 
 export interface GridRow {
   id: string
@@ -45,7 +46,6 @@ export interface BoardGridProps {
   hoverCell: string | null
   previewIds: string[] | null
   startDrag: (id: string) => (e: React.PointerEvent) => void
-  onCycle: (card: Card) => void
   onOpen: (card: Card) => void
   extraRows?: ReactNode
   columnsShown?: Column[]
@@ -59,7 +59,6 @@ export function BoardGrid({
   hoverCell,
   previewIds,
   startDrag,
-  onCycle,
   onOpen,
   extraRows,
   columnsShown = COLUMNS,
@@ -93,7 +92,6 @@ export function BoardGrid({
                     stale={stale && card.kind === 'auto-routine'}
                     dragging={draggingId === card.id}
                     onDragStart={row.draggable && card.kind !== 'auto-routine' ? startDrag(card.id) : undefined}
-                    onCycle={onCycle}
                     onOpen={onOpen}
                   />
                 ))}
@@ -106,58 +104,84 @@ export function BoardGrid({
   )
 }
 
+export const CAL_ID_PREFIX = 'cal:'
+
+export function calDragId(card: CalCard): string {
+  return `${CAL_ID_PREFIX}${card.date}|${card.key}`
+}
+
 export function CalCardItem({
   card,
-  onCycle,
+  dragging,
+  onDragStart,
 }: {
   card: CalCard
-  onCycle: (card: CalCard, next: 'todo' | 'doing' | 'done') => void
+  dragging?: boolean
+  onDragStart?: (e: React.PointerEvent) => void
 }) {
-  const next = card.state === 'todo' ? 'doing' : card.state === 'doing' ? 'done' : 'todo'
+  const { onPress } = usePressDrag()
   const classes = [
     'card',
     'kind-event',
     card.state === 'done' ? 'done' : '',
     card.state === 'doing' ? 'doing' : '',
     card.ended && card.state !== 'done' ? 'event-past' : '',
+    dragging ? 'dragging' : '',
+    onDragStart ? 'draggable' : '',
   ].filter(Boolean).join(' ')
   return (
-    <li className={classes} data-cal={card.key}>
-      <button className="todo-toggle" aria-label={`Mark as ${next}`} onClick={() => onCycle(card, next)} />
-      <span className="todo-text">{card.ev.title}</span>
-      {!card.ev.allDay && (
-        <span className="event-time">{card.ev.start.slice(11, 16)}–{card.ev.end.slice(11, 16)}</span>
-      )}
-      <span className="event-pill" style={{ background: card.color }}>{card.calLabel}</span>
+    <li className={classes} data-id={calDragId(card)} onPointerDown={onPress(onDragStart, () => {})}>
+      <div className="card-line">
+        <span className="todo-text">{card.ev.title}</span>
+      </div>
+      <div className="card-meta">
+        {!card.ev.allDay && (
+          <span className="event-time">{card.ev.start.slice(11, 16)}–{card.ev.end.slice(11, 16)}</span>
+        )}
+        {card.date && <span className="event-pill" style={{ background: card.color }}>{card.calLabel}</span>}
+      </div>
     </li>
   )
 }
 
 export function CalendarRow({
+  id = 'calendar',
   label,
   lane,
   cells,
   columnsShown = COLUMNS,
-  onCycle,
+  draggingId,
+  hoverCell,
+  startDrag,
 }: {
+  id?: string
   label: ReactNode
   lane: Lane
   cells: Record<Column, CalCard[]>
   columnsShown?: Column[]
-  onCycle: (card: CalCard, next: 'todo' | 'doing' | 'done') => void
+  draggingId?: string | null
+  hoverCell?: string | null
+  startDrag?: (id: string) => (e: React.PointerEvent) => void
 }) {
   return (
     <div className={`grid-row lane-${lane} calendar-row`} style={{ display: 'contents' }}>
       <div className="grid-row-label">{label}</div>
-      {columnsShown.map(column => (
-        column === 'backlog'
-          ? <div key={column} className="cell void" />
-          : (
-            <ul key={column} className="cell item-list">
-              {cells[column].map(card => <CalCardItem key={`${card.date}|${card.key}`} card={card} onCycle={onCycle} />)}
-            </ul>
-          )
-      ))}
+      {columnsShown.map(column => {
+        if (column === 'backlog') return <div key={column} className="cell void" />
+        const key = cellKey(id, column)
+        return (
+          <ul key={column} className={`cell item-list${hoverCell === key ? ' drop-target' : ''}`} data-cell={key}>
+            {cells[column].map(card => (
+              <CalCardItem
+                key={`${card.date}|${card.key}`}
+                card={card}
+                dragging={draggingId === calDragId(card)}
+                onDragStart={startDrag ? startDrag(calDragId(card)) : undefined}
+              />
+            ))}
+          </ul>
+        )
+      })}
     </div>
   )
 }

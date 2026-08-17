@@ -95,10 +95,9 @@ export function AllPage() {
     .filter(row => TODAY_COLUMNS.some(c => row.cells[c].length > 0))
   const quiet = projects.filter(p => !rows.some(row => row.id === p.slug))
 
-  const drag = useCardDrag(result => actions.drop(result, rows))
-
   const cal = data ? calendarCards(data.calendar, data.calendarDone, today, new Date(data.now)) : []
   const calToday = cal.filter(c => c.date === today)
+  const drag = useCardDrag(result => actions.drop(result, rows, calToday))
   const inbox = data ? inboxCards(data.cards) : []
   const openCard = data && openId ? data.cards.find(c => c.id === openId) || null : null
   const stale = data ? signalsStale(data) : true
@@ -151,7 +150,7 @@ export function AllPage() {
           </form>
           <ul id="inbox-list" className="item-list">
             {inbox.map(card => (
-              <CardItem key={card.id} card={card} today={today} onCycle={actions.cycle} onOpen={c => setOpenId(c.id)} />
+              <CardItem key={card.id} card={card} today={today} onOpen={c => setOpenId(c.id)} />
             ))}
           </ul>
 
@@ -167,10 +166,16 @@ export function AllPage() {
                   <div className="phone-group-label">calendar</div>
                   <ul className="item-list">
                     {[...calToday.filter(c => c.state !== 'done'), ...calToday.filter(c => c.state === 'done')].map(c => (
-                      <li key={c.key} className={`card kind-event${c.state === 'done' ? ' done' : c.state === 'doing' ? ' doing' : ''}${c.ended && c.state !== 'done' ? ' event-past' : ''}`}>
-                        <button className="todo-toggle" aria-label="Cycle event" onClick={() => actions.cycleCal(c, c.state === 'todo' ? 'doing' : c.state === 'doing' ? 'done' : 'todo')} />
-                        <span className="todo-text">{c.ev.title}</span>
-                        {!c.ev.allDay && <span className="event-time">{c.ev.start.slice(11, 16)}</span>}
+                      <li
+                        key={c.key}
+                        className={`card kind-event tappable${c.state === 'done' ? ' done' : c.state === 'doing' ? ' doing' : ''}${c.ended && c.state !== 'done' ? ' event-past' : ''}`}
+                        onClick={() => actions.cycleCal(c, c.state === 'todo' ? 'doing' : c.state === 'doing' ? 'done' : 'todo')}
+                      >
+                        <div className="card-line"><span className="todo-text">{c.ev.title}</span></div>
+                        <div className="card-meta">
+                          {!c.ev.allDay && <span className="event-time">{c.ev.start.slice(11, 16)}</span>}
+                          <span className="event-state">{c.state}</span>
+                        </div>
                       </li>
                     ))}
                   </ul>
@@ -188,7 +193,6 @@ export function AllPage() {
                           card={card}
                           today={today}
                           stale={stale && card.kind === 'auto-routine'}
-                          onCycle={actions.cycle}
                           onOpen={c => setOpenId(c.id)}
                         />
                       ))}
@@ -208,7 +212,6 @@ export function AllPage() {
               hoverCell={drag.hoverCell}
               previewIds={drag.previewIds}
               startDrag={drag.startDrag}
-              onCycle={actions.cycle}
               onOpen={card => setOpenId(card.id)}
               extraRows={calToday.length > 0 ? (
                 <CalendarRow
@@ -216,7 +219,9 @@ export function AllPage() {
                   lane="today"
                   cells={calendarCells(calToday)}
                   columnsShown={TODAY_COLUMNS}
-                  onCycle={actions.cycleCal}
+                  draggingId={drag.draggingId}
+                  hoverCell={drag.hoverCell}
+                  startDrag={drag.startDrag}
                 />
               ) : undefined}
             />

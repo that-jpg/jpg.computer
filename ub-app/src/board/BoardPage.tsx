@@ -150,11 +150,10 @@ export function BoardPage({ slug: slugProp }: { slug?: string }) {
       ]
     : []
 
-  const drag = useCardDrag(result => actions.drop(result, rows))
-
   const cal = data && isCalendar ? calendarCards(data.calendar, data.calendarDone, today, new Date(data.now)) : []
   const calToday = cal.filter(c => c.date === today)
   const calLater = cal.filter(c => c.date > today)
+  const drag = useCardDrag(result => actions.drop(result, rows, cal))
   const openCard = data && openId ? data.cards.find(c => c.id === openId) || null : null
   const stale = data ? signalsStale(data) : true
   const title = isCalendar ? 'calendar' : project ? project.title : slug || 'board'
@@ -261,10 +260,16 @@ export function BoardPage({ slug: slugProp }: { slug?: string }) {
                     <div className="phone-group-label">{label as string}</div>
                     <ul className="item-list">
                       {(list as typeof cal).map(c => (
-                        <li key={`${c.date}|${c.key}`} className={`card kind-event${c.state === 'done' ? ' done' : c.state === 'doing' ? ' doing' : ''}`}>
-                          <button className="todo-toggle" aria-label="Cycle event" onClick={() => actions.cycleCal(c, c.state === 'todo' ? 'doing' : c.state === 'doing' ? 'done' : 'todo')} />
-                          <span className="todo-text">{c.ev.title}</span>
-                          <span className="event-time">{c.date === today ? c.ev.start.slice(11, 16) : c.date.slice(5)}</span>
+                        <li
+                          key={`${c.date}|${c.key}`}
+                          className={`card kind-event tappable${c.state === 'done' ? ' done' : c.state === 'doing' ? ' doing' : ''}`}
+                          onClick={() => actions.cycleCal(c, c.state === 'todo' ? 'doing' : c.state === 'doing' ? 'done' : 'todo')}
+                        >
+                          <div className="card-line"><span className="todo-text">{c.ev.title}</span></div>
+                          <div className="card-meta">
+                            <span className="event-time">{c.date === today ? c.ev.start.slice(11, 16) : c.date.slice(5)}</span>
+                            <span className="event-state">{c.state}</span>
+                          </div>
                         </li>
                       ))}
                     </ul>
@@ -276,16 +281,15 @@ export function BoardPage({ slug: slugProp }: { slug?: string }) {
                 today={today}
                 rows={[]}
                 columnsShown={COLUMNS}
-                draggingId={null}
-                hoverCell={null}
-                previewIds={null}
-                startDrag={() => () => {}}
-                onCycle={() => {}}
+                draggingId={drag.draggingId}
+                hoverCell={drag.hoverCell}
+                previewIds={drag.previewIds}
+                startDrag={drag.startDrag}
                 onOpen={() => {}}
                 extraRows={
                   <>
-                    <CalendarRow label="today" lane="today" cells={calendarCells(calToday)} onCycle={actions.cycleCal} />
-                    <CalendarRow label="later" lane="later" cells={calendarCells(calLater)} onCycle={actions.cycleCal} />
+                    <CalendarRow id="cal-today" label="today" lane="today" cells={calendarCells(calToday)} draggingId={drag.draggingId} hoverCell={drag.hoverCell} startDrag={drag.startDrag} />
+                    <CalendarRow id="cal-later" label="later" lane="later" cells={calendarCells(calLater)} draggingId={drag.draggingId} hoverCell={drag.hoverCell} startDrag={drag.startDrag} />
                   </>
                 }
               />
@@ -305,7 +309,6 @@ export function BoardPage({ slug: slugProp }: { slug?: string }) {
                           card={card}
                           today={today}
                           stale={stale && card.kind === 'auto-routine'}
-                          onCycle={actions.cycle}
                           onOpen={c => setOpenId(c.id)}
                         />
                       ))}
@@ -323,7 +326,6 @@ export function BoardPage({ slug: slugProp }: { slug?: string }) {
                 hoverCell={drag.hoverCell}
                 previewIds={drag.previewIds}
                 startDrag={drag.startDrag}
-                onCycle={actions.cycle}
                 onOpen={card => setOpenId(card.id)}
               />
             )
