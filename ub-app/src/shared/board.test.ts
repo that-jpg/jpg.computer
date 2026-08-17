@@ -44,7 +44,10 @@ describe('inToday', () => {
     expect(inToday(card({ id: 'a', date: TODAY }), TODAY)).toBe(true)
     expect(inToday(card({ id: 'b', date: '2026-08-10' }), TODAY)).toBe(true)
     expect(inToday(card({ id: 'c', date: '2026-08-20' }), TODAY)).toBe(false)
-    expect(inToday(card({ id: 'd' }), TODAY)).toBe(false)
+    expect(inToday(card({ id: 'd' }), TODAY)).toBe(true)
+    expect(inToday(card({ id: 'd2', column: 'backlog' }), TODAY)).toBe(false)
+    expect(inToday(card({ id: 'd3', column: 'doing' }), TODAY)).toBe(true)
+    expect(inToday(card({ id: 'd4', project: null }), TODAY)).toBe(false)
     expect(inToday(card({ id: 'e', column: 'done', doneOn: TODAY }), TODAY)).toBe(true)
     expect(inToday(card({ id: 'f', column: 'done', doneOn: '2026-08-16', date: TODAY }), TODAY)).toBe(false)
   })
@@ -57,7 +60,8 @@ describe('inToday', () => {
 
 describe('laneCells and ordering', () => {
   const cards = [
-    card({ id: 'later-todo', order: 2 }),
+    card({ id: 'later-todo', order: 2, date: '2026-09-01' }),
+    card({ id: 'undated', order: 7 }),
     card({ id: 'backlog', column: 'backlog', order: 0 }),
     card({ id: 'today-todo', date: TODAY, order: 5 }),
     card({ id: 'overdue', date: '2026-08-15', order: 1 }),
@@ -70,7 +74,7 @@ describe('laneCells and ordering', () => {
 
   it('splits into today and later lanes with urgency order in Today', () => {
     const cells = laneCells(cards, TODAY)
-    expect(cells.today.todo.map(c => c.id)).toEqual(['pinned', 'overdue', 'today-todo', 'routine', 'auto'])
+    expect(cells.today.todo.map(c => c.id)).toEqual(['pinned', 'overdue', 'today-todo', 'undated', 'routine', 'auto'])
     expect(cells.today.done.map(c => c.id)).toEqual(['done-today'])
     expect(cells.later.backlog.map(c => c.id)).toEqual(['backlog'])
     expect(cells.later.todo.map(c => c.id)).toEqual(['later-todo'])
@@ -87,7 +91,7 @@ describe('laneCells and ordering', () => {
   })
 
   it('counts open Today cards and flags overdue', () => {
-    expect(todayLeft(cards, TODAY)).toBe(5)
+    expect(todayLeft(cards, TODAY)).toBe(6)
     expect(isOverdue(card({ id: 'x', date: '2026-08-01' }), TODAY)).toBe(true)
     expect(isOverdue(card({ id: 'y', date: '2026-08-01', column: 'done' }), TODAY)).toBe(false)
   })

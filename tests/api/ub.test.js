@@ -88,10 +88,12 @@ test('creating a project and cards mints keys and lands columns per the rules', 
   res = await call('POST', 'cards', { body: { text: 'glaze test', project: 'iwa' } });
   assert.equal(res.statusCode, 200);
   assert.equal(res.payload.card.key, 'IWA-1');
+  assert.equal(res.payload.card.column, 'todo');
+  res = await call('POST', 'cards', { body: { text: 'someday', project: 'iwa', column: 'backlog' } });
   assert.equal(res.payload.card.column, 'backlog');
 
   res = await call('POST', 'cards', { body: { text: 'kiln pickup', project: 'iwa', date: TODAY, expires: true } });
-  assert.equal(res.payload.card.key, 'IWA-2');
+  assert.equal(res.payload.card.key, 'IWA-3');
   assert.equal(res.payload.card.column, 'todo');
   assert.equal(res.payload.card.expires, true);
 
@@ -104,8 +106,8 @@ test('creating a project and cards mints keys and lands columns per the rules', 
   assert.equal(res.statusCode, 400);
 
   res = await call('PATCH', 'cards', { body: { id: inboxId, project: 'iwa' } });
-  assert.equal(res.payload.card.key, 'IWA-3');
-  assert.equal(res.payload.card.column, 'backlog');
+  assert.equal(res.payload.card.key, 'IWA-4');
+  assert.equal(res.payload.card.column, 'todo');
 
   res = await call('PATCH', 'cards', { body: { id: inboxId, column: 'doing' } });
   assert.equal(res.payload.card.column, 'doing');
@@ -123,7 +125,19 @@ test('creating a project and cards mints keys and lands columns per the rules', 
   assert.equal(res.statusCode, 400);
 
   const registry = readKey('ub-board-registry');
-  assert.equal(registry.projects[0].counter, 3);
+  assert.equal(registry.projects[0].counter, 4);
+});
+
+test('undated todo cards belong to today; backlog and future-dated ones do not', async () => {
+  await call('POST', 'projects', { body: { slug: 'iwa', prefix: 'IWA' } });
+  const undated = (await call('POST', 'cards', { body: { text: 'u', project: 'iwa' } })).payload.card;
+  const future = (await call('POST', 'cards', { body: { text: 'f', project: 'iwa', date: '2099-01-01' } })).payload.card;
+  const backlog = (await call('POST', 'cards', { body: { text: 'b', project: 'iwa', column: 'backlog' } })).payload.card;
+  const res = await call('PUT', 'today-order', { body: { order: [backlog.id, future.id, undated.id] } });
+  const today = Object.fromEntries(res.payload.cards.map(x => [x.id, x.todayOrder]));
+  assert.equal(today[undated.id], 2);
+  assert.equal(today[future.id], null);
+  assert.equal(today[backlog.id], null);
 });
 
 test('rollover spawns routines, honours away and on-signal, evaluates auto-routines, expires and archives', async () => {

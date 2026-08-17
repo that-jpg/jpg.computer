@@ -37,6 +37,7 @@ export function payload(): AllPayload {
     cards: [
       card({ id: 'k1', text: 'kiln pickup', key: 'IWA-1', date: TODAY }),
       card({ id: 'k2', text: 'glaze', key: 'IWA-2', column: 'backlog' }),
+      card({ id: 'k4', text: 'trim handles', key: 'IWA-4' }),
       card({ id: 'k3', text: 'outreach draft', key: 'DEF-1', project: 'defiant', column: 'doing', date: TODAY }),
       card({ id: 'r1', text: 'anki', kind: 'routine', project: 'french', date: TODAY, template: 't1' }),
       card({ id: 'a1', text: 'food logged', kind: 'auto-routine', project: 'fitness', date: TODAY, template: 't2', signal: 'food', column: 'done', doneOn: TODAY, doneVia: 'signal' }),
@@ -102,9 +103,10 @@ it('all-view renders strip, inbox, one lane per active board with cards, and the
   expect(container.querySelectorAll('#inbox-list > li')).toHaveLength(1)
   const labels = [...container.querySelectorAll('.grid-row-label')].map(el => el.textContent)
   expect(labels).toEqual(['calendar', 'fitness', 'french', 'iwa', 'defiant'])
-  expect(container.querySelector('#today-count')!.textContent).toBe('4 left')
+  expect(container.querySelector('#today-count')!.textContent).toBe('5 left')
   const iwaTodo = container.querySelector('[data-cell="iwa::todo"]')!
   expect(iwaTodo.textContent).toContain('kiln pickup')
+  expect(iwaTodo.textContent).toContain('trim handles')
   expect(iwaTodo.textContent).toContain('IWA-1')
   expect(container.querySelector('[data-cell="iwa::done"]')!.textContent).toContain('done thing')
   expect(container.querySelector('[data-cell="fitness::done"] .habit-mark')!.textContent).toBe('◆')
@@ -142,8 +144,9 @@ it('board page renders today and later lanes for its slug with header chrome', a
   expect(container.querySelector('h1')!.textContent).toContain('iwa')
   expect(container.querySelector('.board-prefix')!.textContent).toBe('IWA')
   expect(container.querySelector('.board-note')!.textContent).toBe('cycle 1')
-  expect(container.querySelector('.board-count')!.textContent).toBe('2 open')
+  expect(container.querySelector('.board-count')!.textContent).toBe('3 open')
   expect(container.querySelector('[data-cell="today::todo"]')!.textContent).toContain('kiln pickup')
+  expect(container.querySelector('[data-cell="today::todo"]')!.textContent).toContain('trim handles')
   expect(container.querySelector('[data-cell="later::backlog"]')!.textContent).toContain('glaze')
   expect(container.querySelector('[data-cell="today::done"]')!.textContent).toContain('done thing')
   expect(container.querySelector('#templates-toggle')!.textContent).toBe('routines (0)')

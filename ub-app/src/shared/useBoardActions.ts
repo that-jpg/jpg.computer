@@ -30,7 +30,7 @@ function optimisticPatch(card: Card, patch: CardPatch, today: string): Card {
   }
   if (patch.date && next.column === 'backlog') next.column = 'todo'
   if (patch.project !== undefined && card.project === null && patch.project && next.column !== 'done') {
-    next.column = next.date ? 'todo' : 'backlog'
+    next.column = 'todo'
   }
   return next
 }
@@ -72,7 +72,7 @@ export function useBoardActions(board: Board, today: string, onUnauthorized: () 
       if (!text) return Promise.resolve(null)
       const project = input.project ?? null
       const date = project ? (input.date ?? null) : null
-      const column: Column = project ? (date ? 'todo' : (input.column === 'todo' ? 'todo' : 'backlog')) : 'todo'
+      const column: Column = project && !date && input.column === 'backlog' ? 'backlog' : 'todo'
       const pending: Card = {
         id: `pending-${Date.now()}`,
         text,
@@ -113,8 +113,8 @@ export function useBoardActions(board: Board, today: string, onUnauthorized: () 
       const fields: CardPatch = {}
       if (card.kind === 'task') {
         const wasToday = inToday(card, today)
-        if (row.lane === 'today' && !wasToday && column !== 'done') fields.date = today
-        if (row.lane === 'later' && wasToday && column !== 'done' && column !== 'doing') fields.date = null
+        if (row.lane === 'today' && !wasToday && column !== 'done' && card.date) fields.date = today
+        if (row.lane === 'later' && wasToday && column === 'todo' && card.date) fields.date = null
       }
       if (column !== card.column) fields.column = column
       if (Object.keys(fields).length) await patch(card, fields)

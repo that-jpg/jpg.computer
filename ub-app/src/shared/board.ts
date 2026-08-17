@@ -138,7 +138,8 @@ export function nextColumn(column: Column): Column {
 export function inToday(card: Card, today: string): boolean {
   if (card.kind !== 'task') return card.date === today
   if (card.column === 'done') return card.doneOn === today
-  return Boolean(card.date) && card.date! <= today
+  if (card.column === 'backlog' || card.project === null) return false
+  return !card.date || card.date <= today
 }
 
 export function isOverdue(card: Card, today: string): boolean {

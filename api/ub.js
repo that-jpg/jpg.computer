@@ -303,7 +303,8 @@ function signalValue(signals, name, today) {
 function inToday(card, today) {
   if (card.kind !== 'task') return card.date === today;
   if (card.column === 'done') return card.doneOn === today;
-  return Boolean(card.date) && card.date <= today;
+  if (card.column === 'backlog' || card.project === null) return false;
+  return !card.date || card.date <= today;
 }
 
 function findProject(registry, slug) {
@@ -512,7 +513,7 @@ async function handleCards(req, res, board) {
     const date = body.date == null ? null : body.date;
     const column = project === null ? 'todo'
       : date ? 'todo'
-      : body.column === 'todo' ? 'todo' : 'backlog';
+      : body.column === 'backlog' ? 'backlog' : 'todo';
     const card = {
       id: crypto.randomUUID(),
       text,
@@ -586,7 +587,7 @@ async function handleCards(req, res, board) {
           card.key = mintKey(target);
           registryChanged = true;
         }
-        if (fromInbox && card.column !== 'done') card.column = card.date ? 'todo' : 'backlog';
+        if (fromInbox && card.column !== 'done') card.column = 'todo';
         card.order = nextOrder(cards.filter(c => c !== card), card.project, card.column);
       }
     }
@@ -757,7 +758,7 @@ async function handleLegacyTodos(req, res, board) {
     const project = body.project != null ? String(body.project) : null;
     const target = project ? findProject(registry, project) : null;
     const date = body.due != null ? body.due : null;
-    const column = project ? (date ? 'todo' : 'backlog') : 'todo';
+    const column = 'todo';
     cards.push({
       id: crypto.randomUUID(),
       text,
@@ -808,7 +809,7 @@ async function handleLegacyTodos(req, res, board) {
         card.key = mintKey(target);
         await writeRegistry(registry);
       }
-      if (project && fromInbox && card.column !== 'done') card.column = card.date ? 'todo' : 'backlog';
+      if (project && fromInbox && card.column !== 'done') card.column = 'todo';
       if (!project && card.column === 'backlog') card.column = 'todo';
     }
     if (due !== undefined) {
