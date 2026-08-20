@@ -178,6 +178,7 @@ export interface Fisica3Chapter {
   ad_start: number
   max: number
   solved: number[]
+  wrong: number[]
   deadline: string | null
   status: ChapterStatus
 }

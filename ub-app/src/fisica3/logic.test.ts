@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Fisica3Chapter, Fisica3Snapshot } from '../shared/types'
-import { badgeText, blockGroups, blockTallies, courseTotals, formatAsOf, pctOf, STALE_MS } from './logic'
+import { badgeText, blockGroups, blockTallies, courseTotals, formatAsOf, pctOf, redoText, STALE_MS, wrongSet } from './logic'
 
 function chapter(overrides: Partial<Fisica3Chapter> = {}): Fisica3Chapter {
   return {
@@ -11,6 +11,7 @@ function chapter(overrides: Partial<Fisica3Chapter> = {}): Fisica3Chapter {
     ad_start: 41,
     max: 50,
     solved: [],
+    wrong: [],
     deadline: null,
     status: 'no_date',
     ...overrides,
@@ -54,8 +55,28 @@ describe('courseTotals and pctOf', () => {
       chapters: [chapter({ solved: [1, 2, 3] }), chapter({ ch: 2, max: 30, solved: [5] })],
     } as Fisica3Snapshot
     const totals = courseTotals(snap)
-    expect(totals).toEqual({ total: 80, solved: 4 })
+    expect(totals).toEqual({ total: 80, solved: 4, wrong: 0 })
     expect(pctOf(totals.solved, totals.total)).toBe('5.0')
+  })
+
+  it('counts wrong items across chapters', () => {
+    const snap = {
+      chapters: [chapter({ solved: [1, 2, 3], wrong: [2] }), chapter({ ch: 2, max: 30, solved: [5], wrong: [5] })],
+    } as Fisica3Snapshot
+    expect(courseTotals(snap).wrong).toBe(2)
+  })
+})
+
+describe('wrongSet and redoText', () => {
+  it('tolerates snapshots without the wrong field', () => {
+    const legacy = { ...chapter(), wrong: undefined } as unknown as Fisica3Chapter
+    expect(wrongSet(legacy).size).toBe(0)
+    expect(wrongSet(chapter({ wrong: [3, 4] }))).toEqual(new Set([3, 4]))
+  })
+
+  it('formats the redo suffix', () => {
+    expect(redoText(0)).toBe('')
+    expect(redoText(2)).toBe(' · 2 to redo')
   })
 
   it('renders 0.0 for an empty course', () => {

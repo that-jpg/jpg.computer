@@ -150,7 +150,22 @@ header a:hover { color: #7fffd4; }
   font-weight: 600;
 }
 
+.cell.wrong {
+  background: #fca5a5;
+  border-color: #fca5a5;
+  color: black;
+  font-weight: 600;
+}
+
 .cell.ad-first { margin-left: 12px; }
+
+.redo {
+  color: #fca5a5;
+  font-size: 0.8em;
+  font-variant-numeric: tabular-nums;
+}
+
+#total .redo { font-size: 0.9em; }
 
 #legend {
   margin-top: 26px;

@@ -2,17 +2,19 @@ import { useCallback, useEffect, useState } from 'react'
 import { apiGet, getToken, redirectToLogin, UnauthorizedError } from '../shared/api'
 import { HeaderNav } from '../shared/HeaderNav'
 import type { Fisica3Chapter, Fisica3Snapshot } from '../shared/types'
-import { badgeText, blockGroups, blockTallies, courseTotals, formatAsOf, pctOf } from './logic'
+import { badgeText, blockGroups, blockTallies, courseTotals, formatAsOf, pctOf, redoText, wrongSet } from './logic'
 
 const BLOCK_LABELS = { MC: 'múltipla escolha', Q: 'questões', P: 'problemas' } as const
 
 function Chapter({ ch }: { ch: Fisica3Chapter }) {
   const solved = new Set(ch.solved)
+  const wrong = wrongSet(ch)
   return (
     <section className="chapter">
       <div className="chapter-head">
         <h2>{ch.ch} <span>· {ch.title}</span></h2>
         <span className="tally">{solved.size}/{ch.max}</span>
+        {wrong.size > 0 && <span className="redo">{redoText(wrong.size).trim()}</span>}
         <span className="ch-pct">{(100 * solved.size / ch.max).toFixed(1)}%</span>
         <span className="blocks">{blockTallies(ch)}</span>
         <span className={`badge ${ch.status}`}>{badgeText(ch)}</span>
@@ -28,8 +30,8 @@ function Chapter({ ch }: { ch: Fisica3Chapter }) {
               {Array.from({ length: block.to - block.from + 1 }, (_, i) => block.from + i).map(n => (
                 <span
                   key={n}
-                  className={`cell${solved.has(n) ? ' solved' : ''}${block.label === 'P' && n === ch.ad_start ? ' ad-first' : ''}`}
-                  title={`${ch.ch}.${n} — ${solved.has(n) ? 'solved' : 'missing'}`}
+                  className={`cell${solved.has(n) ? ' solved' : ''}${wrong.has(n) ? ' wrong' : ''}${block.label === 'P' && n === ch.ad_start ? ' ad-first' : ''}`}
+                  title={`${ch.ch}.${n} — ${wrong.has(n) ? 'wrong' : solved.has(n) ? 'solved' : 'missing'}`}
                 >
                   {n}
                 </span>
@@ -98,7 +100,7 @@ export function Fisica3Page() {
 
       <div id="topbar">
         <span id="total">
-          {totals && <><strong>{totals.solved}</strong> / {totals.total} solved</>}
+          {totals && <><strong>{totals.solved}</strong> / {totals.total} solved{totals.wrong > 0 && <span className="redo">{redoText(totals.wrong)}</span>}</>}
         </span>
         {pct != null && <span id="pct">{pct}%</span>}
         <span id="as-of" className={asOf?.stale ? 'stale' : undefined}>{asOf?.text ?? ''}</span>
@@ -122,6 +124,7 @@ export function Fisica3Page() {
       {snap && (
         <div id="legend">
           <span><span className="cell solved" style={{ width: 22 }}>7</span> solved</span>
+          <span><span className="cell solved wrong" style={{ width: 22 }}>7</span> wrong — redo</span>
           <span><span className="cell" style={{ width: 22 }}>7</span> missing</span>
           <span>MC = múltipla escolha · Q = questões · P = problemas (gap = adicionais)</span>
           <span>log via Vapula on Telegram</span>

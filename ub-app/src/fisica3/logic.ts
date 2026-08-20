@@ -37,10 +37,19 @@ export function badgeText(ch: Fisica3Chapter): string {
     : BADGE_TEXT[ch.status]
 }
 
-export function courseTotals(snap: Fisica3Snapshot): { total: number; solved: number } {
+export function wrongSet(ch: Fisica3Chapter): Set<number> {
+  return new Set(ch.wrong ?? [])
+}
+
+export function redoText(count: number): string {
+  return count ? ` · ${count} to redo` : ''
+}
+
+export function courseTotals(snap: Fisica3Snapshot): { total: number; solved: number; wrong: number } {
   return {
     total: snap.chapters.reduce((sum, ch) => sum + ch.max, 0),
     solved: snap.chapters.reduce((sum, ch) => sum + ch.solved.length, 0),
+    wrong: snap.chapters.reduce((sum, ch) => sum + wrongSet(ch).size, 0),
   }
 }
 
