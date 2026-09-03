@@ -71,8 +71,8 @@ export function FightPage() {
 
       <p id="intro">
         Every exercise in <em>{snap?.book ?? 'Bauer, Westfall, Dias — Física para Universitários: Eletricidade e Magnetismo'}</em>,
-        solved one by one. Each solution is photographed, sent to Vapula (a Telegram bot), and graded blind by Claude;
-        cells with a white underline link to the solutions that were reviewed as <strong>correct</strong>.
+        solved one by one. Each solution is photographed and graded;
+        cells with a white underline link to the solutions that were graded <strong>correct</strong>.
       </p>
 
       <div id="topbar">
