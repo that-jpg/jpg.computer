@@ -853,6 +853,12 @@ module.exports = async function handler(req, res) {
   try {
     if (action === 'login' && req.method === 'POST') return await login(req, res);
 
+    // Public read: the física 3 snapshot also feeds jpg.computer/fight-against-evil.
+    if (action === 'fisica3-public' && req.method === 'GET') {
+      res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate=600');
+      return res.json({ fisica3: await readJson('ub-fisica3', null) });
+    }
+
     const token = await authenticate(req);
     if (!token) return res.status(401).json({ error: 'Unauthorized' });
 

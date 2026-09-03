@@ -5,6 +5,7 @@
 <section id="courses">
 	<h2>Courses, workshops & presentations.</h2>
 	<p> From ninja to samurai, how to use the <a href="./c_samurai/index.html">Language C.</a></p>
+	<p> Física 3, the <a href="./fight-against-evil">fight against evil</a>: every exercise in the book, and the solutions that survived review.</p>
 </section>
 <section>
 	<h2>Climbing.</h2>
@@ -27,6 +28,7 @@
 <section id="changelog">
 	<h2>Changelog.</h2>
 	<ul>
+		<li><time>2026-09-03</time> — Added <a href="./fight-against-evil">fight against evil</a>: the Física 3 exercise ledger with the reviewed solutions.</li>
 		<li><time>2026-04-11</time> — Added <a href="./pomodoro">Pomodoro timer</a> with global session counter.</li>
 		<li><time>2026-04-11</time> — Added this changelog to the homepage.</li>
 	</ul>

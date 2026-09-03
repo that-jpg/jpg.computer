@@ -35,6 +35,8 @@ async function call(method, action, { body, query = {}, token = SESSION } = {}) 
   const res = {
     statusCode: 200,
     payload: null,
+    headers: {},
+    setHeader(name, value) { this.headers[name] = value; },
     status(code) { this.statusCode = code; return this; },
     json(payload) { this.payload = payload; return this; },
   };
@@ -56,6 +58,19 @@ test('rejects unknown tokens, accepts the bot token', async () => {
   const res = await call('GET', 'all', { token: 'b'.repeat(64) });
   assert.equal(res.statusCode, 200);
   assert.deepEqual(res.payload.cards, []);
+});
+
+test('fisica3-public reads the snapshot without a session', async () => {
+  assert.equal((await call('GET', 'fisica3', { token: 'c'.repeat(64) })).statusCode, 401);
+  const empty = await call('GET', 'fisica3-public', { token: 'c'.repeat(64) });
+  assert.equal(empty.statusCode, 200);
+  assert.deepEqual(empty.payload, { fisica3: null });
+  store.set('ub-fisica3', JSON.stringify({ course: 'fisica3', chapters: [] }));
+  const res = await call('GET', 'fisica3-public', { token: '' });
+  assert.equal(res.statusCode, 200);
+  assert.deepEqual(res.payload.fisica3, { course: 'fisica3', chapters: [] });
+  assert.match(res.headers['Cache-Control'], /s-maxage/);
+  assert.equal((await call('POST', 'fisica3-public', { token: '' })).statusCode, 401);
 });
 
 test('legacy items normalize to cards and stay readable through todos', async () => {

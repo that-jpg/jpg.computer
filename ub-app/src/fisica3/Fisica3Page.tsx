@@ -1,48 +1,9 @@
 import { useCallback, useEffect, useState } from 'react'
 import { apiGet, getToken, redirectToLogin, UnauthorizedError } from '../shared/api'
 import { HeaderNav } from '../shared/HeaderNav'
-import type { Fisica3Chapter, Fisica3Snapshot } from '../shared/types'
-import { badgeText, blockGroups, blockTallies, courseTotals, formatAsOf, pctOf, redoText, wrongSet } from './logic'
-
-const BLOCK_LABELS = { MC: 'múltipla escolha', Q: 'questões', P: 'problemas' } as const
-
-function Chapter({ ch }: { ch: Fisica3Chapter }) {
-  const solved = new Set(ch.solved)
-  const wrong = wrongSet(ch)
-  return (
-    <section className="chapter">
-      <div className="chapter-head">
-        <h2>{ch.ch} <span>· {ch.title}</span></h2>
-        <span className="tally">{solved.size}/{ch.max}</span>
-        {wrong.size > 0 && <span className="redo">{redoText(wrong.size).trim()}</span>}
-        <span className="ch-pct">{(100 * solved.size / ch.max).toFixed(1)}%</span>
-        <span className="blocks">{blockTallies(ch)}</span>
-        <span className={`badge ${ch.status}`}>{badgeText(ch)}</span>
-      </div>
-      <div className="meter">
-        <div style={{ width: `${(100 * solved.size) / ch.max}%` }} />
-      </div>
-      {blockGroups(ch).map(block =>
-        block.to < block.from ? null : (
-          <div className="block-group" key={block.label}>
-            <div className="block-label">{BLOCK_LABELS[block.label]}</div>
-            <div className="grid">
-              {Array.from({ length: block.to - block.from + 1 }, (_, i) => block.from + i).map(n => (
-                <span
-                  key={n}
-                  className={`cell${solved.has(n) ? ' solved' : ''}${wrong.has(n) ? ' wrong' : ''}${block.label === 'P' && n === ch.ad_start ? ' ad-first' : ''}`}
-                  title={`${ch.ch}.${n} — ${wrong.has(n) ? 'wrong' : solved.has(n) ? 'solved' : 'missing'}`}
-                >
-                  {n}
-                </span>
-              ))}
-            </div>
-          </div>
-        ),
-      )}
-    </section>
-  )
-}
+import type { Fisica3Snapshot } from '../shared/types'
+import { Chapter } from './Chapter'
+import { courseTotals, formatAsOf, pctOf, redoText } from './logic'
 
 export function Fisica3Page() {
   const [snap, setSnap] = useState<Fisica3Snapshot | null>(null)

@@ -1,0 +1,23 @@
+#header-nav a { color: #666; font-size: 0.8em; text-decoration: none; }
+
+#header-nav a:hover { color: #7fffd4; }
+
+#intro {
+  color: #aaa;
+  font-size: 0.9em;
+  line-height: 1.5;
+  margin: 14px 0 12px;
+  max-width: 760px;
+}
+
+#intro em { color: #ccc; }
+
+#intro strong { color: #7fffd4; font-weight: 600; }
+
+#docs-count { font-size: 0.85em; }
+
+#docs-count a { color: #7fffd4; text-decoration: none; border-bottom: 1px solid rgba(127, 255, 212, 0.4); }
+
+#docs-count a:hover { border-bottom-color: #7fffd4; }
+
+#docs-count .muted { color: #666; }

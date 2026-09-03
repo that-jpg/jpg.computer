@@ -2,6 +2,8 @@
   "buildCommand": "uv run --with Pillow python3 generate.py && cd ub-app && npm ci && npm run build",
   "outputDirectory": "build",
   "rewrites": [
+    { "source": "/fight-against-evil", "destination": "/ub/fight-against-evil/index.html" },
+    { "source": "/fight-against-evil/", "destination": "/ub/fight-against-evil/index.html" },
     { "source": "/ub/board/:slug", "destination": "/ub/board/index.html" },
     { "source": "/ub/board/:slug/", "destination": "/ub/board/index.html" }
   ],

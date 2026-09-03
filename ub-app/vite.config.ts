@@ -16,6 +16,7 @@ export default defineConfig({
         fisica3: fileURLToPath(new URL('./fisica3/index.html', import.meta.url)),
         calendar: fileURLToPath(new URL('./calendar/index.html', import.meta.url)),
         metrics: fileURLToPath(new URL('./metrics/index.html', import.meta.url)),
+        'fight-against-evil': fileURLToPath(new URL('./fight-against-evil/index.html', import.meta.url)),
       },
     },
   },
