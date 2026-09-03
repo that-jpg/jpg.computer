@@ -50,7 +50,7 @@ it.runIf(Boolean(snapshot))('renders the public ledger with solution links, no l
   stubFetch(snap, manifest)
   const container = await render()
 
-  const total = snap.chapters.reduce((sum, ch) => sum + ch.max, 0)
+  const total = snap.chapters.reduce((sum, ch) => sum + ch.max - (ch.stupid ?? []).length, 0)
   const solved = snap.chapters.reduce((sum, ch) => sum + ch.solved.length, 0)
   const pct = (100 * solved / total).toFixed(1)
 
@@ -58,7 +58,7 @@ it.runIf(Boolean(snapshot))('renders the public ledger with solution links, no l
   expect(container.querySelector('#pct')!.textContent).toBe(`${pct}%`)
   expect(document.title).toBe(`fight against evil · ${pct}%`)
   expect(container.querySelectorAll('#chapters .chapter').length).toBe(snap.chapters.length)
-  expect(container.querySelectorAll('#chapters .cell').length).toBe(total)
+  expect(container.querySelectorAll('#chapters .cell').length).toBe(snap.chapters.reduce((sum, ch) => sum + ch.max, 0))
   expect(container.querySelector('#status')!.textContent).toBe('')
   expect(container.querySelector('#docs-count')!.textContent).toContain('2 reviewed solutions')
 

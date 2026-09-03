@@ -26,9 +26,27 @@ export function blockGroups(ch: Fisica3Chapter): BlockGroup[] {
 
 export function blockTallies(ch: Fisica3Chapter): string {
   const solved = new Set(ch.solved)
+  const stupid = stupidSet(ch)
   return blockGroups(ch)
-    .map(b => `${b.label} ${[...solved].filter(n => n >= b.from && n <= b.to).length}/${b.to - b.from + 1}`)
+    .map(b => {
+      const done = [...solved].filter(n => n >= b.from && n <= b.to).length
+      const skipped = [...stupid].filter(n => n >= b.from && n <= b.to).length
+      return `${b.label} ${done}/${b.to - b.from + 1 - skipped}`
+    })
     .join(' · ')
+}
+
+export function stupidSet(ch: Fisica3Chapter): Set<number> {
+  return new Set(ch.stupid ?? [])
+}
+
+/** Countable items of a chapter: everything but the stupid ones. */
+export function chapterTotal(ch: Fisica3Chapter): number {
+  return ch.max - stupidSet(ch).size
+}
+
+export function stupidText(count: number): string {
+  return count ? ` · ${count} stupid` : ''
 }
 
 export function badgeText(ch: Fisica3Chapter): string {
@@ -45,11 +63,12 @@ export function redoText(count: number): string {
   return count ? ` · ${count} to redo` : ''
 }
 
-export function courseTotals(snap: Fisica3Snapshot): { total: number; solved: number; wrong: number } {
+export function courseTotals(snap: Fisica3Snapshot): { total: number; solved: number; wrong: number; stupid: number } {
   return {
-    total: snap.chapters.reduce((sum, ch) => sum + ch.max, 0),
+    total: snap.chapters.reduce((sum, ch) => sum + chapterTotal(ch), 0),
     solved: snap.chapters.reduce((sum, ch) => sum + ch.solved.length, 0),
     wrong: snap.chapters.reduce((sum, ch) => sum + wrongSet(ch).size, 0),
+    stupid: snap.chapters.reduce((sum, ch) => sum + stupidSet(ch).size, 0),
   }
 }
 

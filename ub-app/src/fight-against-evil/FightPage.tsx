@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Chapter } from '../fisica3/Chapter'
-import { courseTotals, formatAsOf, pctOf, redoText } from '../fisica3/logic'
+import { courseTotals, formatAsOf, pctOf, redoText, stupidText } from '../fisica3/logic'
 import { shortDate } from '../shared/format'
 import type { Fisica3Snapshot } from '../shared/types'
 import { docCount, docsByChapter, latestReview, SOLUTIONS_BASE, type SolutionsManifest } from './logic'
@@ -77,7 +77,7 @@ export function FightPage() {
 
       <div id="topbar">
         <span id="total">
-          {totals && <><strong>{totals.solved}</strong> / {totals.total} solved{totals.wrong > 0 && <span className="redo">{redoText(totals.wrong)}</span>}</>}
+          {totals && <><strong>{totals.solved}</strong> / {totals.total} solved{totals.wrong > 0 && <span className="redo">{redoText(totals.wrong)}</span>}{totals.stupid > 0 && <span className="stupid-count">{stupidText(totals.stupid)}</span>}</>}
         </span>
         {pct != null && <span id="pct">{pct}%</span>}
         <span id="docs-count">
@@ -105,6 +105,7 @@ export function FightPage() {
           <span><span className="cell solved doc" style={{ width: 22 }}>7</span> solved · reviewed solution (click)</span>
           <span><span className="cell solved wrong" style={{ width: 22 }}>7</span> wrong — redo</span>
           <span><span className="cell" style={{ width: 22 }}>7</span> missing</span>
+          <span><span className="cell stupid" style={{ width: 22 }}>7</span> stupid — skipped, not counted</span>
           <span>MC = múltipla escolha · Q = questões · P = problemas (gap = adicionais)</span>
         </div>
       )}

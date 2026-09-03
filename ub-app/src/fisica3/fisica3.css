@@ -190,3 +190,18 @@ header a:hover { color: #7fffd4; }
 }
 
 .cell.doc:hover { filter: brightness(1.15); }
+
+.cell.stupid {
+  background: #262626;
+  border-color: #333;
+  color: #555;
+  text-decoration: line-through;
+}
+
+.stupid-count {
+  color: #777;
+  font-size: 0.8em;
+  font-variant-numeric: tabular-nums;
+}
+
+#total .stupid-count { font-size: 0.9em; margin-left: 4px; }

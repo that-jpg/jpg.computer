@@ -179,6 +179,8 @@ export interface Fisica3Chapter {
   max: number
   solved: number[]
   wrong: number[]
+  /** items marked stupid: skipped on purpose, excluded from the totals */
+  stupid?: number[]
   deadline: string | null
   status: ChapterStatus
 }

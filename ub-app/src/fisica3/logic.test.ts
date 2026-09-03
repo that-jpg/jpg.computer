@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Fisica3Chapter, Fisica3Snapshot } from '../shared/types'
-import { badgeText, blockGroups, blockTallies, courseTotals, formatAsOf, pctOf, redoText, STALE_MS, wrongSet } from './logic'
+import { badgeText, blockGroups, blockTallies, chapterTotal, courseTotals, formatAsOf, pctOf, redoText, STALE_MS, stupidSet, stupidText, wrongSet } from './logic'
 
 function chapter(overrides: Partial<Fisica3Chapter> = {}): Fisica3Chapter {
   return {
@@ -55,7 +55,7 @@ describe('courseTotals and pctOf', () => {
       chapters: [chapter({ solved: [1, 2, 3] }), chapter({ ch: 2, max: 30, solved: [5] })],
     } as Fisica3Snapshot
     const totals = courseTotals(snap)
-    expect(totals).toEqual({ total: 80, solved: 4, wrong: 0 })
+    expect(totals).toEqual({ total: 80, solved: 4, wrong: 0, stupid: 0 })
     expect(pctOf(totals.solved, totals.total)).toBe('5.0')
   })
 
@@ -99,5 +99,23 @@ describe('formatAsOf', () => {
     const result = formatAsOf(updated, now)
     expect(result.stale).toBe(true)
     expect(result.text).toMatch(/^stale — as of aug 11 \d{2}:\d{2}$/)
+  })
+})
+
+describe('stupid items', () => {
+  it('leave the totals and the block tallies', () => {
+    const ch = chapter({ solved: [1, 2, 11], stupid: [3, 12, 50] })
+    expect(stupidSet(ch)).toEqual(new Set([3, 12, 50]))
+    expect(chapterTotal(ch)).toBe(47)
+    expect(blockTallies(ch)).toBe('MC 2/9 · Q 1/9 · P 0/29')
+    expect(stupidText(0)).toBe('')
+    expect(stupidText(2)).toBe(' · 2 stupid')
+    const totals = courseTotals({ chapters: [ch, chapter({ ch: 2, max: 30, solved: [5] })] } as Fisica3Snapshot)
+    expect(totals).toEqual({ total: 77, solved: 4, wrong: 0, stupid: 3 })
+  })
+
+  it('tolerates snapshots without the field', () => {
+    expect(chapterTotal(chapter())).toBe(50)
+    expect(stupidSet(chapter()).size).toBe(0)
   })
 })

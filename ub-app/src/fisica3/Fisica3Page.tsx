@@ -3,7 +3,7 @@ import { apiGet, getToken, redirectToLogin, UnauthorizedError } from '../shared/
 import { HeaderNav } from '../shared/HeaderNav'
 import type { Fisica3Snapshot } from '../shared/types'
 import { Chapter } from './Chapter'
-import { courseTotals, formatAsOf, pctOf, redoText } from './logic'
+import { courseTotals, formatAsOf, pctOf, redoText, stupidText } from './logic'
 
 export function Fisica3Page() {
   const [snap, setSnap] = useState<Fisica3Snapshot | null>(null)
@@ -61,7 +61,7 @@ export function Fisica3Page() {
 
       <div id="topbar">
         <span id="total">
-          {totals && <><strong>{totals.solved}</strong> / {totals.total} solved{totals.wrong > 0 && <span className="redo">{redoText(totals.wrong)}</span>}</>}
+          {totals && <><strong>{totals.solved}</strong> / {totals.total} solved{totals.wrong > 0 && <span className="redo">{redoText(totals.wrong)}</span>}{totals.stupid > 0 && <span className="stupid-count">{stupidText(totals.stupid)}</span>}</>}
         </span>
         {pct != null && <span id="pct">{pct}%</span>}
         <span id="as-of" className={asOf?.stale ? 'stale' : undefined}>{asOf?.text ?? ''}</span>
@@ -87,6 +87,7 @@ export function Fisica3Page() {
           <span><span className="cell solved" style={{ width: 22 }}>7</span> solved</span>
           <span><span className="cell solved wrong" style={{ width: 22 }}>7</span> wrong — redo</span>
           <span><span className="cell" style={{ width: 22 }}>7</span> missing</span>
+          <span><span className="cell stupid" style={{ width: 22 }}>7</span> stupid — skipped, not counted</span>
           <span>MC = múltipla escolha · Q = questões · P = problemas (gap = adicionais)</span>
           <span>log via Vapula on Telegram</span>
         </div>
