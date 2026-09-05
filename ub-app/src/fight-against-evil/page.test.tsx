@@ -43,9 +43,13 @@ it.runIf(Boolean(snapshot))('renders the public ledger with solution links, no l
   const first = snap.chapters[0]
   const linked = first.solved.filter(n => !(first.wrong ?? []).includes(n)).slice(0, 2)
   expect(linked.length).toBe(2)
+  const flagged = (first.wrong ?? []).slice(0, 1)
   const manifest: SolutionsManifest = {
     updated: '2026-09-03T15:00:00-03:00',
-    docs: linked.map(n => ({ id: `${first.ch}.${n}`, ch: first.ch, n, file: `${first.ch}.${n}.pdf`, reviewed: '2026-09-01T14:00:00-03:00' })),
+    docs: [
+      ...linked.map(n => ({ id: `${first.ch}.${n}`, ch: first.ch, n, file: `${first.ch}.${n}.pdf`, reviewed: '2026-09-01T14:00:00-03:00', verdict: 'correct' as const })),
+      ...flagged.map(n => ({ id: `${first.ch}.${n}`, ch: first.ch, n, file: `${first.ch}.${n}.pdf`, reviewed: '2026-09-02T14:00:00-03:00', verdict: 'wrong' as const })),
+    ],
   }
   stubFetch(snap, manifest)
   const container = await render()
@@ -60,10 +64,16 @@ it.runIf(Boolean(snapshot))('renders the public ledger with solution links, no l
   expect(container.querySelectorAll('#chapters .chapter').length).toBe(snap.chapters.length)
   expect(container.querySelectorAll('#chapters .cell').length).toBe(snap.chapters.reduce((sum, ch) => sum + ch.max, 0))
   expect(container.querySelector('#status')!.textContent).toBe('')
-  expect(container.querySelector('#docs-count')!.textContent).toContain('2 reviewed solutions')
+  expect(container.querySelector('#docs-count')!.textContent).toContain(`${2 + flagged.length} reviewed solutions`)
 
   const links = container.querySelectorAll<HTMLAnchorElement>('#chapters a.cell.doc')
-  expect(links.length).toBe(2)
+  expect(links.length).toBe(2 + flagged.length)
+  const wrongLinks = container.querySelectorAll<HTMLAnchorElement>('#chapters a.cell.doc.wrong')
+  expect(wrongLinks.length).toBe(flagged.length)
+  if (flagged.length) {
+    expect(wrongLinks[0].getAttribute('href')).toBe(`/fight-against-evil/solutions/${first.ch}.${flagged[0]}.pdf`)
+    expect(wrongLinks[0].getAttribute('title')).toBe(`${first.ch}.${flagged[0]} — wrong attempt, to redo`)
+  }
   expect(links[0].getAttribute('href')).toBe(`/fight-against-evil/solutions/${first.ch}.${linked[0]}.pdf`)
   expect(links[0].classList.contains('solved')).toBe(true)
   expect(links[0].getAttribute('title')).toBe(`${first.ch}.${linked[0]} — solution reviewed as correct`)

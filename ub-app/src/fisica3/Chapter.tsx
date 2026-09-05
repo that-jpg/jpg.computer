@@ -1,10 +1,11 @@
 import type { Fisica3Chapter } from '../shared/types'
+import type { SolutionLink } from '../fight-against-evil/logic'
 import { badgeText, blockGroups, blockTallies, chapterTotal, redoText, stupidSet, stupidText, wrongSet } from './logic'
 
 const BLOCK_LABELS = { MC: 'múltipla escolha', Q: 'questões', P: 'problemas' } as const
 
-/** docs: item number → href of the solution reviewed as correct (cells become links). */
-export function Chapter({ ch, docs }: { ch: Fisica3Chapter; docs?: ReadonlyMap<number, string> }) {
+/** docs: item number → reviewed document (cells become links): the correct solution, or the latest wrong attempt. */
+export function Chapter({ ch, docs }: { ch: Fisica3Chapter; docs?: ReadonlyMap<number, SolutionLink> }) {
   const solved = new Set(ch.solved)
   const wrong = wrongSet(ch)
   const stupid = stupidSet(ch)
@@ -29,11 +30,12 @@ export function Chapter({ ch, docs }: { ch: Fisica3Chapter; docs?: ReadonlyMap<n
             <div className="block-label">{BLOCK_LABELS[block.label]}</div>
             <div className="grid">
               {Array.from({ length: block.to - block.from + 1 }, (_, i) => block.from + i).map(n => {
-                const href = docs?.get(n)
-                const className = `cell${solved.has(n) ? ' solved' : ''}${wrong.has(n) ? ' wrong' : ''}${stupid.has(n) ? ' stupid' : ''}${href ? ' doc' : ''}${block.label === 'P' && n === ch.ad_start ? ' ad-first' : ''}`
+                const doc = docs?.get(n)
+                const className = `cell${solved.has(n) ? ' solved' : ''}${wrong.has(n) ? ' wrong' : ''}${stupid.has(n) ? ' stupid' : ''}${doc ? ' doc' : ''}${block.label === 'P' && n === ch.ad_start ? ' ad-first' : ''}`
                 const state = stupid.has(n) ? 'stupid — skipped' : wrong.has(n) ? 'wrong' : solved.has(n) ? 'solved' : 'missing'
-                return href ? (
-                  <a key={n} className={className} href={href} target="_blank" rel="noopener" title={`${ch.ch}.${n} — solution reviewed as correct`}>
+                const docTitle = doc?.verdict === 'wrong' ? 'wrong attempt, to redo' : 'solution reviewed as correct'
+                return doc ? (
+                  <a key={n} className={className} href={doc.href} target="_blank" rel="noopener" title={`${ch.ch}.${n} — ${docTitle}`}>
                     {n}
                   </a>
                 ) : (
