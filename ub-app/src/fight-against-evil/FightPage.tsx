@@ -3,7 +3,7 @@ import { Chapter } from '../fisica3/Chapter'
 import { courseTotals, formatAsOf, pctOf, redoText, stupidText } from '../fisica3/logic'
 import { shortDate } from '../shared/format'
 import type { Fisica3Snapshot } from '../shared/types'
-import { docCount, docCounts, docsByChapter, latestReview, SOLUTIONS_BASE, type SolutionsManifest } from './logic'
+import { docCount, docsByChapter, latestReview, SOLUTIONS_BASE, submissionCount, type SolutionsManifest } from './logic'
 
 const SNAPSHOT_URL = '/api/ub?action=fisica3-public'
 const MANIFEST_URL = `${SOLUTIONS_BASE}manifest.json`
@@ -58,7 +58,7 @@ export function FightPage() {
     : null
   const docs = docsByChapter(manifest)
   const nDocs = docCount(manifest)
-  const nWrongDocs = docCounts(manifest).wrong
+  const nSubmissions = submissionCount(manifest)
   const newest = latestReview(manifest)
 
   return (
@@ -82,7 +82,7 @@ export function FightPage() {
         </span>
         {pct != null && <span id="pct">{pct}%</span>}
         <span id="docs-count">
-          {nDocs > 0 && <a href={`${SOLUTIONS_BASE}manifest.json`}>{nDocs} reviewed solution{nDocs === 1 ? '' : 's'}{nWrongDocs > 0 && ` (${nWrongDocs} wrong)`}</a>}
+          {nDocs > 0 && <a href={`${SOLUTIONS_BASE}manifest.json`}>{nDocs} reviewed solution{nDocs === 1 ? '' : 's'}{nSubmissions > nDocs && ` · ${nSubmissions} submissions`}</a>}
           {nDocs > 0 && newest && <span className="muted"> · newest {shortDate(new Date(newest))}</span>}
         </span>
         <span id="as-of" className={asOf?.stale ? 'stale' : undefined}>{asOf?.text ?? ''}</span>
@@ -104,7 +104,7 @@ export function FightPage() {
         <div id="legend">
           <span><span className="cell solved" style={{ width: 22 }}>7</span> solved</span>
           <span><span className="cell solved doc" style={{ width: 22 }}>7</span> solved · reviewed solution (click)</span>
-          <span><span className="cell solved wrong doc" style={{ width: 22 }}>7</span> wrong — redo (click for the attempt)</span>
+          <span><span className="cell solved wrong doc" style={{ width: 22 }}>7</span> wrong — redo (click for the attempts)</span>
           <span><span className="cell" style={{ width: 22 }}>7</span> missing</span>
           <span><span className="cell stupid" style={{ width: 22 }}>7</span> stupid — skipped, not counted</span>
           <span>MC = múltipla escolha · Q = questões · P = problemas (gap = adicionais)</span>

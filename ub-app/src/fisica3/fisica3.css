@@ -205,3 +205,36 @@ header a:hover { color: #7fffd4; }
 }
 
 #total .stupid-count { font-size: 0.9em; margin-left: 4px; }
+
+.cell-menu { position: relative; display: inline-flex; }
+
+button.cell { font: inherit; font-size: 0.66em; padding: 0; cursor: pointer; }
+
+.attempts {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 5;
+  margin-top: 3px;
+  min-width: 150px;
+  display: flex;
+  flex-direction: column;
+  background: #111;
+  border: 1px solid #333;
+  border-radius: 4px;
+  padding: 4px 0;
+  font-size: 0.72em;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+}
+
+.attempts .attempt {
+  padding: 3px 10px;
+  color: #ddd;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.attempts .attempt:hover { background: #222; }
+.attempts .attempt.wrong { color: #fca5a5; }
+.attempts .attempt.correct { color: #86efac; }
+.attempts .when { color: #777; }

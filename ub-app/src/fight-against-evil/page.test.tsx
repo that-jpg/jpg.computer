@@ -47,8 +47,10 @@ it.runIf(Boolean(snapshot))('renders the public ledger with solution links, no l
   const manifest: SolutionsManifest = {
     updated: '2026-09-03T15:00:00-03:00',
     docs: [
-      ...linked.map(n => ({ id: `${first.ch}.${n}`, ch: first.ch, n, file: `${first.ch}.${n}.pdf`, reviewed: '2026-09-01T14:00:00-03:00', verdict: 'correct' as const })),
-      ...flagged.map(n => ({ id: `${first.ch}.${n}`, ch: first.ch, n, file: `${first.ch}.${n}.pdf`, reviewed: '2026-09-02T14:00:00-03:00', verdict: 'wrong' as const })),
+      { id: `${first.ch}.${linked[0]}`, ch: first.ch, n: linked[0], attempt: 1, file: `${first.ch}.${linked[0]}-1.pdf`, reviewed: '2026-09-01T14:00:00-03:00', verdict: 'correct' },
+      { id: `${first.ch}.${linked[1]}`, ch: first.ch, n: linked[1], attempt: 1, file: `${first.ch}.${linked[1]}-1.pdf`, reviewed: '2026-09-01T12:00:00-03:00', verdict: 'wrong' },
+      { id: `${first.ch}.${linked[1]}`, ch: first.ch, n: linked[1], attempt: 2, file: `${first.ch}.${linked[1]}-2.pdf`, reviewed: '2026-09-02T14:00:00-03:00', verdict: 'correct' },
+      ...flagged.map(n => ({ id: `${first.ch}.${n}`, ch: first.ch, n, attempt: 1, file: `${first.ch}.${n}-1.pdf`, reviewed: '2026-09-02T14:00:00-03:00', verdict: 'wrong' as const })),
     ],
   }
   stubFetch(snap, manifest)
@@ -64,19 +66,32 @@ it.runIf(Boolean(snapshot))('renders the public ledger with solution links, no l
   expect(container.querySelectorAll('#chapters .chapter').length).toBe(snap.chapters.length)
   expect(container.querySelectorAll('#chapters .cell').length).toBe(snap.chapters.reduce((sum, ch) => sum + ch.max, 0))
   expect(container.querySelector('#status')!.textContent).toBe('')
-  expect(container.querySelector('#docs-count')!.textContent).toContain(`${2 + flagged.length} reviewed solutions`)
+  expect(container.querySelector('#docs-count')!.textContent).toContain(`${2 + flagged.length} reviewed solutions · ${3 + flagged.length} submissions`)
 
   const links = container.querySelectorAll<HTMLAnchorElement>('#chapters a.cell.doc')
-  expect(links.length).toBe(2 + flagged.length)
+  expect(links.length).toBe(1 + flagged.length)
+  expect(links[0].getAttribute('href')).toBe(`/fight-against-evil/solutions/${first.ch}.${linked[0]}-1.pdf`)
+  expect(links[0].classList.contains('solved')).toBe(true)
+  expect(links[0].getAttribute('title')).toBe(`${first.ch}.${linked[0]} — solution reviewed as correct`)
   const wrongLinks = container.querySelectorAll<HTMLAnchorElement>('#chapters a.cell.doc.wrong')
   expect(wrongLinks.length).toBe(flagged.length)
   if (flagged.length) {
-    expect(wrongLinks[0].getAttribute('href')).toBe(`/fight-against-evil/solutions/${first.ch}.${flagged[0]}.pdf`)
+    expect(wrongLinks[0].getAttribute('href')).toBe(`/fight-against-evil/solutions/${first.ch}.${flagged[0]}-1.pdf`)
     expect(wrongLinks[0].getAttribute('title')).toBe(`${first.ch}.${flagged[0]} — wrong attempt, to redo`)
   }
-  expect(links[0].getAttribute('href')).toBe(`/fight-against-evil/solutions/${first.ch}.${linked[0]}.pdf`)
-  expect(links[0].classList.contains('solved')).toBe(true)
-  expect(links[0].getAttribute('title')).toBe(`${first.ch}.${linked[0]} — solution reviewed as correct`)
+
+  const menu = container.querySelector<HTMLButtonElement>('#chapters button.cell.doc')!
+  expect(menu.textContent).toBe(String(linked[1]))
+  expect(menu.getAttribute('title')).toBe(`${first.ch}.${linked[1]} — 2 submissions, latest correct`)
+  expect(container.querySelector('.attempts')).toBeNull()
+  await act(async () => { menu.click() })
+  const attempts = container.querySelectorAll<HTMLAnchorElement>('.attempts a.attempt')
+  expect(attempts.length).toBe(2)
+  expect(attempts[0].getAttribute('href')).toBe(`/fight-against-evil/solutions/${first.ch}.${linked[1]}-1.pdf`)
+  expect(attempts[0].classList.contains('wrong')).toBe(true)
+  expect(attempts[1].classList.contains('correct')).toBe(true)
+  await act(async () => { document.body.click() })
+  expect(container.querySelector('.attempts')).toBeNull()
   expect(container.querySelector('#header-nav a')!.getAttribute('href')).toBe('/')
   expect(container.querySelector('#logout')).toBeNull()
 })

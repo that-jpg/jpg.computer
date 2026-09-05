@@ -4,14 +4,10 @@ export interface SolutionDoc {
   id: string
   ch: number
   n: number
+  attempt?: number
   file: string
   reviewed: string
   verdict?: 'correct' | 'wrong'
-}
-
-export interface SolutionLink {
-  href: string
-  verdict: 'correct' | 'wrong'
 }
 
 export interface SolutionsManifest {
@@ -19,27 +15,38 @@ export interface SolutionsManifest {
   docs: SolutionDoc[]
 }
 
-/** chapter → (item number → link) for every reviewed document: the correct solution, or the latest wrong attempt of a flagged item. */
-export function docsByChapter(manifest: SolutionsManifest | null): Map<number, Map<number, SolutionLink>> {
-  const result = new Map<number, Map<number, SolutionLink>>()
+export interface Attempt {
+  href: string
+  attempt: number
+  reviewed: string
+  verdict: 'correct' | 'wrong'
+}
+
+/** chapter → (item number → every reviewed submission, in attempt order). */
+export function docsByChapter(manifest: SolutionsManifest | null): Map<number, Map<number, Attempt[]>> {
+  const result = new Map<number, Map<number, Attempt[]>>()
   for (const doc of manifest?.docs ?? []) {
     if (!Number.isInteger(doc.ch) || !Number.isInteger(doc.n) || !doc.file) continue
     if (!result.has(doc.ch)) result.set(doc.ch, new Map())
-    result.get(doc.ch)!.set(doc.n, {
+    const items = result.get(doc.ch)!
+    if (!items.has(doc.n)) items.set(doc.n, [])
+    items.get(doc.n)!.push({
       href: SOLUTIONS_BASE + encodeURIComponent(doc.file),
+      attempt: doc.attempt ?? items.get(doc.n)!.length + 1,
+      reviewed: doc.reviewed,
       verdict: doc.verdict === 'wrong' ? 'wrong' : 'correct',
     })
   }
+  for (const items of result.values()) for (const attempts of items.values()) attempts.sort((a, b) => a.attempt - b.attempt)
   return result
 }
 
-export function docCounts(manifest: SolutionsManifest | null): { correct: number; wrong: number } {
-  const docs = manifest?.docs ?? []
-  const wrong = docs.filter(d => d.verdict === 'wrong').length
-  return { correct: docs.length - wrong, wrong }
+/** Distinct items with at least one reviewed submission. */
+export function docCount(manifest: SolutionsManifest | null): number {
+  return new Set((manifest?.docs ?? []).map(d => d.id)).size
 }
 
-export function docCount(manifest: SolutionsManifest | null): number {
+export function submissionCount(manifest: SolutionsManifest | null): number {
   return manifest?.docs.length ?? 0
 }
 
