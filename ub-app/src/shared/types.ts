@@ -185,6 +185,12 @@ export interface Fisica3Chapter {
   status: ChapterStatus
 }
 
+export interface Fisica3ErrorCount {
+  category: string
+  label: string
+  count: number
+}
+
 export interface Fisica3Snapshot {
   updated: string
   course: string
@@ -192,5 +198,7 @@ export interface Fisica3Snapshot {
   next_up: number | null
   fim: string | null
   has_dates: boolean
+  /** first-error categories over every wrong verdict, most frequent first */
+  errors?: Fisica3ErrorCount[]
   chapters: Fisica3Chapter[]
 }

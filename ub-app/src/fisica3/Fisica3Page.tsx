@@ -3,7 +3,7 @@ import { apiGet, getToken, redirectToLogin, UnauthorizedError } from '../shared/
 import { HeaderNav } from '../shared/HeaderNav'
 import type { Fisica3Snapshot } from '../shared/types'
 import { Chapter } from './Chapter'
-import { courseTotals, formatAsOf, pctOf, redoText, stupidText } from './logic'
+import { courseTotals, errorsText, formatAsOf, pctOf, redoText, stupidText } from './logic'
 
 export function Fisica3Page() {
   const [snap, setSnap] = useState<Fisica3Snapshot | null>(null)
@@ -72,6 +72,9 @@ export function Fisica3Page() {
             ? <>next up: ch {nextChapter.ch} — {nextChapter.title}{nextChapter.deadline && <span className="due"> · due {nextChapter.deadline}</span>}</>
             : 'every item in the book is solved'}
         </div>
+      )}
+      {snap && errorsText(snap) && (
+        <div id="errors">most common errors: {errorsText(snap)}</div>
       )}
       {snap && !snap.has_dates && (
         <p id="no-dates">no aula dates yet — send "aula &lt;n&gt; &lt;date&gt;" lines to Vapula to enable pace tracking</p>

@@ -72,6 +72,11 @@ export function courseTotals(snap: Fisica3Snapshot): { total: number; solved: nu
   }
 }
 
+export function errorsText(snap: Fisica3Snapshot): string {
+  const rows = (snap.errors ?? []).filter(row => row.count > 0)
+  return rows.length ? rows.map(row => `${row.label} ${row.count}`).join(' · ') : ''
+}
+
 export function pctOf(solved: number, total: number): string {
   return total ? (100 * solved / total).toFixed(1) : '0.0'
 }

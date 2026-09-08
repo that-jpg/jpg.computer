@@ -45,6 +45,13 @@ header a:hover { color: #7fffd4; }
 
 #next-up .due { color: #aaa; }
 
+#errors {
+  margin: 4px 0;
+  font-size: 0.8em;
+  color: #fca5a5;
+  font-variant-numeric: tabular-nums;
+}
+
 #no-dates {
   color: #666;
   font-size: 0.8em;

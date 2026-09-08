@@ -72,6 +72,33 @@ it.runIf(Boolean(snapshot))('paints wrong items red and counts them as redo', as
   expect(container.querySelector('#total')!.textContent).toMatch(/ · 2 to redo$/)
 })
 
+it.runIf(Boolean(snapshot))('lists the error tally under next up, most frequent first, and hides it when empty', async () => {
+  const snap = JSON.parse(JSON.stringify(snapshot)) as Fisica3Snapshot
+  snap.errors = [
+    { category: 'powers_of_ten', label: 'powers of ten', count: 7 },
+    { category: 'rounding', label: 'rounding', count: 3 },
+  ]
+  vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, status: 200, json: async () => ({ fisica3: snap }) })))
+  const container = document.createElement('div')
+  document.body.appendChild(container)
+  await act(async () => {
+    createRoot(container).render(<Fisica3Page />)
+  })
+  await act(async () => {})
+  expect(container.querySelector('#errors')!.textContent).toBe('most common errors: powers of ten 7 · rounding 3')
+
+  const bare = JSON.parse(JSON.stringify(snapshot)) as Fisica3Snapshot
+  delete bare.errors
+  vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, status: 200, json: async () => ({ fisica3: bare }) })))
+  const second = document.createElement('div')
+  document.body.appendChild(second)
+  await act(async () => {
+    createRoot(second).render(<Fisica3Page />)
+  })
+  await act(async () => {})
+  expect(second.querySelector('#errors')).toBeNull()
+})
+
 it.runIf(Boolean(snapshot))('paints stupid items grey, drops them from the totals, keeps them in the grid', async () => {
   const snap = JSON.parse(JSON.stringify(snapshot)) as Fisica3Snapshot
   const first = snap.chapters[0]

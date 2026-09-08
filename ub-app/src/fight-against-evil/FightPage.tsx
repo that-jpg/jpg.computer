@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Chapter } from '../fisica3/Chapter'
-import { courseTotals, formatAsOf, pctOf, redoText, stupidText } from '../fisica3/logic'
+import { courseTotals, errorsText, formatAsOf, pctOf, redoText, stupidText } from '../fisica3/logic'
 import { shortDate } from '../shared/format'
 import type { Fisica3Snapshot } from '../shared/types'
 import { docCount, docsByChapter, latestReview, SOLUTIONS_BASE, submissionCount, type SolutionsManifest } from './logic'
@@ -93,6 +93,9 @@ export function FightPage() {
             ? <>next up: ch {nextChapter.ch} — {nextChapter.title}{nextChapter.deadline && <span className="due"> · due {nextChapter.deadline}</span>}</>
             : 'every item in the book is solved'}
         </div>
+      )}
+      {snap && errorsText(snap) && (
+        <div id="errors">most common errors: {errorsText(snap)}</div>
       )}
       <p id="status">{status}</p>
 
