@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A simple cat training clicker. Tap, then reward your cat with a treat.">
+  <meta name="theme-color" content="#101411">
+  <title>Cat clicker — JPG</title>
+  <style>
+    :root { color-scheme: dark; font-family: 'Trebuchet MS', sans-serif; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #101411; color: #edf4ed; }
+    main { width: min(100%, 480px); margin: 0 auto; padding: 28px 24px 40px; text-align: center; }
+    nav { text-align: left; font-size: 14px; }
+    a { color: #9ae9c3; text-underline-offset: 4px; }
+    nav span { color: #a4b1a7; }
+    h1 { margin: 44px 0 8px; font-size: clamp(40px, 10vw, 56px); letter-spacing: -2px; }
+    p { line-height: 1.6; }
+    .intro { margin: 0 0 30px; color: #b2c0b6; }
+    #clicker {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      width: min(68vw, 260px);
+      aspect-ratio: 1;
+      margin: auto;
+      border: 2px solid #b4f5d4;
+      border-radius: 50%;
+      background: #9ae9c3;
+      color: #102a1c;
+      box-shadow: 0 8px 0 #437359;
+      font: bold 36px 'Trebuchet MS', sans-serif;
+      cursor: pointer;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+    #clicker svg { width: 52px; height: 52px; }
+    #clicker:active { transform: translateY(5px); box-shadow: 0 3px 0 #437359; }
+    :focus-visible { outline: 3px solid #fff; outline-offset: 7px; }
+    #status { min-height: 26px; margin: 24px 0; color: #b2c0b6; font-size: 14px; }
+    .volume { display: flex; align-items: center; gap: 16px; font-size: 14px; }
+    input { flex: 1; min-width: 0; height: 44px; accent-color: #9ae9c3; }
+    output { min-width: 4ch; text-align: right; }
+    .hint { margin: 4px 0 30px; font-size: 13px; color: #a4b1a7; }
+    details { border-top: 1px solid #344239; padding-top: 20px; text-align: left; font-size: 14px; }
+    summary { cursor: pointer; padding: 8px 0; }
+    details p { color: #b2c0b6; }
+  </style>
+</head>
+<body>
+  <main>
+    <nav><a href="/">jpg.computer</a> <span>/ cat</span></nav>
+    <h1>Good cat.</h1>
+    <p class="intro">One click. Then a treat.</p>
+    <button id="clicker" type="button" aria-label="Play training click" aria-describedby="status">
+      <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M13 27V9l15 10h8L51 9v18c5 19-4 29-19 29S8 46 13 27Z"/>
+        <path d="M22 33h1m18 0h1M29 41h6l-3 3-3-3Zm3 3v4m-13-6L6 39m13 9L6 51m39-9 13-3m-13 9 13 3"/>
+      </svg>
+      Click
+    </button>
+    <p id="status" role="status">Tap the button to play a short click.</p>
+    <div class="volume">
+      <label for="volume">Volume</label>
+      <input id="volume" type="range" min="1" max="100" value="25">
+      <output id="volume-value" for="volume">25%</output>
+    </div>
+    <p class="hint">Start quietly. Keep your device away from your cat’s ears.</p>
+    <details>
+      <summary>How to use it</summary>
+      <p>First, click and immediately give a small treat. Repeat until your cat connects the sound with a reward.</p>
+      <p>Then click the instant your cat does something you want to encourage, and follow with a treat. Keep sessions short and stop if your cat seems uncomfortable.</p>
+      <p>No sound? Check your device’s media volume and silent mode. With the button focused, you can also press Space or Enter.</p>
+      <a href="https://www.cats.org.uk/cats-blog/tips-for-clicker-training-cat">Clicker training guide · Cats Protection</a>
+    </details>
+    <noscript><p>Enable JavaScript to use the clicker.</p></noscript>
+  </main>
+  <script>
+    const clicker = document.getElementById('clicker');
+    const volume = document.getElementById('volume');
+    const volumeValue = document.getElementById('volume-value');
+    const status = document.getElementById('status');
+    let audio;
+    let starting = false;
+
+    volume.addEventListener('input', () => {
+      volumeValue.textContent = `${volume.value}%`;
+    });
+
+    clicker.addEventListener('click', async () => {
+      if (starting) return;
+      starting = true;
+      try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContext) throw new Error('Audio unavailable');
+        if (!audio || audio.state === 'closed') audio = new AudioContext({ latencyHint: 'interactive' });
+        if (audio.state !== 'running') await audio.resume();
+        if (audio.state !== 'running') throw new Error('Audio paused');
+        const sound = audio.createOscillator();
+        const gain = audio.createGain();
+        const now = audio.currentTime;
+        sound.type = 'triangle';
+        sound.frequency.setValueAtTime(1200, now);
+        sound.frequency.exponentialRampToValueAtTime(800, now + 0.04);
+        gain.gain.setValueAtTime(0, now);
+        gain.gain.linearRampToValueAtTime(Number(volume.value) / 200, now + 0.002);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.055);
+        gain.gain.linearRampToValueAtTime(0, now + 0.06);
+        sound.connect(gain);
+        gain.connect(audio.destination);
+        sound.onended = () => {
+          sound.disconnect();
+          gain.disconnect();
+        };
+        sound.start(now);
+        sound.stop(now + 0.06);
+        status.textContent = 'Click! Now give a treat.';
+      } catch {
+        status.textContent = 'Couldn’t play sound. Tap again or try another browser.';
+      } finally {
+        starting = false;
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,6 +1,7 @@
 <section id="apps">
 	<h2>Apps.</h2>
 	<p><a href="./pomodoro">Pomodoro.</a></p>
+	<p><a href="./cat">Cat clicker.</a></p>
 </section>
 <section id="courses">
 	<h2>Courses, workshops & presentations.</h2>
