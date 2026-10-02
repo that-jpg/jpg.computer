@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-02T19:21:18-03:00",
+ "updated": "2026-10-02T19:31:20-03:00",
  "docs": [
   {
    "id": "1.23",
@@ -584,6 +584,33 @@
    "attempt": 1,
    "file": "3.12-1.pdf",
    "reviewed": "2026-10-02T19:19:22-03:00",
+   "verdict": "correct"
+  },
+  {
+   "id": "3.13",
+   "ch": 3,
+   "n": 13,
+   "attempt": 1,
+   "file": "3.13-1.pdf",
+   "reviewed": "2026-10-02T19:23:54-03:00",
+   "verdict": "correct"
+  },
+  {
+   "id": "3.14",
+   "ch": 3,
+   "n": 14,
+   "attempt": 1,
+   "file": "3.14-1.pdf",
+   "reviewed": "2026-10-02T19:26:25-03:00",
+   "verdict": "wrong"
+  },
+  {
+   "id": "3.14",
+   "ch": 3,
+   "n": 14,
+   "attempt": 2,
+   "file": "3.14-2.pdf",
+   "reviewed": "2026-10-02T19:31:06-03:00",
    "verdict": "correct"
   },
   {
