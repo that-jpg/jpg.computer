@@ -7,7 +7,7 @@ import { badgeText, blockGroups, blockTallies, chapterTotal, redoText, stupidSet
 const BLOCK_LABELS = { MC: 'múltipla escolha', Q: 'questões', P: 'problemas' } as const
 
 /** docs: item number → every reviewed submission; one makes the cell a link, several open a list. */
-export function Chapter({ ch, docs }: { ch: Fisica3Chapter; docs?: ReadonlyMap<number, Attempt[]> }) {
+export function Chapter({ ch, docs, priorities }: { ch: Fisica3Chapter; docs?: ReadonlyMap<number, Attempt[]>; priorities?: readonly number[] }) {
   const [open, setOpen] = useState<number | null>(null)
   useEffect(() => {
     if (open == null) return
@@ -40,6 +40,7 @@ export function Chapter({ ch, docs }: { ch: Fisica3Chapter; docs?: ReadonlyMap<n
             <div className="grid">
               {Array.from({ length: block.to - block.from + 1 }, (_, i) => block.from + i).map(n => {
                 const attempts = docs?.get(n) ?? []
+                const label = <>{n}{priorities?.includes(n) && <span className="priority-star" role="img" aria-label="Priority">★</span>}</>
                 const className = `cell${solved.has(n) ? ' solved' : ''}${wrong.has(n) ? ' wrong' : ''}${stupid.has(n) ? ' stupid' : ''}${attempts.length ? ' doc' : ''}${block.label === 'P' && n === ch.ad_start ? ' ad-first' : ''}`
                 const state = stupid.has(n) ? 'stupid — skipped' : wrong.has(n) ? 'wrong' : solved.has(n) ? 'solved' : 'missing'
                 if (attempts.length === 1) {
@@ -47,7 +48,7 @@ export function Chapter({ ch, docs }: { ch: Fisica3Chapter; docs?: ReadonlyMap<n
                   const docTitle = only.verdict === 'wrong' ? 'wrong attempt, to redo' : 'solution reviewed as correct'
                   return (
                     <a key={n} className={className} href={only.href} target="_blank" rel="noopener" title={`${ch.ch}.${n} — ${docTitle}`}>
-                      {n}
+                      {label}
                     </a>
                   )
                 }
@@ -63,7 +64,7 @@ export function Chapter({ ch, docs }: { ch: Fisica3Chapter; docs?: ReadonlyMap<n
                         setOpen(open === n ? null : n)
                       }}
                     >
-                      {n}
+                      {label}
                     </button>
                     {open === n && (
                       <span className="attempts" onClick={e => e.stopPropagation()}>
@@ -77,7 +78,7 @@ export function Chapter({ ch, docs }: { ch: Fisica3Chapter; docs?: ReadonlyMap<n
                   </span>
                 ) : (
                   <span key={n} className={className} title={`${ch.ch}.${n} — ${state}`}>
-                    {n}
+                    {label}
                   </span>
                 )
               })}

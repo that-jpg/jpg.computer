@@ -157,6 +157,10 @@ header a:hover { color: #7fffd4; }
   font-weight: 600;
 }
 
+.priority-star { color: #fcd34d; }
+.cell .priority-star { font-size: 9px; margin-left: 1px; }
+.cell.solved .priority-star, .cell.wrong .priority-star { color: #664400; }
+
 .cell.wrong {
   background: #fca5a5;
   border-color: #fca5a5;

@@ -7,6 +7,13 @@ import { docCount, docsByChapter, latestReview, SOLUTIONS_BASE, submissionCount,
 
 const SNAPSHOT_URL = '/api/ub?action=fisica3-public'
 const MANIFEST_URL = `${SOLUTIONS_BASE}manifest.json`
+const PRIORITY_EXERCISES: Partial<Record<number, readonly number[]>> = {
+  1: [23, 31, 37, 41, 45, 52, 54, 71, 79, 80],
+  2: [27, 28, 32, 33, 41, 43, 45, 46, 47, 52, 56, 57, 63, 66, 68, 71, 74, 76, 80, 85],
+  3: [42, 44, 47, 48, 51, 56, 61, 70, 78, 79],
+  4: [25, 26, 28, 30, 49, 50, 55, 79, 80, 84],
+  6: [24, 27, 31, 32, 40, 41, 42, 51, 62, 67],
+}
 
 async function fetchJson<T>(url: string): Promise<T> {
   const res = await fetch(url, { cache: 'no-store' })
@@ -93,11 +100,12 @@ function ExerciseLedger() {
       <p id="status">{status}</p>
 
       <div id="chapters">
-        {snap?.chapters.map(ch => <Chapter key={ch.ch} ch={ch} docs={docs.get(ch.ch)} />)}
+        {snap?.chapters.map(ch => <Chapter key={ch.ch} ch={ch} docs={docs.get(ch.ch)} priorities={PRIORITY_EXERCISES[ch.ch]} />)}
       </div>
 
       {snap && (
         <div id="legend">
+          <span><span className="priority-star" aria-hidden="true">★</span> priority</span>
           <span><span className="cell solved" style={{ width: 22 }}>7</span> solved</span>
           <span><span className="cell solved doc" style={{ width: 22 }}>7</span> solved · reviewed solution (click)</span>
           <span><span className="cell solved wrong doc" style={{ width: 22 }}>7</span> wrong — redo (click for the attempts)</span>

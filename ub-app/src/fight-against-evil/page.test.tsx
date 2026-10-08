@@ -116,6 +116,47 @@ it('reports a missing snapshot without redirecting', async () => {
   expect(document.title).toBe('fight against evil')
 })
 
+it('stars exactly the suggested exercises across missing, solved and reviewed cells', async () => {
+  const snap: Fisica3Snapshot = {
+    updated: '2026-10-08T12:00:00-03:00', course: 'fisica3', book: 'Bauer',
+    next_up: 1, fim: null, has_dates: false,
+    chapters: Array.from({ length: 11 }, (_, i) => ({
+      ch: i + 1, title: `Chapter ${i + 1}`, q_start: 11, p_start: 21, ad_start: 70, max: 90,
+      solved: i === 0 ? [23, 31, 37] : [], wrong: i === 0 ? [31] : [], deadline: null, status: 'no_date',
+    })),
+  }
+  stubFetch(snap, {
+    updated: snap.updated,
+    docs: [
+      { id: '1.23', ch: 1, n: 23, attempt: 1, file: '1.23-1.pdf', reviewed: snap.updated, verdict: 'correct' },
+      { id: '1.31', ch: 1, n: 31, attempt: 1, file: '1.31-1.pdf', reviewed: snap.updated, verdict: 'wrong' },
+      { id: '1.31', ch: 1, n: 31, attempt: 2, file: '1.31-2.pdf', reviewed: snap.updated, verdict: 'wrong' },
+    ],
+  })
+  const container = await render()
+  const expected = `
+    1.23 1.31 1.37 1.41 1.45 1.52 1.54 1.71 1.79 1.80
+    2.27 2.28 2.32 2.33 2.41 2.43 2.45 2.46 2.71 2.74 2.76
+    2.47 2.52 2.56 2.57 2.63 2.66 2.68 2.74 2.76 2.80 2.85
+    3.42 3.44 3.47 3.48 3.51 3.56 3.61 3.70 3.78 3.79
+    4.25 4.26 4.28 4.30 4.49 4.50 4.55 4.79 4.80 4.84
+    6.24 6.27 6.31 6.32 6.40 6.41 6.42 6.51 6.62 6.67
+  `.trim().split(/\s+/)
+  const stars = container.querySelectorAll('#chapters .priority-star')
+  expect(stars.length).toBe(60)
+  expect([...stars].map(star => star.parentElement!.title.split(' — ')[0]).sort()).toEqual([...new Set(expected)].sort())
+  for (const star of stars) {
+    expect(star.textContent).toBe('★')
+    expect(star.getAttribute('aria-label')).toBe('Priority')
+  }
+  expect(container.querySelector('#legend')!.textContent).toContain('★ priority')
+  expect(container.querySelector('#total')!.textContent).toBe('3 / 990 solved · 1 to redo')
+  expect(container.querySelector<HTMLAnchorElement>('a.cell:has(.priority-star)')!.getAttribute('href')).toBe('/fight-against-evil/solutions/1.23-1.pdf')
+  const menu = container.querySelector<HTMLButtonElement>('button.cell:has(.priority-star)')!
+  await act(async () => { menu.click() })
+  expect(container.querySelectorAll('.attempts a')).toHaveLength(2)
+})
+
 it.each([
   ['/fight-against-evil/classroom', ''],
   ['/fight-against-evil/classroom/', '?user=jpg'],
