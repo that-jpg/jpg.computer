@@ -36,6 +36,7 @@ async function render() {
 
 beforeEach(() => {
   localStorage.clear()
+  vi.stubGlobal('location', { pathname: '/fight-against-evil', search: '' })
 })
 
 it.runIf(Boolean(snapshot))('renders the public ledger with solution links, no login needed', async () => {
@@ -106,11 +107,31 @@ it.runIf(Boolean(snapshot))('survives a missing manifest', async () => {
 
 it('reports a missing snapshot without redirecting', async () => {
   const assign = vi.fn()
-  vi.stubGlobal('location', { href: '', assign })
+  vi.stubGlobal('location', { href: '', pathname: '/fight-against-evil', search: '', assign })
   stubFetch(null, null, 404)
   const container = await render()
   expect(container.querySelector('#status')!.textContent).toBe('no snapshot yet')
   expect(container.querySelectorAll('#chapters .chapter').length).toBe(0)
   expect(assign).not.toHaveBeenCalled()
   expect(document.title).toBe('fight against evil')
+})
+
+it.each([
+  ['/fight-against-evil/classroom', ''],
+  ['/fight-against-evil/classroom/', '?user=jpg'],
+  ['/fight-against-evil', '?tab=classroom'],
+])('opens the classroom section at %s%s independently of the book', async (pathname, search) => {
+  vi.stubGlobal('location', { pathname, search })
+  vi.stubGlobal('fetch', vi.fn())
+  const container = await render()
+
+  expect(container.querySelector('#classroom-heading')!.textContent).toBe('Classroom exercises')
+  expect(container.textContent).toContain('No classroom exercises added yet.')
+  expect(container.querySelector('#chapters')).toBeNull()
+  const current = container.querySelectorAll('.fight-tabs a[aria-current="page"]')
+  expect(current.length).toBe(1)
+  expect(current[0].getAttribute('href')).toBe('/fight-against-evil/classroom')
+  expect(container.querySelector('.fight-tabs a[href="/fight-against-evil"]')).not.toBeNull()
+  expect(document.title).toBe('Classroom exercises · fight against evil')
+  expect(fetch).not.toHaveBeenCalled()
 })

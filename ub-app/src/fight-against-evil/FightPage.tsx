@@ -14,7 +14,7 @@ async function fetchJson<T>(url: string): Promise<T> {
   return res.json()
 }
 
-export function FightPage() {
+function ExerciseLedger() {
   const [snap, setSnap] = useState<Fisica3Snapshot | null>(null)
   const [manifest, setManifest] = useState<SolutionsManifest | null>(null)
   const [status, setStatus] = useState('')
@@ -62,14 +62,7 @@ export function FightPage() {
   const newest = latestReview(manifest)
 
   return (
-    <main>
-      <header>
-        <h1>fight against evil <em>física 3</em></h1>
-        <nav id="header-nav">
-          <a href="/">jpg.computer</a>
-        </nav>
-      </header>
-
+    <>
       <p id="intro">
         Every exercise in <em>{snap?.book ?? 'Bauer, Westfall, Dias — Física para Universitários: Eletricidade e Magnetismo'}</em>,
         solved one by one. Each solution is photographed and graded;
@@ -113,6 +106,34 @@ export function FightPage() {
           <span>MC = múltipla escolha · Q = questões · P = problemas (gap = adicionais)</span>
         </div>
       )}
-    </main>
+    </>
   )
+}
+
+export function FightPage() {
+  const params = new URLSearchParams(window.location.search)
+  const path = window.location.pathname.replace(/\/$/, '')
+  const classroom = path.endsWith('/classroom') || params.get('tab') === 'classroom'
+
+  useEffect(() => {
+    if (classroom) document.title = 'Classroom exercises · fight against evil'
+  }, [classroom])
+
+  return <main>
+    <header>
+      <h1>fight against evil <em>física 3</em></h1>
+      <nav id="header-nav"><a href="/">jpg.computer</a></nav>
+    </header>
+    <nav className="fight-tabs" aria-label="Física 3">
+      <a href="/fight-against-evil" aria-current={!classroom ? 'page' : undefined}>Exercícios</a>
+      <a href="/fight-against-evil/classroom" aria-current={classroom ? 'page' : undefined}>Classroom exercises</a>
+    </nav>
+    {classroom ? (
+      <section className="classroom" aria-labelledby="classroom-heading">
+        <h2 id="classroom-heading">Classroom exercises</h2>
+        <p>Exercises from class, outside the textbook.</p>
+        <p>No classroom exercises added yet.</p>
+      </section>
+    ) : <ExerciseLedger />}
+  </main>
 }

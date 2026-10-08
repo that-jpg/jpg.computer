@@ -21,3 +21,10 @@
 #docs-count a:hover { border-bottom-color: #7fffd4; }
 
 #docs-count .muted { color: #666; }
+
+.fight-tabs { display: flex; flex-wrap: wrap; column-gap: 24px; border-bottom: 1px solid #333; margin-bottom: 24px; }
+.fight-tabs a { padding: 10px 0; color: #aaa; text-decoration: none; border-bottom: 2px solid transparent; }
+.fight-tabs a[aria-current] { color: #7fffd4; border-color: #7fffd4; }
+.fight-tabs a:focus-visible { outline: 2px solid #7fffd4; outline-offset: 4px; }
+.classroom { line-height: 1.6; }
+.classroom p { color: #aaa; }
