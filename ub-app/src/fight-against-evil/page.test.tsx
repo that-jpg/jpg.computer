@@ -39,6 +39,51 @@ beforeEach(() => {
   vi.stubGlobal('location', { pathname: '/fight-against-evil', search: '' })
 })
 
+it('shows a worked solution separately from completion and retains the prior attempt', async () => {
+  stubFetch({
+    updated: '2026-10-10T12:00:00-03:00', course: 'fisica3', book: 'Physics',
+    next_up: 1, fim: null, has_dates: false,
+    chapters: [{ ch: 1, title: 'Charges', q_start: 11, p_start: 23, ad_start: 61, max: 80,
+      solved: [], wrong: [], reference: [71], deadline: null, status: 'no_date' }],
+  }, {
+    updated: '2026-10-10T12:00:00-03:00',
+    docs: [
+      { id: '1.71', ch: 1, n: 71, attempt: 1, file: '1.71-1.pdf', reviewed: '2026-10-09', verdict: 'wrong' },
+      { id: '1.71', ch: 1, n: 71, attempt: 2, file: '1.71-2.html', reviewed: '2026-10-10', verdict: 'reference' },
+    ],
+  })
+  const container = await render()
+  expect(container.querySelector('#total')!.textContent).toBe('0 / 80 solved')
+  const cell = container.querySelector<HTMLButtonElement>('#chapters .cell.reference')!
+  expect(cell.textContent).toContain('71')
+  expect(cell.classList.contains('solved')).toBe(false)
+  expect(cell.classList.contains('wrong')).toBe(false)
+  expect(cell.title).toContain('solution available — not solved')
+  await act(async () => { cell.click() })
+  const links = container.querySelectorAll<HTMLAnchorElement>('.attempts a')
+  expect(links[0].getAttribute('href')).toBe('/fight-against-evil/solutions/1.71-1.pdf')
+  expect(links[1].getAttribute('href')).toBe('/fight-against-evil/solutions/1.71-2.html')
+  expect(links[1].textContent).toContain('Worked solution')
+  expect(links[1].textContent).not.toContain('correct')
+})
+
+it('links a reference-only exercise without describing it as reviewed or solved', async () => {
+  stubFetch({
+    updated: '2026-10-10T12:00:00-03:00', course: 'fisica3', book: 'Physics',
+    next_up: 1, fim: null, has_dates: false,
+    chapters: [{ ch: 1, title: 'Charges', q_start: 11, p_start: 23, ad_start: 61, max: 80,
+      solved: [], wrong: [], reference: [71], deadline: null, status: 'no_date' }],
+  }, {
+    updated: '2026-10-10T12:00:00-03:00',
+    docs: [{ id: '1.71', ch: 1, n: 71, attempt: 1, file: '1.71-1.html', reviewed: '2026-10-10', verdict: 'reference' }],
+  })
+  const container = await render()
+  const link = container.querySelector<HTMLAnchorElement>('#chapters a.cell.reference')!
+  expect(link.title).toBe('1.71 — worked solution available — not counted as solved')
+  expect(link.getAttribute('href')).toBe('/fight-against-evil/solutions/1.71-1.html')
+  expect(container.querySelector('#total')!.textContent).toBe('0 / 80 solved')
+})
+
 it.runIf(Boolean(snapshot))('renders the public ledger with solution links, no login needed', async () => {
   const snap = snapshot!
   const first = snap.chapters[0]
@@ -67,7 +112,7 @@ it.runIf(Boolean(snapshot))('renders the public ledger with solution links, no l
   expect(container.querySelectorAll('#chapters .chapter').length).toBe(snap.chapters.length)
   expect(container.querySelectorAll('#chapters .cell').length).toBe(snap.chapters.reduce((sum, ch) => sum + ch.max, 0))
   expect(container.querySelector('#status')!.textContent).toBe('')
-  expect(container.querySelector('#docs-count')!.textContent).toContain(`${2 + flagged.length} reviewed solutions · ${3 + flagged.length} submissions`)
+  expect(container.querySelector('#docs-count')!.textContent).toContain(`${2 + flagged.length} exercises with documents · ${3 + flagged.length} submissions`)
 
   const links = container.querySelectorAll<HTMLAnchorElement>('#chapters a.cell.doc')
   expect(links.length).toBe(1 + flagged.length)

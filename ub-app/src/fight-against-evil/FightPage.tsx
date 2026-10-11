@@ -72,8 +72,8 @@ function ExerciseLedger() {
     <>
       <p id="intro">
         Every exercise in <em>{snap?.book ?? 'Bauer, Westfall, Dias — Física para Universitários: Eletricidade e Magnetismo'}</em>,
-        solved one by one. Each solution is photographed and graded;
-        cells with a white underline link to the solutions that were graded <strong>correct</strong>.
+        solved one by one. Underlined cells link to submitted attempts or worked solutions.
+        Purple cells have a worked solution available and do not count as solved.
       </p>
 
       <div id="topbar">
@@ -82,7 +82,7 @@ function ExerciseLedger() {
         </span>
         {pct != null && <span id="pct">{pct}%</span>}
         <span id="docs-count">
-          {nDocs > 0 && <a href={`${SOLUTIONS_BASE}manifest.json`}>{nDocs} reviewed solution{nDocs === 1 ? '' : 's'}{nSubmissions > nDocs && ` · ${nSubmissions} submissions`}</a>}
+          {nDocs > 0 && <a href={`${SOLUTIONS_BASE}manifest.json`}>{nDocs} exercise{nDocs === 1 ? '' : 's'} with documents{nSubmissions > nDocs && ` · ${nSubmissions} submissions`}</a>}
           {nDocs > 0 && newest && <span className="muted"> · newest {shortDate(new Date(newest))}</span>}
         </span>
         <span id="as-of" className={asOf?.stale ? 'stale' : undefined}>{asOf?.text ?? ''}</span>
@@ -109,6 +109,7 @@ function ExerciseLedger() {
           <span><span className="cell solved" style={{ width: 22 }}>7</span> solved</span>
           <span><span className="cell solved doc" style={{ width: 22 }}>7</span> solved · reviewed solution (click)</span>
           <span><span className="cell solved wrong doc" style={{ width: 22 }}>7</span> wrong — redo (click for the attempts)</span>
+          <span><span className="cell reference" style={{ width: 22 }}>7</span> solution available · not solved</span>
           <span><span className="cell" style={{ width: 22 }}>7</span> missing</span>
           <span><span className="cell stupid" style={{ width: 22 }}>7</span> stupid — skipped, not counted</span>
           <span>MC = múltipla escolha · Q = questões · P = problemas (gap = adicionais)</span>

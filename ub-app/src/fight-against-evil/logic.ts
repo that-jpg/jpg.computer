@@ -7,7 +7,7 @@ export interface SolutionDoc {
   attempt?: number
   file: string
   reviewed: string
-  verdict?: 'correct' | 'wrong'
+  verdict?: 'correct' | 'wrong' | 'reference'
 }
 
 export interface SolutionsManifest {
@@ -19,7 +19,7 @@ export interface Attempt {
   href: string
   attempt: number
   reviewed: string
-  verdict: 'correct' | 'wrong'
+  verdict: 'correct' | 'wrong' | 'reference'
 }
 
 /** chapter → (item number → every reviewed submission, in attempt order). */
@@ -34,7 +34,7 @@ export function docsByChapter(manifest: SolutionsManifest | null): Map<number, M
       href: SOLUTIONS_BASE + encodeURIComponent(doc.file),
       attempt: doc.attempt ?? items.get(doc.n)!.length + 1,
       reviewed: doc.reviewed,
-      verdict: doc.verdict === 'wrong' ? 'wrong' : 'correct',
+      verdict: doc.verdict === 'reference' ? 'reference' : doc.verdict === 'wrong' ? 'wrong' : 'correct',
     })
   }
   for (const items of result.values()) for (const attempts of items.values()) attempts.sort((a, b) => a.attempt - b.attempt)

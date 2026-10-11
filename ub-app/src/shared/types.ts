@@ -181,6 +181,7 @@ export interface Fisica3Chapter {
   wrong: number[]
   /** items marked stupid: skipped on purpose, excluded from the totals */
   stupid?: number[]
+  reference?: number[]
   deadline: string | null
   status: ChapterStatus
 }

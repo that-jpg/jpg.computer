@@ -89,6 +89,7 @@ export function Fisica3Page() {
         <div id="legend">
           <span><span className="cell solved" style={{ width: 22 }}>7</span> solved</span>
           <span><span className="cell solved wrong" style={{ width: 22 }}>7</span> wrong — redo</span>
+          <span><span className="cell reference" style={{ width: 22 }}>7</span> solution available · not solved</span>
           <span><span className="cell" style={{ width: 22 }}>7</span> missing</span>
           <span><span className="cell stupid" style={{ width: 22 }}>7</span> stupid — skipped, not counted</span>
           <span>MC = múltipla escolha · Q = questões · P = problemas (gap = adicionais)</span>

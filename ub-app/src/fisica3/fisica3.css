@@ -249,3 +249,13 @@ button.cell { font: inherit; font-size: 0.66em; padding: 0; cursor: pointer; }
 .attempts .attempt.wrong { color: #fca5a5; }
 .attempts .attempt.correct { color: #86efac; }
 .attempts .when { color: #777; }
+
+.cell.reference {
+  background: #31264d;
+  border-color: #c4b5fd;
+  color: #ede9fe;
+  font-weight: 600;
+}
+
+.cell.reference.doc { border-bottom-color: white; }
+.attempts .attempt.reference { color: #c4b5fd; }

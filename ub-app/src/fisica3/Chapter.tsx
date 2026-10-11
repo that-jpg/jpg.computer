@@ -18,6 +18,7 @@ export function Chapter({ ch, docs, priorities }: { ch: Fisica3Chapter; docs?: R
   const solved = new Set(ch.solved)
   const wrong = wrongSet(ch)
   const stupid = stupidSet(ch)
+  const references = new Set(ch.reference ?? [])
   const total = chapterTotal(ch)
   return (
     <section className="chapter">
@@ -41,11 +42,11 @@ export function Chapter({ ch, docs, priorities }: { ch: Fisica3Chapter; docs?: R
               {Array.from({ length: block.to - block.from + 1 }, (_, i) => block.from + i).map(n => {
                 const attempts = docs?.get(n) ?? []
                 const label = <>{n}{priorities?.includes(n) && <span className="priority-star" role="img" aria-label="Priority">★</span>}</>
-                const className = `cell${solved.has(n) ? ' solved' : ''}${wrong.has(n) ? ' wrong' : ''}${stupid.has(n) ? ' stupid' : ''}${attempts.length ? ' doc' : ''}${block.label === 'P' && n === ch.ad_start ? ' ad-first' : ''}`
-                const state = stupid.has(n) ? 'stupid — skipped' : wrong.has(n) ? 'wrong' : solved.has(n) ? 'solved' : 'missing'
+                const className = `cell${solved.has(n) ? ' solved' : ''}${wrong.has(n) ? ' wrong' : ''}${stupid.has(n) ? ' stupid' : ''}${references.has(n) ? ' reference' : ''}${attempts.length ? ' doc' : ''}${block.label === 'P' && n === ch.ad_start ? ' ad-first' : ''}`
+                const state = references.has(n) ? 'solution available — not solved' : stupid.has(n) ? 'stupid — skipped' : wrong.has(n) ? 'wrong' : solved.has(n) ? 'solved' : 'missing'
                 if (attempts.length === 1) {
                   const only = attempts[0]
-                  const docTitle = only.verdict === 'wrong' ? 'wrong attempt, to redo' : 'solution reviewed as correct'
+                  const docTitle = only.verdict === 'reference' ? 'worked solution available — not counted as solved' : only.verdict === 'wrong' ? 'wrong attempt, to redo' : 'solution reviewed as correct'
                   return (
                     <a key={n} className={className} href={only.href} target="_blank" rel="noopener" title={`${ch.ch}.${n} — ${docTitle}`}>
                       {label}
@@ -58,7 +59,7 @@ export function Chapter({ ch, docs, priorities }: { ch: Fisica3Chapter; docs?: R
                       type="button"
                       className={className}
                       aria-expanded={open === n}
-                      title={`${ch.ch}.${n} — ${attempts.length} submissions, latest ${attempts[attempts.length - 1].verdict}`}
+                      title={`${ch.ch}.${n} — ${references.has(n) ? 'solution available — not solved · ' : ''}${attempts.length} submissions, latest ${attempts[attempts.length - 1].verdict === 'reference' ? 'worked solution' : attempts[attempts.length - 1].verdict}`}
                       onClick={e => {
                         e.stopPropagation()
                         setOpen(open === n ? null : n)
@@ -70,7 +71,7 @@ export function Chapter({ ch, docs, priorities }: { ch: Fisica3Chapter; docs?: R
                       <span className="attempts" onClick={e => e.stopPropagation()}>
                         {attempts.map(a => (
                           <a key={a.attempt} className={`attempt ${a.verdict}`} href={a.href} target="_blank" rel="noopener">
-                            #{a.attempt} {a.verdict}{a.reviewed && <span className="when"> · {shortDate(new Date(a.reviewed))}</span>}
+                            {a.verdict === 'reference' ? 'Worked solution' : `#${a.attempt} ${a.verdict}`}{a.reviewed && <span className="when"> · {shortDate(new Date(a.reviewed))}</span>}
                           </a>
                         ))}
                       </span>

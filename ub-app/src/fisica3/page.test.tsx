@@ -34,9 +34,10 @@ it.runIf(Boolean(snapshot))('renders the real snapshot end to end', async () => 
   const total = snap.chapters.reduce((sum, ch) => sum + ch.max - (ch.stupid ?? []).length, 0)
   const solved = snap.chapters.reduce((sum, ch) => sum + ch.solved.length, 0)
   const wrong = snap.chapters.reduce((sum, ch) => sum + (ch.wrong ?? []).length, 0)
+  const stupid = snap.chapters.reduce((sum, ch) => sum + (ch.stupid ?? []).length, 0)
   const pct = (100 * solved / total).toFixed(1)
 
-  expect(container.querySelector('#total')!.textContent).toBe(`${solved} / ${total} solved${wrong ? ` · ${wrong} to redo` : ''}`)
+  expect(container.querySelector('#total')!.textContent).toBe(`${solved} / ${total} solved${wrong ? ` · ${wrong} to redo` : ''}${stupid ? ` · ${stupid} stupid` : ''}`)
   expect(container.querySelector('#pct')!.textContent).toBe(`${pct}%`)
   expect(document.title).toBe(`ub física 3 · ${pct}%`)
   expect(container.querySelectorAll('#chapters .chapter').length).toBe(snap.chapters.length)
@@ -69,7 +70,8 @@ it.runIf(Boolean(snapshot))('paints wrong items red and counts them as redo', as
   expect(cells[0].classList.contains('solved')).toBe(true)
   expect(cells[0].getAttribute('title')).toBe('1.2 — wrong')
   expect(container.querySelector('#chapters .chapter:first-child .redo')!.textContent).toBe('· 2 to redo')
-  expect(container.querySelector('#total')!.textContent).toMatch(/ · 2 to redo$/)
+  const wrong = snap.chapters.reduce((sum, ch) => sum + ch.wrong.length, 0)
+  expect(container.querySelector('#total .redo')!.textContent).toBe(` · ${wrong} to redo`)
 })
 
 it.runIf(Boolean(snapshot))('lists the error tally under next up, most frequent first, and hides it when empty', async () => {
@@ -121,7 +123,10 @@ it.runIf(Boolean(snapshot))('paints stupid items grey, drops them from the total
   expect(chapter.querySelector('.tally')!.textContent).toBe(`2/${first.max - 3}`)
   expect(chapter.querySelector('.stupid-count')!.textContent).toBe('· 3 stupid')
   const total = snap.chapters.reduce((sum, ch) => sum + ch.max - (ch.stupid ?? []).length, 0)
-  expect(container.querySelector('#total')!.textContent).toBe(`2 / ${total} solved · 3 stupid`)
+  const solved = snap.chapters.reduce((sum, ch) => sum + ch.solved.length, 0)
+  const stupid = snap.chapters.reduce((sum, ch) => sum + (ch.stupid ?? []).length, 0)
+  expect(container.querySelector('#total')!.textContent).toContain(`${solved} / ${total} solved`)
+  expect(container.querySelector('#total .stupid-count')!.textContent).toBe(` · ${stupid} stupid`)
 })
 
 it('redirects to /ub/ without a token', async () => {
