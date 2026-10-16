@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-15T22:35:49-03:00",
+ "updated": "2026-10-15T22:57:49-03:00",
  "docs": [
   {
    "id": "1.23",
@@ -1097,6 +1097,24 @@
    "attempt": 1,
    "file": "7.5-1.pdf",
    "reviewed": "2026-10-15T22:29:55-03:00",
+   "verdict": "correct"
+  },
+  {
+   "id": "7.6",
+   "ch": 7,
+   "n": 6,
+   "attempt": 1,
+   "file": "7.6-1.pdf",
+   "reviewed": "2026-10-15T22:49:10-03:00",
+   "verdict": "correct"
+  },
+  {
+   "id": "7.7",
+   "ch": 7,
+   "n": 7,
+   "attempt": 1,
+   "file": "7.7-1.pdf",
+   "reviewed": "2026-10-15T22:56:21-03:00",
    "verdict": "correct"
   }
  ]
